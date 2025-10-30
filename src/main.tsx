@@ -11,12 +11,11 @@
 import { createRoot } from "react-dom/client";
 
 import GlobalStyle from "./styles/GlobalStyles.tsx";
-import App from "./App.tsx";
+import Mypage from "./pages/MyPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <>
     <GlobalStyle />
-    <App />
+    <Mypage />
   </>
 );
-// 좀 더 편하게 개발하기 위해 Strict Mode 제거.

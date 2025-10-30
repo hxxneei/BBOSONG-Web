@@ -1,22 +1,13 @@
-import React from "react";
+import styled from "styled-components";
+import GlobalStyle from "./styles/GlobalStyles";
+import MyPage from "./pages/MyPage";
 
 function App() {
   return (
-    <div className="app">
-      <div className="app-content">
-        <div
-          className="card-surface"
-          style={{
-            padding: "16px",
-            margin: "16px",
-            fontSize: "16px",
-            fontWeight: 500,
-          }}
-        >
-          모바일 레이아웃 테스트 카드입니다 📱
-        </div>
-      </div>
-    </div>
+    <>
+      <GlobalStyle />
+      <MyPage />
+    </>
   );
 }
 
