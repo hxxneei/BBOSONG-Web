@@ -9,7 +9,7 @@ const GlobalStyle = createGlobalStyle`
 
   /* 레이어 토큰 (z-index 통일) */
   :root {
-    --bg: #F3F5F7;            /* 전체 배경 */
+    --bg: #FFFFFF;            /* 전체 배경 */
     --surface: #FFFFFF;       /* 카드/바탕 */
     --border: rgba(15, 23, 42, .06); /* 아주 얕은 선 */
     --shadow: 0 1px 2px rgba(0,0,0,.04); /* 약한 그림자 */

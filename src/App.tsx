@@ -3,7 +3,8 @@ import GlobalStyle from "./styles/GlobalStyles";
 // import FabricScanner from "./pages/FabricScanner";
 //import Loading from "./pages/Loading";
 // import ResultPage from "./pages/ResultPage";
-import ClosetPage from "./pages/ClosetPage";
+// import ClosetPage from "./pages/ClosetPage";
+import CategoryPage from "./pages/CategoryPage";
 function App() {
   return (
     <>
@@ -12,7 +13,8 @@ function App() {
       <FabricScanner /> */}
       {/* <Loading /> */}
       {/* <ResultPage /> */}
-      <ClosetPage />
+      {/* <ClosetPage /> */}
+      <CategoryPage />
     </>
   );
 }
