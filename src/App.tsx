@@ -1,9 +1,9 @@
 import GlobalStyle from "./styles/GlobalStyles";
 // import MyPage from "./pages/MyPage";
 // import FabricScanner from "./pages/FabricScanner";
-// import Loading from "./pages/Loading";
-import ResultPage from "./pages/ResultPage";
-
+//import Loading from "./pages/Loading";
+// import ResultPage from "./pages/ResultPage";
+import ClosetPage from "./pages/ClosetPage";
 function App() {
   return (
     <>
@@ -11,7 +11,8 @@ function App() {
       {/* <MyPage />
       <FabricScanner /> */}
       {/* <Loading /> */}
-      <ResultPage />
+      {/* <ResultPage /> */}
+      <ClosetPage />
     </>
   );
 }

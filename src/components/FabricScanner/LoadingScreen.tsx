@@ -1,8 +1,8 @@
 import styled, { keyframes } from "styled-components";
 
 type Props = {
-  title?: string;
-  subtitle?: string;
+  title: string;
+  subtitle: string;
 };
 
 const spin = keyframes`
@@ -36,7 +36,7 @@ const Spinner = styled.div`
 const GAP_SLOT = 0;
 
 const Bar = styled.span<{ i: number }>`
-  --size: 19px; /* 막대 두께 */
+  --size: 19px;
   --len: ${(p) => `${Math.max(10, 60 - p.i * 1)}px`};
 
   --deg: ${(p) => p.i * 49}deg; /* 회전 각도 변수화 */
