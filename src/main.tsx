@@ -8,14 +8,15 @@
 //     <App />
 //   </StrictMode>,
 // )
+
 import { createRoot } from "react-dom/client";
 
 import GlobalStyle from "./styles/GlobalStyles.tsx";
-import Mypage from "./pages/MyPage.tsx";
+import App from "./App";
 
 createRoot(document.getElementById("root")!).render(
   <>
     <GlobalStyle />
-    <Mypage />
+    <App />
   </>
 );

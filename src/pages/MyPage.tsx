@@ -12,9 +12,9 @@ import {
   LogOut,
   UserX,
 } from "lucide-react";
-import { HeaderWrapper } from "../components/HeaderWrapper";
-import { SectionWrapper } from "../components/SectionWrapper";
-import { InfoRow } from "../components/Row";
+import { HeaderWrapper } from "../components/mypage/HeaderWrapper";
+import { SectionWrapper } from "../components/mypage/SectionWrapper";
+import { InfoRow } from "../components/mypage/Row";
 
 const MyPage: React.FC = () => {
   const handleBack = () => window.history.back();
