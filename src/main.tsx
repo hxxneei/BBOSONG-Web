@@ -14,8 +14,6 @@ import { createRoot } from "react-dom/client";
 import GlobalStyle from "./styles/GlobalStyles.tsx";
 import App from "./App";
 
-console.log("BOOT");
-
 createRoot(document.getElementById("root")!).render(
   <>
     <GlobalStyle />

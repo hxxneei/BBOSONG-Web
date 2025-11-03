@@ -14,7 +14,7 @@ const Shell = styled.div`
   place-items: start center;
   background: #ffffff;
   color: #111827;
-  padding: 24px 16px 32px;
+  padding: 24px 16px 0px;
 `;
 const Phone = styled.main``;
 
