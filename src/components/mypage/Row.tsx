@@ -30,9 +30,15 @@ export const InfoRow: React.FC<InfoRowProps> = ({
         <Label>{label}</Label>
       </LeftWrap>
       <RightWrap>
-        {value && <Value>{value}</Value>}
-        {hint && <Hint>{hint}</Hint>}
-        {clickable && <ChevronRight size={18} aria-hidden />}
+        <ValueHintWrap>
+          {value && <Value>{value}</Value>}
+          {(hint || clickable) && (
+            <BottomRow>
+              {hint && <Hint>{hint}</Hint>}
+              {clickable && <ChevronRight size={18} aria-hidden="true" />}
+            </BottomRow>
+          )}
+        </ValueHintWrap>
       </RightWrap>
     </Row>
   );
@@ -45,7 +51,6 @@ const Row = styled.div<{ $clickable?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
   background: #fff;
   ${(p) => p.$clickable && `cursor:pointer;`}
   &:first-child {
@@ -59,28 +64,28 @@ const Row = styled.div<{ $clickable?: boolean }>`
 const LeftWrap = styled.div`
   display: inline-flex;
   align-items: center;
+
   gap: 10px;
 `;
 
 const RightWrap = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: #374151;
+
+  gap: 8x;
+  color: #767676;
 `;
 
 const IconWrap = styled.span`
-  width: 20px;
-  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: #767676;
 `;
 
 const Label = styled.span`
-  font-size: 15px;
-  color: #111827;
+  font-size: 16px;
+  color: #767676;
 `;
 
 const Value = styled.span`
@@ -88,7 +93,19 @@ const Value = styled.span`
   color: #2563eb; // blue like the mockup
 `;
 
+const ValueHintWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+`;
+
 const Hint = styled.span`
   font-size: 12px;
-  color: #9ca3af;
+  color: #767676;
+`;
+const BottomRow = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px; /* '변경하기'와 '>' 사이 간격 */
+  margin-top: 2px; /* 위의 value와 살짝 띄우기 */
 `;

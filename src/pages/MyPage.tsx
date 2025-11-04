@@ -2,6 +2,8 @@ import { useViewportVH } from "../hooks/useViewportVH";
 
 import React from "react";
 import styled from "styled-components";
+import { Icon } from "@iconify/react";
+
 import {
   Calendar,
   Mail,
@@ -27,7 +29,7 @@ const MyPage: React.FC = () => {
       {/* 내 정보 */}
       <SectionWrapper title="내 정보">
         <InfoRow
-          icon={<User2 size={18} />}
+          icon={<Icon icon="bi:bar-chart" width="20" height="20" />}
           label="닉네임"
           value={<Strong>홍길동</Strong>}
         />
@@ -41,16 +43,14 @@ const MyPage: React.FC = () => {
           label="생년월일"
           value="2000.00.00"
           hint="변경하기"
-          onClick={() => {
-            /* open dialog */
-          }}
+          onClick={() => {}}
         />
       </SectionWrapper>
 
       {/* 옷장 관리 */}
       <SectionWrapper title="옷장 관리">
         <InfoRow
-          icon={<Shirt size={18} />}
+          icon={<Icon icon="mdi:hanger" width="20" height="20" />}
           label="저장한 옷"
           hint="더보기"
           onClick={() => {
@@ -62,7 +62,7 @@ const MyPage: React.FC = () => {
       {/* 내 세탁소 관리 */}
       <SectionWrapper title="내 세탁소 관리">
         <InfoRow
-          icon={<Heart size={18} />}
+          icon={<Icon icon="mdi:washing-machine" width="22" height="20" />}
           label="즐겨찾는 매장"
           hint="더보기"
           onClick={() => {
@@ -74,7 +74,7 @@ const MyPage: React.FC = () => {
       {/* 계정 관리 */}
       <SectionWrapper title="계정 관리">
         <InfoRow
-          icon={<LogOut size={18} />}
+          icon={<Icon icon="bi:chat-dots" width="20" height="20" />}
           label="로그아웃"
           onClick={() => {
             /* logout */
@@ -95,7 +95,6 @@ const MyPage: React.FC = () => {
 export default MyPage;
 
 const Screen = styled.main`
-  background: #f3f5f7;
   min-height: 100dvh;
   color: #111827;
   /* iOS safe area */
@@ -105,4 +104,5 @@ const Screen = styled.main`
 const Strong = styled.strong`
   font-weight: 600;
   color: #2563eb;
+  font-size: 14px;
 `;
