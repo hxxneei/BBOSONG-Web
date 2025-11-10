@@ -77,6 +77,13 @@ type Props = {
   onToggleBookmark?: () => void; // 외부에서 토글 주입 시
   onRescan?: () => void;
   onSave?: (data: ResultData) => void;
+
+  title?: string; // 기본 "분석 결과"
+  rightIcon?: string; // 예: "mdi:trash-can-outline"
+  onRightIconClick?: () => void; // 우측 아이콘 클릭
+  tags?: string[]; // 해시태그 (없으면 표시 안함)
+  showButtons?: boolean; // 하단 버튼 노출 (기본 true)
+  showBookmark?: boolean;
 };
 
 export default function ResultPage({
@@ -86,6 +93,11 @@ export default function ResultPage({
   onToggleBookmark,
   onRescan,
   onSave,
+
+  tags,
+  showButtons = true,
+
+  showBookmark = true,
 }: Props) {
   //   const navigate = useNavigate();
 
@@ -105,20 +117,23 @@ export default function ResultPage({
           bookmarked={isBookmarked}
           onBack={handleBack}
           onToggleBookmark={handleToggleBookmark}
+          showBookmark={showBookmark}
         />
 
-        <ResultCard data={data} />
+        <ResultCard data={data} tags={tags} />
 
-        <Bottom>
-          <BtnRow>
-            <GhostBtn onClick={onRescan} aria-disabled={!onRescan}>
-              다시 검색하기
-            </GhostBtn>
-            <PrimaryBtn onClick={() => onSave?.(data)}>
-              결과 저장하기
-            </PrimaryBtn>
-          </BtnRow>
-        </Bottom>
+        {showButtons && (
+          <Bottom>
+            <BtnRow>
+              <GhostBtn onClick={onRescan} aria-disabled={!onRescan}>
+                다시 검색하기
+              </GhostBtn>
+              <PrimaryBtn onClick={() => onSave?.(data)}>
+                결과 저장하기
+              </PrimaryBtn>
+            </BtnRow>
+          </Bottom>
+        )}
       </Phone>
     </Shell>
   );

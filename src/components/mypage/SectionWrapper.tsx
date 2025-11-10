@@ -19,18 +19,18 @@ export const SectionWrapper: React.FC<SectionWrapperProps> = ({
 };
 
 const Section = styled.section`
-  padding: 16px 0;
+  padding: 8px 14px;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
+  padding-bottom: 6px;
   color: #111827;
-  margin: 0 16px 10px;
+  margin: 0 16px 0px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 `;
 
 const Block = styled.div`
   background: #fff;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 `;

@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 interface HeaderWrapperProp {
   title: String;
   onBack?: () => void;
@@ -16,7 +16,7 @@ export const HeaderWrapper: React.FC<HeaderWrapperProp> = ({
     <HeaderBar role="banner">
       <Left>
         <BackButton aria-label="뒤로가기" onClick={onBack}>
-          <ArrowLeft size={22} />
+          <ChevronLeft size={32} />
         </BackButton>
       </Left>
       <Center aria-live="polite">{title}</Center>
@@ -28,6 +28,7 @@ export const HeaderWrapper: React.FC<HeaderWrapperProp> = ({
 const HeaderBar = styled.header`
   position: sticky;
   top: 0;
+
   z-index: 10;
   display: grid;
   grid-template-columns: 48px 1fr 48px;
@@ -35,7 +36,6 @@ const HeaderBar = styled.header`
   height: 56px;
   padding: 0 8px;
   background: #fff;
-  border-bottom: 1px solid raba(0, 0, 0, 0.06);
 `;
 
 const Left = styled.div`
@@ -59,6 +59,7 @@ const BackButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: #aeaeae;
   width: 40px;
   height: 40px;
   border: 0;
