@@ -41,6 +41,10 @@ type Props = {
   onBack?: () => void;
   bookmarked?: boolean;
   onToggleBookmark?: () => void;
+  rightIcon?: string;
+  onRightIconClick?: () => void;
+
+  showBookmark?: boolean;
 };
 
 export default function TopBar({
@@ -48,6 +52,9 @@ export default function TopBar({
   onBack,
   bookmarked = false,
   onToggleBookmark,
+  rightIcon,
+  onRightIconClick,
+  showBookmark = true,
 }: Props) {
   return (
     <Bar>
@@ -56,18 +63,33 @@ export default function TopBar({
       </IconBtn>
 
       <Title>{title}</Title>
+      <RightBox>
+        {showBookmark && (
+          <BookmarkBtn
+            aria-label="즐겨찾기"
+            aria-pressed={bookmarked}
+            active={bookmarked}
+            onClick={onToggleBookmark}
+          >
+            <Icon
+              icon={bookmarked ? "ic:baseline-bookmark" : "ic:outline-bookmark"}
+              width="31"
+            />
+          </BookmarkBtn>
+        )}
 
-      <BookmarkBtn
-        aria-label="즐겨찾기"
-        aria-pressed={bookmarked}
-        active={bookmarked}
-        onClick={onToggleBookmark}
-      >
-        <Icon
-          icon={bookmarked ? "ic:baseline-bookmark" : "ic:outline-bookmark"}
-          width="31"
-        />
-      </BookmarkBtn>
+        {rightIcon && (
+          <IconBtn aria-label="오른쪽 아이콘" onClick={onRightIconClick}>
+            <Icon icon={rightIcon} width="26" color="#6B7280" />
+          </IconBtn>
+        )}
+      </RightBox>
     </Bar>
   );
 }
+const RightBox = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px; /* 북마크와 trash 아이콘 사이 여백 */
+`;
