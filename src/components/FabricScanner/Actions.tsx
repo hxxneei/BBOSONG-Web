@@ -3,12 +3,15 @@
 import styled from "styled-components";
 import Button from "./Button";
 
-type ActionProps = {
+type ActionsProps = {
   onStartCamera: () => void;
   onPickGallery: () => void;
 };
 
-export default function Action({ onStartCamera, onPickGallery }: ActionProps) {
+export default function Actions({
+  onStartCamera,
+  onPickGallery,
+}: ActionsProps) {
   return (
     <Wrap>
       <Button label="촬영 시작하기" onClick={onStartCamera} variant="primary" />
