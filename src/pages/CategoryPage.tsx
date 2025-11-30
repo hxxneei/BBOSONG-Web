@@ -1,4 +1,4 @@
-import SearchBar from "../components/CategoryPage/SearchBar";
+import SearchBar from "../common/SearchBar";
 import ClothGrid from "../components/CategoryPage/ClothGrid";
 import CategoryData from "../data/CategoryData";
 import Header from "../components/CategoryPage/Header";
