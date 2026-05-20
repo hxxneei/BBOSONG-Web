@@ -6,31 +6,34 @@ import camera from "../assets/navBtnIcon/camera.svg";
 import chat from "../assets/navBtnIcon/chat.svg";
 import mypage from "../assets/navBtnIcon/mypage.svg";
 
+import { useNavigate } from "react-router-dom";
+
 const BottomNav = () => {
+  const navigate = useNavigate();
   return (
     <Bar>
-      <Item>
+      <Item onClick={() => navigate("/main-home")}>
         <Icon src={home} />
         <Label>홈 화면</Label>
       </Item>
 
-      <Item>
+      <Item onClick={() => navigate("/mapview")}>
         <Icon src={map} />
         <Label>지도</Label>
       </Item>
 
       <CenterWrap>
-        <CenterBtn type="button">
-          <CenterIcon src={camera} />
+        <CenterBtn type="button" onClick={() => navigate("/fabric-scanner")}>
+          <CenterIcon src={camera} alt="camera" />
         </CenterBtn>
       </CenterWrap>
 
-      <Item>
+      <Item onClick={() => navigate("/chatpage")}>
         <Icon src={chat} />
         <Label>챗봇</Label>
       </Item>
 
-      <Item>
+      <Item onClick={() => navigate("/mypage")}>
         <Icon src={mypage} />
         <Label>마이 페이지</Label>
       </Item>

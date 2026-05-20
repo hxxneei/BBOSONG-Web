@@ -1,4 +1,3 @@
-// src/components/common/HeartButton.tsx
 import { useState } from "react";
 import styled from "styled-components";
 import { Icon } from "@iconify/react";

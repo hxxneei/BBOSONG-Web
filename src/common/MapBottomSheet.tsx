@@ -1,4 +1,3 @@
-// src/components/LaundryBottomSheet.tsx
 import React, { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
