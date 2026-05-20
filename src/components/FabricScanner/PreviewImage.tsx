@@ -1,7 +1,8 @@
 import styled from "styled-components";
+
 import Camera from "../../assets/camera.png";
 type Props = {
-  aspectRatio?: number; // 기본 16/9
+  aspectRatio?: number;
 };
 
 export default function CameraIllustration({ aspectRatio = 16 / 9 }: Props) {

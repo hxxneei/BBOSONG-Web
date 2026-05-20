@@ -1,4 +1,3 @@
-// src/components/Closet/SearchBar.tsx
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
 

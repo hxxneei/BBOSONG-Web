@@ -1,4 +1,3 @@
-// src/components/TopBar.tsx
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
 
@@ -32,8 +31,8 @@ const Title = styled.h1`
   margin: 0;
 `;
 
-const BookmarkBtn = styled(IconBtn)<{ active?: boolean }>`
-  color: ${({ active }) => (active ? "#4B80FC" : "#111827")};
+const BookmarkBtn = styled(IconBtn)<{ $active: boolean }>`
+  color: ${(props) => (props.$active ? "#4B80FC" : "#AEAEAE")};
 `;
 
 type Props = {
@@ -68,7 +67,7 @@ export default function TopBar({
           <BookmarkBtn
             aria-label="즐겨찾기"
             aria-pressed={bookmarked}
-            active={bookmarked}
+            $active={bookmarked}
             onClick={onToggleBookmark}
           >
             <Icon
