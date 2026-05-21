@@ -28,12 +28,17 @@ const Login: React.FC = () => {
       const res = await postLoginLocal({ loginId, password });
 
       if (res.isSuccess) {
-        // 성공 시 토큰 저장
+        // 1. 토큰 저장
         localStorage.setItem("accessToken", res.result.accessToken);
         localStorage.setItem("refreshToken", res.result.refreshToken);
 
+        // 2. 백엔드가 준 nickname이 null이거나 없으면 프론트에서 임시값 강제 주입!
+        // 만약 백엔드가 nickname을 준다면 그 값을 그대로 쓰고, 없으면 "보송이회원"을 넣습니다.
+        const userNickname = res.result.nickname || "보송이회원";
+        localStorage.setItem("nickname", userNickname);
+
         alert("로그인 성공");
-        navigate("/main-home"); // 로그인 후 메인 페이지로 이동
+        navigate("/main-home");
       }
     } catch (error: any) {
       console.error("로그인 실패:", error);

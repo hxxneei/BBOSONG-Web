@@ -3,7 +3,7 @@ import { postReissue } from "./auth";
 
 const axiosInstance = axios.create({
   baseURL: "https://api.bbosongi.com/api",
-  timeout: 3000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
     accept: "*/*",

@@ -84,26 +84,35 @@ import { sendChatMessage } from "../api/chat";
 const ChatPage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [input, setInput] = useState("");
-  const [userName, setUserName] = useState("홍길동");
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem("nickname") || "회원";
+  });
   const [conversationId, setConversationId] = useState<string | null>(null);
+
   const [messages, setMessages] = useState<
     Array<{ from: string; text: string }>
-  >([{ from: "bot", text: "홍길동님 안녕하세요! 무엇을 도와드릴까요? 😊" }]);
+  >(() => {
+    const savedMessages = localStorage.getItem("chat_history");
+    return savedMessages
+      ? JSON.parse(savedMessages)
+      : [{ from: "bot", text: "홍길동님 안녕하세요! 무엇을 도와드릴까요? 😊" }];
+  });
 
   useEffect(() => {
-    // 콘솔로 주입한 가짜 이름이 있으면 꺼내오기
     const savedName = localStorage.getItem("userName");
     if (savedName) {
       setUserName(savedName);
-      setMessages([
-        {
-          from: "bot",
-          text: `${savedName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
-        },
-      ]);
+
+      if (!localStorage.getItem("chat_history")) {
+        setMessages([
+          {
+            from: "bot",
+            text: `${savedName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
+          },
+        ]);
+      }
     }
   }, []);
-
   const onSendMessage = async () => {
     if (!input.trim()) return;
 

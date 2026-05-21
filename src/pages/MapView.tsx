@@ -27,7 +27,7 @@ export default function MapView() {
     }
 
     let script = document.querySelector(
-      'script[data-kakao-sdk="true"]'
+      'script[data-kakao-sdk="true"]',
     ) as HTMLScriptElement | null;
 
     if (!script) {
@@ -97,7 +97,7 @@ export default function MapView() {
             const markerImage = new kakao.maps.MarkerImage(
               imageSrc,
               imageSize,
-              imageOption
+              imageOption,
             );
 
             new kakao.maps.Marker({
@@ -120,7 +120,7 @@ export default function MapView() {
                   const laundryMarkerImage = new kakao.maps.MarkerImage(
                     LaundryMarker,
                     laundryImageSize,
-                    laundryImageOption
+                    laundryImageOption,
                   );
 
                   data.forEach((place) => {
@@ -161,12 +161,12 @@ export default function MapView() {
               {
                 location: loc, // 내 위치 기준으로 검색
                 radius: 2000, // 반경 2km
-              }
+              },
             );
           },
           (err) => {
             console.error("위치 정보를 가져오지 못했습니다.", err);
-          }
+          },
         );
       } else {
         console.error("이 브라우저는 geolocation을 지원하지 않습니다.");
