@@ -1,46 +1,83 @@
-import React from "react";
 import styled from "styled-components";
-import LeftBackBtn from "../../assets/LeftBackBtn.svg";
 import PlusIcon from "../../assets/MainHome/PlusIcon.svg";
 import HangerIcon from "../../assets/MainHome/HangerIcon.svg";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import png1 from "../../assets/categorydummy/1.png";
-import png2 from "../../assets/categorydummy/2.png";
+import axiosInstance from "../../api/axiosInstance";
+import { type ClothesItem } from "../../api/clothes";
+import { Icon } from "@iconify/react";
 
 const MyClosetCard: React.FC = () => {
-  // 나중에 서버 데이터로 바뀔 더미 데이터
-  const dummyItems = [
-    { id: 1, name: "아디다스 크롭", img: png1 },
-    { id: 2, name: "폴로 코튼 케이블 니트", img: png2 },
-  ];
   const navigate = useNavigate();
+  const [favorites, setFavorites] = useState<ClothesItem[]>([]);
+  const userNickname = localStorage.getItem("nickname") || "보송이";
+
+  useEffect(() => {
+    const fetchHomeFavorites = async () => {
+      try {
+        const res = await axiosInstance.get("clothes/favorites");
+        if (res.data.isSuccess) {
+          const top5 = res.data.result.slice(0, 5);
+          setFavorites(top5);
+        }
+      } catch (err) {
+        console.error("홈 맞춤 옷장 데이터를 불러오지 못했습니다. ", err);
+      }
+    };
+    fetchHomeFavorites();
+  }, []);
+
+  const emptyCount = 5 - favorites.length;
 
   return (
     <CardContainer>
       <Header>
         <TitleGroup>
-          <UserName>홍길동</UserName>
+          <UserName>{userNickname}</UserName>
           <TitleText>님 맞춤 옷장</TitleText>
           <HangerImg src={HangerIcon} alt="옷걸이" />
         </TitleGroup>
         <ShortcutBtn onClick={() => navigate("/closetpage")}>
           바로가기
-          <FlipIcon src={LeftBackBtn} alt="바로가기" />
+          <Icon
+            icon="mingcute:right-line"
+            width={14}
+            height={14}
+            color="#888888"
+          />
         </ShortcutBtn>
       </Header>
 
       <ScrollWrapper>
-        {/* 기존 아이템들 */}
-        {dummyItems.map((item) => (
-          <ClosetItem key={item.id}>
-            <ItemImg src={item.img} alt={item.name} />
-            <ItemName>{item.name}</ItemName>
-          </ClosetItem>
-        ))}
+        {favorites.map((item) => {
+          const cleanImgUrl = item.imageUrl
+            ? item.imageUrl.replace(/^"|"$/g, "").trim()
+            : "";
 
-        {/* 비어있는 플러스 아이콘 2개 */}
-        {[1, 2].map((i) => (
-          <EmptyItem key={`empty-${i}`}>
+          return (
+            <ClosetItem
+              key={item.clothesId}
+              onClick={() => navigate(`/my-closet/${item.clothesId}`)}
+            >
+              {cleanImgUrl && !cleanImgUrl.includes("example.com") && (
+                <ItemImg
+                  src={cleanImgUrl}
+                  alt={item.name}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+              <ItemName>{item.name}</ItemName>
+            </ClosetItem>
+          );
+        })}
+
+        {Array.from({ length: emptyCount }).map((_, index) => (
+          <EmptyItem
+            key={`empty-${index}`}
+            onClick={() => navigate("/closetpage")}
+          >
             <img src={PlusIcon} alt="추가하기" style={{ width: "24px" }} />
           </EmptyItem>
         ))}
@@ -119,7 +156,7 @@ const ClosetItem = styled.div`
   /* 너비 고정: flex-grow(0), flex-shrink(0), width(110px) */
   flex: 0 0 110px;
 
-  height: 110px;
+  height: 150px;
 
   background: #fff;
   border-radius: 16px;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import * as S from "../components/FirstPage/OnboardingTitle";
 
 import preview from "../assets/FirstPage/preview.svg";
@@ -7,8 +7,8 @@ import bbosongFinal from "../assets/FirstPage/bbosongFinal.svg";
 import cameraPreview from "../assets/FirstPage/cameraPreview.svg";
 
 const FirstPage: React.FC = () => {
-  // const navigate = useNavigate();
   const [page, setPage] = useState(0);
+  const navigate = useNavigate();
 
   // 1페이지용 말풍선 데이터
   const bubbles = [
@@ -29,35 +29,25 @@ const FirstPage: React.FC = () => {
           </S.Title>
         )}
         {page === 1 && (
-          <>
-            <S.Title>
-              이제, 세탁메이트 <span className="highlight">뽀송이</span>와
-              <br />
-              <span className="highlight">스마트</span>하게 빨래해요
-            </S.Title>
-            <S.ImageGrid>
-              <img src={preview} alt="preview" />
-            </S.ImageGrid>
-          </>
+          <S.Title>
+            이제, 세탁메이트 <span className="highlight">뽀송이</span>와
+            <br />
+            <span className="highlight">스마트</span>하게 빨래해요
+          </S.Title>
         )}
         {page === 2 && (
-          <>
-            <S.Title>
-              <span className="highlight">사진 한 장</span>으로 세탁 끝!
-              <br />
-              나만의 <span className="highlight">맞춤 옷장</span>에 저장!
-            </S.Title>
-            <img
-              src={cameraPreview}
-              alt="cameraPreview"
-              style={{
-                width: "350px",
-                marginTop: "50px",
-                display: "block",
-                margin: "auto",
-              }}
-            />
-          </>
+          <S.Title>
+            <span className="highlight">사진 한 장</span>으로 세탁 끝!
+            <br />
+            나만의 <span className="highlight">맞춤 옷장</span>에 저장!
+          </S.Title>
+        )}
+        {page === 3 && (
+          <S.Title>
+            뽀송이와 함께
+            <br />
+            세탁하러 가볼까요?
+          </S.Title>
         )}
       </div>
 
@@ -72,19 +62,39 @@ const FirstPage: React.FC = () => {
           </S.BubbleList>
         )}
 
+        {page === 1 && (
+          <S.ImageGrid>
+            <img
+              src={preview}
+              alt="preview"
+              style={{ width: "95%", height: "auto" }}
+            />
+          </S.ImageGrid>
+        )}
+
+        {page === 2 && (
+          <S.ImageGrid>
+            <img
+              src={cameraPreview}
+              alt="cameraPreview"
+              style={{ width: "290px", height: "auto" }}
+            />
+          </S.ImageGrid>
+        )}
+
         {page === 3 && (
-          <div style={{ textAlign: "center" }}>
+          <S.ImageGrid>
             <img
               src={bbosongFinal}
               alt="final"
-              style={{ width: "250px", marginBottom: "20px" }}
+              style={{
+                width: "114px",
+                height: "auto",
+                display: "block",
+                margin: "0 auto",
+              }}
             />
-            <S.Title>
-              뽀송이와 함께
-              <br />
-              세탁하러 가볼까요?
-            </S.Title>
-          </div>
+          </S.ImageGrid>
         )}
       </S.PageWrapper>
 
@@ -95,12 +105,12 @@ const FirstPage: React.FC = () => {
           ))}
         </S.IndicatorContainer>
 
-        {/* <S.StyledButton
+        <S.StyledButton
           $isStart={page === 3}
           onClick={() => (page < 3 ? setPage(page + 1) : navigate("/login"))}
         >
           {page === 3 ? "시작하기" : "다음"}
-        </S.StyledButton> */}
+        </S.StyledButton>
       </S.BottomBtnWrap>
     </S.Container>
   );

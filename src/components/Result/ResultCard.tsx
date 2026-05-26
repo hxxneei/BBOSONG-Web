@@ -20,6 +20,7 @@ const Card = styled.section`
   background: #fff;
 
   overflow: hidden;
+  margin: 0 auto;
 
   width: 340px;
 `;
@@ -38,7 +39,6 @@ const ProductTitle = styled.h2`
   font-size: 20px;
   font-weight: 800;
   line-height: 0;
-  // ...........................................
   line-height: 1.2;
   margin: 0;
 `;
@@ -85,48 +85,52 @@ const Row = styled.div`
 // (소재 + 색상 + 세탁방법 + 주의사항)
 const Dt = styled.dt`
   margin: 0;
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 600;
   color: #4b80fc;
 `;
 
 // (소재 + 색상_right)
 const Dd = styled.dd`
-  font-size: 14.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  margin-left: 50px;
+  margin-left: 0px;
 
   ul {
     list-style: none;
 
     margin: 0;
-    padding-left: 2px;
+    padding: 0px;
   }
 `;
 
 //(세탁 방법 + 주의사항)
-
 const Bullet = styled.li.withConfig({
   shouldForwardProp: (prop) => prop !== "highlight",
 })<{ highlight: boolean }>`
   position: relative;
   list-style: none;
-  padding-left: 15px;
 
-  font-size: 14.5px;
+  padding-left: 14px;
+
+  font-size: 12.5px;
   font-weight: 600;
   color: ${({ highlight }) => (highlight ? "#4B80FC" : "#111827")};
+  line-height: 1.5;
 
   & + & {
-    margin-top: 4px;
+    margin-top: 6px;
   }
 
   &::before {
     content: "";
     position: absolute;
+
     left: 0;
-    top: 0.85em; /* 점의 수직 위치 미세조정 */
+
+    top: 0.75em;
     transform: translateY(-50%);
+
     width: 4px;
     height: 4px;
     border-radius: 50%;
@@ -138,10 +142,6 @@ export default function ResultCard({ data, tags }: Props) {
   const d = data;
   return (
     <Card>
-      {/* <Head>
-        <Path>{d.categoryPath}</Path>
-        <ProductTitle>{d.name}</ProductTitle>
-      </Head> */}
       <Head>
         <Path>{d.categoryPath}</Path>
         <TitleRow>
@@ -216,7 +216,7 @@ const Tag = styled.span`
   border-radius: 999px;
   background: #edf3ff;
   color: #4b80fc;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
 `;
 const TitleRow = styled.div`

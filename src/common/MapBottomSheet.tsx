@@ -18,21 +18,20 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   place: KakaoPlace | null;
-  // bookmarked: boolean;
-  // onToggleBookmark: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 };
-const LaundryBottomSheet = ({ isOpen, onClose, place }: Props) => {
+
+const LaundryBottomSheet = ({
+  isOpen,
+  onClose,
+  place,
+  isFavorite,
+  onToggleFavorite,
+}: Props) => {
   const [isVisible, setIsVisible] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
   const [translateY, setTranslateY] = useState(0);
-
-  // 북마크
-  const [bookmarked, setBookmarked] = useState(false);
-
-  const onToggleBookmark = () => {
-    setBookmarked((prev) => !prev);
-  };
-  //
 
   useEffect(() => {
     if (isOpen && place) {
@@ -96,12 +95,15 @@ const LaundryBottomSheet = ({ isOpen, onClose, place }: Props) => {
           </HeaderImage>
           <TitleRow>
             <Title>{place.place_name}</Title>
-            <BookmarkBtn active={bookmarked} onClick={onToggleBookmark}>
-              <Icon icon="mdi:bookmark" width="30" />
+
+            <BookmarkBtn $active={isFavorite} onClick={onToggleFavorite}>
+              <Icon
+                icon={isFavorite ? "mdi:bookmark" : "mdi:bookmark-outline"}
+                width="30"
+              />
             </BookmarkBtn>
           </TitleRow>
           <Address>{displayAddress}</Address>
-          {/* {place.phone && <Phone>☎ {place.phone}</Phone>} */}
 
           <RatingRow>
             <Stars>★★★★★ 4.1</Stars>
@@ -223,20 +225,20 @@ const TitleRow = styled.div`
   margin-top: 40px;
 `;
 
-const BookmarkBtn = styled.button<{ active?: boolean }>`
+const BookmarkBtn = styled.button<{ $active?: boolean }>`
   background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
 
   width: 32px;
-  height: 32px; /* 정사각형으로 해야 정확히 가운데 맞음 */
+  height: 32px;
 
-  display: flex; /* ⭐ 이거 추가해야 vertical-center 가능 */
-  align-items: center; /* 세로 가운데 */
-  justify-content: center; /* 가로 가운데 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  color: ${({ active }) => (active ? "#4B80FC" : "#BFC5D2")};
+  color: ${({ $active }) => ($active ? "#4B80FC" : "#BFC5D2")};
 `;
 
 const Address = styled.p`

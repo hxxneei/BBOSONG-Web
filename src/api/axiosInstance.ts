@@ -41,7 +41,6 @@ axiosInstance.interceptors.response.use(
             localStorage.setItem("refreshToken", res.result.refreshToken);
 
             originalRequest.headers.Authorization = `Bearer ${res.result.accessToken}`;
-
             return axiosInstance(originalRequest);
           }
         } catch (reissueError) {

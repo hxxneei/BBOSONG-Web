@@ -19,12 +19,34 @@ export const postLoginLocal = async (data: LoginRequest) => {
   return response.data;
 };
 
+// 토큰 재발급
+
+export interface ReissueResponse {
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  result: {
+    grantType: string;
+    accessToken: string;
+    accessTokenExpiresAt: string;
+    refreshToken: string;
+    refreshTokenExpiresAt: string;
+  };
+}
+
 export const postReissue = async (refreshToken: string) => {
-  const response = await axios.post(
+  const response = await axios.post<ReissueResponse>(
     "https://api.bbosongi.com/api/auth/reissue",
     {
       refreshToken,
     },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        accept: "*/*",
+      },
+    },
   );
+
   return response.data;
 };

@@ -1,7 +1,10 @@
 import styled from "styled-components";
 import CategorySection from "../components/Closet/CategorySection";
 import BottomBtn from "../components/Closet/BottomBtn";
+import CategoryPage from "../pages/CategoryPage";
 import { Icon } from "@iconify/react";
+import { useNavigate } from "react-router-dom";
+
 // PNG 아이콘 import
 import top from "../assets/closetIcon/CategoryCloset/top.png";
 import outer from "../assets/closetIcon/CategoryCloset/outer.png";
@@ -16,9 +19,14 @@ import bedclothes from "../assets/closetIcon/CategoryCloset/bedclothes.png";
 import onepiece from "../assets/closetIcon/CategoryCloset/onepiece.png";
 import gloves from "../assets/closetIcon/CategoryCloset/gloves.png";
 import scarf from "../assets/closetIcon/CategoryCloset/scarf.png";
-// 정렬 필요
 
 const ClosetPage = () => {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (label: string) => {
+    navigate("/category-card", { state: { categoryName: label } });
+  };
+
   const clothing = [
     { icon: top, label: "상의" },
     { icon: outer, label: "아우터" },
@@ -49,16 +57,21 @@ const ClosetPage = () => {
           />
         </BackButton>
       </Header>
+
       <CategorySection
         title="의류"
         icon="mdi:tshirt-crew-outline"
         items={clothing}
+        onItemClick={handleCategoryClick}
       />
+
       <CategorySection
         title="잡화"
         icon="mdi:clothes-hanger"
         items={accessories}
+        onItemClick={handleCategoryClick}
       />
+
       <BottomBtn
         size={42}
         onClick={() => console.log("bag clicked")}
@@ -79,7 +92,7 @@ const Page = styled.main`
 const Header = styled.header`
   display: flex;
   align-items: center;
-  gap: px;
+  gap: 0px;
   margin-bottom: 10px;
 `;
 
@@ -88,7 +101,6 @@ const BackButton = styled.button`
   background: none;
   margin-left: -12px;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;

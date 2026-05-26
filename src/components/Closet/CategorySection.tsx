@@ -11,15 +11,21 @@ type Props = {
   title: string;
   icon: string;
   items: Item[];
+  onItemClick: (label: string) => void;
 };
 
-const CategorySection = ({ title, icon, items }: Props) => {
+const CategorySection = ({ title, icon, items, onItemClick }: Props) => {
   return (
     <Section>
       <IconTitle title={title} icon={icon} />
       <Grid>
         {items.map((item) => (
-          <CategoryCard key={item.label} icon={item.icon} label={item.label} />
+          <CategoryCard
+            key={item.label}
+            icon={item.icon}
+            label={item.label}
+            onClick={() => onItemClick(item.label)}
+          />
         ))}
       </Grid>
     </Section>

@@ -1,17 +1,28 @@
 import styled from "styled-components";
 import HeartBtn from "../../common/HeartBtn";
 
-export default function ClothCard({ item }: { item: any }) {
+interface ClothCardProps {
+  item: any;
+  onToggleFavorite?: () => void;
+}
+
+export default function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
   return (
     <Card>
-      <Image src={item.image} alt={item.name} />
+      <Image
+        src={item.image || item.imageUrl || "https://via.placeholder.com/150"}
+        alt={item.name}
+      />
       <Info>
-        <Category>{item.category}</Category>
-        <Brand>{item.brand}</Brand>
+        <Category>{item.category || item.categoryName}</Category>
+        <Brand>{item.brand || "BBOSONG"}</Brand>
         <Name>{item.name}</Name>
       </Info>
       <HeartWrapper>
-        <HeartBtn />
+        <HeartBtn
+          active={item.isFavorite || false}
+          onClick={onToggleFavorite}
+        />
       </HeartWrapper>
     </Card>
   );
@@ -25,10 +36,13 @@ const Card = styled.div`
   border-radius: 15px;
   box-shadow: 0 2px 13px rgba(85, 85, 85, 0.15);
   padding: 12px;
+  box-sizing: border-box;
 `;
 
 const Image = styled.img`
   width: 100%;
+  height: 130px;
+  object-fit: cover;
   border-radius: 8px;
 `;
 
@@ -39,8 +53,8 @@ const Info = styled.div`
 const Category = styled.span`
   color: #4b80fc;
   font-size: 12px;
-
   margin-bottom: 2px;
+  display: block;
 `;
 
 const Brand = styled.p`
@@ -54,8 +68,11 @@ const Name = styled.p`
   font-size: 14px;
   font-weight: 600;
   color: #000000ff;
-
   margin: 2px 0 0 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const HeartWrapper = styled.div`

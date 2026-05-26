@@ -1,5 +1,4 @@
 import axiosInstance from "./axiosInstance";
-import type { ApiResponse } from "../types/auth";
 
 export interface ChatMessage {
   chatMessageId: number;
@@ -8,28 +7,49 @@ export interface ChatMessage {
   createdAt: string;
 }
 
-export interface ChatSendResult {
-  conversationId: string;
-  assistantMessage: ChatMessage;
+export interface GetMessagesResponse {
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  result: ChatMessage[];
 }
 
-// 채팅 메시지 전송 API 함수
-export const sendChatMessage = async (content: string, image?: File) => {
-  const formData = new FormData();
-  formData.append("content", content); // 텍스트 추가
+export interface SendMessageResponse {
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  result: {
+    userMessage: ChatMessage;
+    assistantMessage: ChatMessage;
+  };
+}
 
-  if (image) {
-    formData.append("image", image); // 이미지 있으면 추가
+export const getChatMessages = async () => {
+  const response =
+    await axiosInstance.get<GetMessagesResponse>("/chat/messages");
+  return response.data;
+};
+
+export const sendChatMessage = async (
+  content: string,
+  imageFile: File | null,
+) => {
+  const formData = new FormData();
+
+  if (content.trim()) {
+    formData.append("content", content);
+  }
+  if (imageFile) {
+    formData.append("image", imageFile);
   }
 
-  const response = await axiosInstance.post<ApiResponse<ChatSendResult>>(
+  const response = await axiosInstance.post<SendMessageResponse>(
     "/chat/messages",
     formData,
     {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      timeout: 30000,
     },
   );
   return response.data;

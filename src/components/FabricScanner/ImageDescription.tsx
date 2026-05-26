@@ -1,5 +1,3 @@
-// PreviewImage 아래 옷을 카메라에 비추어 실시간으로 옷/세탁 정보를 확인해보세요.
-
 import styled from "styled-components";
 
 type ImageDescriptionProps = {

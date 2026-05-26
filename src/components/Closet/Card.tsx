@@ -1,13 +1,13 @@
 import styled from "styled-components";
-
 type Props = {
   icon: string;
   label: string;
+  onClick: () => void;
 };
 
-const CategoryCard = ({ icon, label }: Props) => {
+const CategoryCard = ({ icon, label, onClick }: Props) => {
   return (
-    <Card>
+    <Card onClick={onClick}>
       <img src={icon} alt={label} />
       <span>{label}</span>
     </Card>

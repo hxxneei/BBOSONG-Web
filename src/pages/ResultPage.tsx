@@ -3,8 +3,10 @@ import styled from "styled-components";
 import TopBar from "../components/Result/TopBar";
 import ResultCard from "../components/Result/ResultCard";
 import type { ResultData } from "../components/Result/ResultCard";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // 💡 이동을 위해 useNavigate 추가
 import type { ClothesAnalysisResult } from "../types/clothes";
+import ResultButtonGroup from "../components/Result/ResultBtnGroup";
+import { postSaveClothes } from "../api/clothes"; // 🚀 태민님 저장 API 임포트
 
 import ResultDummy from "../assets/ResultDummy.png";
 
@@ -15,7 +17,7 @@ const transformServerData = (
   return {
     categoryPath: `의류 / ${serverData.categoryName}`,
     name: serverData.name || "분석된 의류",
-    image: imageUrl, // 분석에 사용했던 이미지 주소
+    image: imageUrl,
     material: serverData.material,
     color: serverData.color,
     wash: {
@@ -55,17 +57,17 @@ const mock: ResultData = {
 
 type Props = {
   data?: ResultData;
-  bookmarked?: boolean; // 초기 북마크 상태 (선택)
-  onBack?: () => void; // 외부에서 뒤로가기 주입 시
-  onToggleBookmark?: () => void; // 외부에서 토글 주입 시
+  bookmarked?: boolean;
+  onBack?: () => void;
+  onToggleBookmark?: () => void;
   onRescan?: () => void;
   onSave?: (data: ResultData) => void;
 
-  title?: string; // 기본 "분석 결과"
-  rightIcon?: string; // 예: "mdi:trash-can-outline"
-  onRightIconClick?: () => void; // 우측 아이콘 클릭
-  tags?: string[]; // 해시태그 (없으면 표시 안함)
-  showButtons?: boolean; // 하단 버튼 노출 (기본 true)
+  title?: string;
+  rightIcon?: string;
+  onRightIconClick?: () => void;
+  tags?: string[];
+  showButtons?: boolean;
   showBookmark?: boolean;
 };
 
@@ -77,19 +79,86 @@ export default function ResultPage({
   onSave,
   tags,
   showButtons = true,
-  showBookmark = true,
 }: Props) {
-  const loction = useLocation();
-  const { serverData, imageUrl } = loction.state || {};
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { serverData, imageUrl, imageFile } = (location.state as any) || {};
 
   const displayData = serverData
     ? transformServerData(serverData, imageUrl)
-    : mock; // 데이터 없으면 mock 띄움
+    : mock;
 
   const [isBookmarked, setIsBookmarked] = useState<boolean>(bookmarked);
   const handleBack = onBack ?? (() => window.history.back());
   const handleToggleBookmark =
     onToggleBookmark ?? (() => setIsBookmarked((prev) => !prev));
+
+  const handleRetryClick = () => {
+    if (onRescan) {
+      onRescan();
+    } else {
+      navigate("/fabric-scanner");
+    }
+  };
+
+  const handleSaveClick = async () => {
+    if (onSave) {
+      onSave(displayData);
+      return;
+    }
+
+    try {
+      let finalCategory = "상의"; // 기본값 안전망
+
+      if (serverData?.categoryName) {
+        finalCategory = serverData.categoryName.trim();
+      } else if (displayData.categoryPath) {
+        const parts = displayData.categoryPath.split("/");
+        if (parts.length > 1) {
+          finalCategory = parts[1].trim();
+        }
+      }
+
+      const clothData = {
+        categoryName: finalCategory,
+        name: displayData.name,
+        material: displayData.material || "정보 없음",
+        color: displayData.color || "정보 없음",
+        washingMethod: displayData.wash.items.join(" "),
+        caution: displayData.caution.items.join(" "),
+      };
+
+      const formData = new FormData();
+
+      formData.append(
+        "request",
+        new Blob([JSON.stringify(clothData)], { type: "application/json" }),
+      );
+
+      if (imageFile) {
+        formData.append("image", imageFile);
+      } else {
+        const response = await fetch(displayData.image);
+        const blob = await response.blob();
+        const file = new File([blob], "clothes_image.png", {
+          type: "image/png",
+        });
+        formData.append("image", file);
+      }
+
+      const res = await postSaveClothes(formData);
+
+      if (res.isSuccess) {
+        console.log("저장 완료, 등록 결과:", res.result);
+        alert("옷장에  저장되었습니다! ");
+        navigate("/closetpage");
+      }
+    } catch (err) {
+      console.error("의류 저장 통신 중 프론트엔드 예외 발생:", err);
+      alert("저장 처리에 실패했습니다. 콘솔창 로그를 확인해 주세요.");
+    }
+  };
+
   return (
     <Shell>
       <Phone>
@@ -98,19 +167,19 @@ export default function ResultPage({
           bookmarked={isBookmarked}
           onBack={handleBack}
           onToggleBookmark={handleToggleBookmark}
-          showBookmark={showBookmark}
+          showBookmark={false}
         />
 
-        <ResultCard data={displayData} tags={tags} />
+        <ContentArea>
+          <ResultCard data={displayData} tags={tags} />
+        </ContentArea>
 
         {showButtons && (
           <Bottom>
-            <BtnRow>
-              <GhostBtn onClick={onRescan}>다시 검색하기</GhostBtn>
-              <PrimaryBtn onClick={() => onSave?.(displayData)}>
-                결과 저장하기
-              </PrimaryBtn>
-            </BtnRow>
+            <ResultButtonGroup
+              onRetry={handleRetryClick}
+              onSave={handleSaveClick}
+            />
           </Bottom>
         )}
       </Phone>
@@ -119,45 +188,39 @@ export default function ResultPage({
 }
 
 const Shell = styled.div`
-  min-height: 100dvh;
-  display: grid;
-  place-items: start center;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   background: #ffffff;
   color: #111827;
-  padding: 24px 16px 0px;
 `;
-const Phone = styled.main``;
+
+const Phone = styled.main`
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px 0px;
+  box-sizing: border-box;
+  position: relative;
+`;
+
+const ContentArea = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
 
 const Bottom = styled.footer`
-  position: sticky;
-
-  background: linear-gradient(to top, #ffffff 70%, rgba(255, 255, 255, 0));
-  padding: 36px 0 0;
-`;
-const BtnRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-`;
-const GhostBtn = styled.button`
-  height: 61px;
-  width: 157px;
-  border-radius: 16px;
-
-  background: #efefef;
-  color: #aeaeae;
-  font-weight: 500;
-  font-size: 18px;
-  box-shadow: 0 4px 8px rgba(100, 100, 100, 0.09);
-`;
-const PrimaryBtn = styled.button`
-  height: 61px;
-  border-radius: 16px;
-  border: 0;
-  background: #4b80fc;
-  color: #fff;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(75, 128, 252, 0.71);
-  width: 157px;
-  font-size: 18px;
+  width: 100%;
+  flex-shrink: 0;
+  background: white;
+  padding: 1px 0 30px 0;
+  border-top: 1px solid #f3f4f6;
 `;

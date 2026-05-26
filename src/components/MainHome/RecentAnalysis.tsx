@@ -1,38 +1,80 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { getHomeSummary, type HomeClothingItem } from "../../api/clothes";
 import png1 from "../../assets/categorydummy/1.png";
-import png2 from "../../assets/categorydummy/2.png";
-import png3 from "../../assets/categorydummy/3.png";
 
 const RecentAnalysis: React.FC = () => {
-  const allData = [
-    { id: 1, name: "폴로 코튼 케이블 니트", date: "2024.05.10", img: png1 },
-    { id: 2, name: "아디다스 크롭 티셔츠", date: "2024.05.09", img: png2 },
-    { id: 3, name: "나이키 스포츠 양말", date: "2024.05.08", img: png3 },
-    { id: 4, name: "리바이스 501 데님", date: "2024.05.07", img: png1 },
-    { id: 5, name: "자라 오버사이즈 셔츠", date: "2024.05.06", img: png2 },
-    { id: 6, name: "안 보일 데이터", date: "2024.05.05", img: png3 },
-  ];
+  const [recentClothes, setRecentClothes] = useState<HomeClothingItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const displayData = allData.slice(0, 5);
+  useEffect(() => {
+    const fetchRecentData = async () => {
+      try {
+        setIsLoading(true);
+        const res = await getHomeSummary();
+        if (res.isSuccess) {
+          setRecentClothes(res.result.recentClothes.slice(0, 5));
+        }
+      } catch (err) {
+        console.error("최근 분석한 옷 로딩 실패 😭:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecentData();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "2026.05.25"; // 기본 예외처리
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+  };
 
   return (
     <SectionContainer>
       <SectionTitle>
         <span className="highlight">최근 분석한 옷</span>이에요
-      </SectionTitle>{" "}
+      </SectionTitle>
+
       <ListContainer>
-        {displayData.map((item) => (
-          <AnalysisItem key={item.id}>
-            <ImageWrapper>
-              <ItemImg src={item.img} alt={item.name} />
-            </ImageWrapper>
-            <TextInfo>
-              <ItemName>{item.name}</ItemName>
-              <AnalysisDate>{item.date} </AnalysisDate>
-            </TextInfo>
-          </AnalysisItem>
-        ))}
+        {isLoading ? (
+          <ItemName style={{ padding: "12px 16px" }}>
+            옷장 데이터를 불러오는 중... 🧺
+          </ItemName>
+        ) : recentClothes.length === 0 ? (
+          <ItemName style={{ padding: "12px 16px" }}>
+            최근에 분석한 옷이 없어요! ✨
+          </ItemName>
+        ) : (
+          recentClothes.map((item) => {
+            const cleanImgUrl = item.imageUrl
+              ? item.imageUrl.replace(/^"|"$/g, "").trim()
+              : "";
+
+            return (
+              <AnalysisItem key={item.clothesId}>
+                <ImageWrapper>
+                  <ItemImg
+                    src={
+                      cleanImgUrl.includes("example.com") || !cleanImgUrl
+                        ? png1
+                        : cleanImgUrl
+                    }
+                    alt={item.name}
+                  />
+                </ImageWrapper>
+                <TextInfo>
+                  <ItemName>{item.name}</ItemName>
+                  <AnalysisDate>{formatDate(item.createdAt)}</AnalysisDate>
+                </TextInfo>
+              </AnalysisItem>
+            );
+          })
+        )}
       </ListContainer>
     </SectionContainer>
   );

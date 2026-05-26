@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import KakaoLogin from "../assets/LoginPage/KakaoLogin.svg";
 import GoogleLogin from "../assets/LoginPage/GoogleLogin.svg";
-import bbosongFinal from "../assets/FirstPage/bbosongFinal.svg";
+import BbosongLogo from "../assets/BbosongLogo.svg";
 import { postLoginLocal } from "../api/auth";
 
 const Login: React.FC = () => {
@@ -13,6 +13,10 @@ const Login: React.FC = () => {
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleSocialLogin = (provider: "kakao" | "google") => {
+    window.location.href = `https://api.bbosongi.com/oauth2/authorization/${provider}`;
+  };
 
   // Login 누르면 실행
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,12 +32,9 @@ const Login: React.FC = () => {
       const res = await postLoginLocal({ loginId, password });
 
       if (res.isSuccess) {
-        // 1. 토큰 저장
         localStorage.setItem("accessToken", res.result.accessToken);
         localStorage.setItem("refreshToken", res.result.refreshToken);
 
-        // 2. 백엔드가 준 nickname이 null이거나 없으면 프론트에서 임시값 강제 주입!
-        // 만약 백엔드가 nickname을 준다면 그 값을 그대로 쓰고, 없으면 "보송이회원"을 넣습니다.
         const userNickname = res.result.nickname || "보송이회원";
         localStorage.setItem("nickname", userNickname);
 
@@ -53,7 +54,7 @@ const Login: React.FC = () => {
   return (
     <LoginContainer>
       <Logo>
-        <img src={bbosongFinal} />
+        <img src={BbosongLogo} />
       </Logo>
 
       <form onSubmit={handleLogin}>
@@ -84,8 +85,18 @@ const Login: React.FC = () => {
           <LoginBtn type="submit" disabled={isLoading}>
             {isLoading ? "로그인 중..." : "로그인"}
           </LoginBtn>
-          <SocialImg src={KakaoLogin} alt="kakao" />
-          <SocialImg src={GoogleLogin} alt="google" />
+          <SocialImg
+            src={KakaoLogin}
+            alt="kakao"
+            onClick={() => handleSocialLogin("kakao")}
+            style={{ cursor: "pointer" }}
+          />
+          <SocialImg
+            src={GoogleLogin}
+            alt="google"
+            onClick={() => handleSocialLogin("google")}
+            style={{ cursor: "pointer" }}
+          />
         </ButtonGroup>
       </form>
     </LoginContainer>

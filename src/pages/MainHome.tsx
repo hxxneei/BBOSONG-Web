@@ -31,7 +31,7 @@ const LogoWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 0 20px 0; /* 로고 위아래 여백 */
+  padding: 10px 0 20px 0;
   width: 100%;
 `;
 

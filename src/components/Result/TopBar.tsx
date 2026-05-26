@@ -90,5 +90,5 @@ const RightBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px; /* 북마크와 trash 아이콘 사이 여백 */
+  gap: 4px;
 `;

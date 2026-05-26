@@ -1,52 +1,50 @@
 import styled, { keyframes } from "styled-components";
 
-/* --- 애니메이션 --- */
 const bubbleFadeUp = keyframes`
   0% { opacity: 0; transform: translateY(12px); }
   100% { opacity: 1; transform: translateY(0); }
 `;
 
 export const Container = styled.div`
-  position: relative; /* 자식 absolute 배치의 기준점 */
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
   height: 100vh;
   background-color: white;
   padding: 32px 24px;
   box-sizing: border-box;
-  overflow: hidden; /* ★중요: 화면 밖으로 나간 이미지를 자름 */
+  overflow: hidden;
   font-family: "Pretendard", sans-serif;
 `;
 
-/* --- 중앙 페이지 영역 (기존 .page) --- */
 export const PageWrapper = styled.div`
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Mockup 위치 보정 */
+  justify-content: center;
   position: relative;
-  z-index: 10; /* 텍스트가 이미지 위에 오도록 */
+  z-index: 10;
 `;
 
-/* --- 텍스트 스타일 --- */
 export const Title = styled.h2`
-  font-size: 25px;
+  font-size: 24px;
   font-weight: 700;
   text-align: center;
-  line-height: 1.5;
-  margin-bottom: 30px;
+  line-height: 1.45;
+  margin-bottom: 0px;
   color: #222;
   .highlight {
     color: #4b80fc;
   }
 `;
 
-/* --- 말풍선 섹션 --- */
 export const BubbleList = styled.div`
   width: 100%;
   max-width: 320px;
@@ -102,7 +100,7 @@ export const IndicatorContainer = styled.div`
   justify-content: center;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 `;
 
 export const Dot = styled.div<{ $active: boolean }>`
@@ -114,35 +112,33 @@ export const Dot = styled.div<{ $active: boolean }>`
   cursor: pointer;
 `;
 
-/* --- 버튼 영역 --- */
 export const BottomBtnWrap = styled.div`
   width: 100%;
-  max-width: 300px;
-  margin-bottom: 30px;
+  max-width: 342px;
+  margin-bottom: 12px;
 `;
 
 export const StyledButton = styled.button<{ $isStart?: boolean }>`
   width: 100%;
-  padding: 14px;
-  background-color: ${({ $isStart }) => ($isStart ? "#4b80fc" : "#4b80fc")};
+  padding: 16px;
+  background-color: #4b80fc;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.15s;
 
   &:active {
-    opacity: 0.8;
+    background-color: #356be0;
   }
 `;
 
 export const ImageGrid = styled.div`
   width: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
-  margin-top: 20px;
+  margin: 0;
 `;

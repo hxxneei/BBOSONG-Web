@@ -1,16 +1,18 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 
 import cameraBtn from "../../assets/ChatPage/cameraBtn.svg";
 import micBtn from "../../assets/ChatPage/micBtn.svg";
 import sendBtn from "../../assets/ChatPage/sendBtn.svg";
 import BSProfile from "../../assets/ChatPage/BSProfile.svg";
+import { Icon } from "@iconify/react";
 
 interface Props {
   messages: { from: string; text: string }[]; // 기존 가짜 데이터 구조로 복구
   input: string;
   setInput: (val: string) => void;
   onSendMessage: () => void;
+  onSendWithImage: (file: File) => void; // 이미지 파일 전송용 핸들러 추가
   onBack: () => void;
   userName?: string; // 이름 전달용은 유지
 }
@@ -20,21 +22,52 @@ const ChatMain: React.FC<Props> = ({
   input,
   setInput,
   onSendMessage,
+  onSendWithImage,
   onBack,
   userName,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const selectedFile = files[0];
+      onSendWithImage(selectedFile);
+    }
+  };
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (messages.length > 0 && scrollRef.current) {
+      const timer = setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer); // 메모리 누수 방지용 청소
     }
   }, [messages]);
 
   return (
     <Container>
       <TopArea>
-        <BackBtn onClick={onBack}></BackBtn>
+        <TopRow>
+          <BackBtn onClick={onBack}>
+            <Icon
+              icon="mingcute:left-line"
+              width={32}
+              height={32}
+              color="#767676"
+            />
+          </BackBtn>
+        </TopRow>
         <Header>
           <ProfileImg src={BSProfile} alt="BSProfile" />
           <NameArea>
@@ -46,10 +79,10 @@ const ChatMain: React.FC<Props> = ({
 
       <ChatBody ref={scrollRef}>
         <EntryText>
-          ───────── 뽀송이와 {userName || "홍길동"}님이 입장했어요 ─────────
+          ─────── &nbsp;&nbsp; 뽀송이와 {userName || "회원"}님이 입장했어요
+          &nbsp;&nbsp; ───────
         </EntryText>
 
-        {/* 원래대로 msg.from과 msg.text 구조로 맵핑 */}
         {messages.map((msg, i) => (
           <Bubble key={i} $isUser={msg.from === "user"}>
             {msg.text}
@@ -59,7 +92,15 @@ const ChatMain: React.FC<Props> = ({
 
       <InputSection>
         <InputBox>
-          <button className="icon-btn">
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            accept="image/*"
+            onChange={handleFileChange}
+          />
+
+          <button className="icon-btn" onClick={handleCameraClick}>
             <img src={cameraBtn} alt="camera" />
           </button>
 
@@ -67,7 +108,7 @@ const ChatMain: React.FC<Props> = ({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && onSendMessage()} // 엔터키 전송
+            onKeyPress={(e) => e.key === "Enter" && onSendMessage()}
             placeholder="뽀송이에게 무엇이든 물어보세요!"
           />
           <button className="icon-btn">
@@ -93,20 +134,37 @@ const Container = styled.div`
 
 const TopArea = styled.div`
   background: white;
-  padding: 40px 20px 20px 20px;
+  padding: 10px 20px 20px 20px;
   border-bottom-left-radius: 28px;
   border-bottom-right-radius: 28px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   z-index: 10;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const TopRow = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 12px;
 `;
 
 const BackBtn = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  position: absolute;
-  left: 16px;
-  top: 45px;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 16px;
+
   img {
     width: 24px;
     opacity: 0.6;
@@ -117,7 +175,7 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: 30px;
+  margin-left: 0px;
 `;
 
 const ProfileImg = styled.img`
@@ -160,42 +218,50 @@ const EntryText = styled.div`
 
 const Bubble = styled.div<{ $isUser: boolean }>`
   max-width: 75%;
-  padding: 12px 16px;
-  border-radius: 18px;
-  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 13px;
   align-self: ${(props) => (props.$isUser ? "flex-end" : "flex-start")};
   background: ${(props) => (props.$isUser ? "#4B80FC" : "white")};
   color: ${(props) => (props.$isUser ? "white" : "#333")};
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  ${(props) =>
-    props.$isUser
-      ? "border-bottom-right-radius: 2px;"
-      : "border-bottom-left-radius: 2px;"}
+  box-shadow: 0px 4px 5px 0px rgba(75, 128, 252, 0.3);
 `;
 
 const InputSection = styled.div`
-  padding: 15px;
-  background: white;
-  margin-bottom: 70px;
-`;
+  position: absolute;
+  bottom: 25px;
+  left: 0;
+  right: 0;
 
+  padding: 0 20px;
+  background: transparent;
+  z-index: 5;
+`;
 const InputBox = styled.div`
+  width: 95%;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f5f5f5;
-  padding: 8px 12px;
+  background: #ffffff;
+  padding: 10px 16px;
   border-radius: 30px;
+
+  box-shadow: 0px 4px 10px rgba(75, 128, 252, 0.1);
 
   input {
     flex: 1;
     border: none;
     background: none;
     outline: none;
-    font-size: 15px;
+    font-size: 14px;
+    color: #333333;
+
+    &::placeholder {
+      color: #b4b4b4;
+    }
   }
 
-  /* ⭕ 이제 카메라도, 마이크도, 전송 버튼도 이 스타일 하나로 전부 이쁘게 정렬됩니다! */
   .icon-btn {
     background: none;
     border: none;
@@ -203,30 +269,16 @@ const InputBox = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0; /* 여백 초기화 */
+    padding: 0;
 
     img {
-      width: 24px; /* 삼총사 크기 똑같이 24px로 통일 */
+      width: 24px;
       height: 24px;
       opacity: 0.7;
     }
 
-    /* 클릭할 때 살짝 눌리는 손맛 추가 */
     &:active {
       transform: scale(0.9);
     }
   }
-`;
-
-const SendBtn = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #4b80fc;
-  border: none;
-  cursor: pointer;
-  background-image: url("/send-icon.png");
-  background-size: 18px;
-  background-position: center;
-  background-repeat: no-repeat;
 `;

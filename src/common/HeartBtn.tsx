@@ -1,16 +1,14 @@
-import { useState } from "react";
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
+interface HeartButtonProps {
+  active: boolean;
+  onClick?: () => void;
+}
 
-export default function HeartButton() {
-  const [liked, setLiked] = useState(false);
-
+export default function HeartButton({ active, onClick }: HeartButtonProps) {
   return (
-    <Button
-      onClick={() => setLiked(!liked)}
-      aria-label={liked ? "찜 해제" : "찜하기"}
-    >
-      {liked ? (
+    <Button onClick={onClick} aria-label={active ? "찜 해제" : "찜하기"}>
+      {active ? (
         <Icon icon="mdi:heart" color="#4B80FC" width="22" height="22" />
       ) : (
         <Icon icon="mdi:heart-outline" color="#d1d5db" width="22" height="22" />

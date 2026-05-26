@@ -5,6 +5,7 @@ import PreviewImage from "../components/FabricScanner/PreviewImage";
 import ImageDescription from "../components/FabricScanner/ImageDescription";
 import Actions from "../components/FabricScanner/Actions";
 import CameraPreview from "../common/CameraPreview";
+import Loading from "../pages/Loading";
 
 import { postClothesAnalysis } from "../api/clothes";
 
@@ -62,7 +63,7 @@ export default function FabricScanner() {
     <Page>
       {isLoading ? (
         <LoadingView>
-          <p>옷 분석 중</p>
+          <Loading />
         </LoadingView>
       ) : isCameraActive ? (
         <CameraOnlyWrap>
