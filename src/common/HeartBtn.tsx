@@ -1,11 +1,15 @@
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
+
 interface HeartButtonProps {
-  active: boolean;
+  active?: boolean;
   onClick?: () => void;
 }
 
-export default function HeartButton({ active, onClick }: HeartButtonProps) {
+export default function HeartButton({
+  active = false,
+  onClick,
+}: HeartButtonProps) {
   return (
     <Button onClick={onClick} aria-label={active ? "찜 해제" : "찜하기"}>
       {active ? (
@@ -26,6 +30,7 @@ const Button = styled.button`
   transition: transform 0.15s ease;
 
   &:active {
+    transform: transform 0.15s ease;
     transform: scale(0.9);
   }
 `;
