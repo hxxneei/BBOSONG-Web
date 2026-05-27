@@ -103,6 +103,8 @@ export default function MyClosetPage() {
                     <ClothesImg
                       src={cleanImgUrl}
                       alt={item.name}
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         // 이미지 로딩 실패 시 더미 이미지 교체
                         (e.target as HTMLImageElement).src =

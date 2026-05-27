@@ -63,6 +63,8 @@ const MyClosetCard: React.FC = () => {
                 <ItemImg
                   src={cleanImgUrl}
                   alt={item.name}
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                   }}

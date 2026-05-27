@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import BSlogo from "../../assets/ChatPage/BSlogo.svg";
+import BSlogo from "../../assets/ChatPage/BSlogo.webp";
 
 interface FirstChatHomeProps {
   onStart: () => void;
