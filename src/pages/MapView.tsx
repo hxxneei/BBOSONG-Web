@@ -13,7 +13,7 @@ import {
   type FavoriteStoreResponse,
 } from "../api/stores";
 
-import LaundryMarker from "../assets/markers/LaundryMarker.svg";
+import LaundryMarker from "../assets/markers/LaundryMarker.webp";
 import MyLocationMarker from "../assets/markers/MyLocationMarker.svg";
 
 declare global {
@@ -246,7 +246,7 @@ export default function MapView() {
 // import MapBottomSheet from "../common/MapBottomSheet";
 // import type { KakaoPlace } from "../common/MapBottomSheet";
 
-// import LaundryMarker from "../assets/markers/LaundryMarker.svg";
+// import LaundryMarker from "../assets/markers/LaundryMarker.webp";
 // import MyLocationMarker from "../assets/markers/MyLocationMarker.svg";
 
 // declare global {

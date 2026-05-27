@@ -4,7 +4,7 @@ import styled from "styled-components";
 import cameraBtn from "../../assets/ChatPage/cameraBtn.svg";
 import micBtn from "../../assets/ChatPage/micBtn.svg";
 import sendBtn from "../../assets/ChatPage/sendBtn.svg";
-import BSProfile from "../../assets/ChatPage/BSProfile.svg";
+import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 import { Icon } from "@iconify/react";
 
 interface Props {

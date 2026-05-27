@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-import LaundryDummy from "../assets/LaundryDummy.svg";
+import LaundryDummy from "../assets/LaundryDummy.webp";
 
 import { Icon } from "@iconify/react";
 
@@ -91,7 +91,12 @@ const LaundryBottomSheet = ({
           <GrayBar />
 
           <HeaderImage>
-            <img src={LaundryDummy} alt="세탁소 이미지" />
+            <img
+              src={LaundryDummy}
+              alt="세탁소 이미지"
+              loading="lazy"
+              decoding="async"
+            />
           </HeaderImage>
           <TitleRow>
             <Title>{place.place_name}</Title>

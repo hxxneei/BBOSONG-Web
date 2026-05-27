@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "@iconify/react";
-import BSProfile from "../../assets/ChatPage/BSProfile.svg";
+import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 
 interface ChatPrepareProps {
   onGoChat: () => void;

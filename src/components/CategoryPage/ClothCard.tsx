@@ -12,6 +12,8 @@ export default function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
       <Image
         src={item.image || item.imageUrl || "https://via.placeholder.com/150"}
         alt={item.name}
+        loading="lazy"
+        decoding="async"
       />
       <Info>
         <Category>{item.category || item.categoryName}</Category>

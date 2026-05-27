@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as S from "../components/FirstPage/OnboardingTitle";
 
-import preview from "../assets/FirstPage/preview.svg";
+import preview from "../assets/FirstPage/preview.webp";
 import bbosongFinal from "../assets/FirstPage/bbosongFinal.svg";
-import cameraPreview from "../assets/FirstPage/cameraPreview.svg";
+import cameraPreview from "../assets/FirstPage/cameraPreview.webp";
 
 const FirstPage: React.FC = () => {
   const [page, setPage] = useState(0);
