@@ -64,8 +64,6 @@ const IdField: React.FC<IdFieldProps> = ({
 
 export default IdField;
 
-/* --- Styled Components --- */
-
 const InputGroupContainer = styled.div`
   width: 100%;
   max-width: 340px;
@@ -144,7 +142,7 @@ const MessageRow = styled.div`
 `;
 
 const ErrorText = styled.p`
-  color: #ff6756;
+  color: #fd5b4a;
   font-size: 9px;
   font-weight: 500;
   margin-left: 4px;
