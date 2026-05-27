@@ -3,12 +3,13 @@ import { Icon } from "@iconify/react";
 
 type Props = {
   title: string;
+  onBack?: () => void;
 };
 
-export default function ClosetHeader({ title }: Props) {
+export default function ClosetHeader({ title, onBack }: Props) {
   return (
     <Header>
-      <BackButton>
+      <BackButton aria-label="뒤로가기" onClick={onBack}>
         <Icon
           icon="mingcute:left-line"
           width={32}

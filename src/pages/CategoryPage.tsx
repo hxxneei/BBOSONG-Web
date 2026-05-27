@@ -114,9 +114,18 @@ export default function TopPage() {
     navigate(`/my-closet/${clothesId}`);
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/closetpage");
+  };
+
   return (
     <div>
-      <Header title={currentCategory} />
+      <Header title={currentCategory} onBack={handleBack} />
       <SearchBar
         value={searchQuery}
         onChange={setSearchQuery}
