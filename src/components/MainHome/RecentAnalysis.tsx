@@ -65,6 +65,8 @@ const RecentAnalysis: React.FC = () => {
                         : cleanImgUrl
                     }
                     alt={item.name}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </ImageWrapper>
                 <TextInfo>

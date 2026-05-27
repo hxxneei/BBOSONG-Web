@@ -32,6 +32,7 @@ const Login: React.FC = () => {
       const res = await postLoginLocal({ loginId, password });
 
       if (res.isSuccess) {
+        localStorage.setItem("grantType", res.result.grantType);
         localStorage.setItem("accessToken", res.result.accessToken);
         localStorage.setItem("refreshToken", res.result.refreshToken);
 
