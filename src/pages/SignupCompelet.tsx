@@ -14,7 +14,7 @@ const SignupComplete: React.FC = () => {
         <img src={BbosongLogo} alt="BBO SONG Logo" />
       </LogoArea>
 
-      <SuccessMessage>회원 가입이 완료되었습니다!</SuccessMessage>
+      <SuccessMessage>회원 가입이 완료되었습니다!!</SuccessMessage>
 
       <ButtonGroup>
         <LoginBtn as="button" onClick={() => navigate("/login")}>
