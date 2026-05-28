@@ -30,7 +30,7 @@ const App: React.FC = () => {
     "/",
     "/login",
     "/signup",
-    "/signup-compelet",
+    "/signup-complete",
     "/category-card",
     "/closetpage",
     "/result",
@@ -64,7 +64,7 @@ const App: React.FC = () => {
           }
         />
         <Route path="/result" element={<ResultPage />} />
-        <Route path="/signup-compelet" element={<SignupComplete />} />
+        <Route path="/signup-complete" element={<SignupComplete />} />
         <Route path="/main-home" element={<MainHome />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/mapview" element={<MapView />} />

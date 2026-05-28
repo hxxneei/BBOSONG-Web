@@ -14,16 +14,12 @@ const SignupComplete: React.FC = () => {
         <img src={BbosongLogo} alt="BBO SONG Logo" />
       </LogoArea>
 
-      <SuccessMessage>회원 가입이 완료되었습니다!!</SuccessMessage>
+      <SuccessMessage>회원 가입이 완료되었습니다!</SuccessMessage>
 
       <ButtonGroup>
         <LoginBtn as="button" onClick={() => navigate("/login")}>
           로그인
         </LoginBtn>
-
-        <HomeBtn as="button" onClick={() => navigate("/main-home")}>
-          홈 화면으로
-        </HomeBtn>
       </ButtonGroup>
     </Container>
   );
@@ -77,20 +73,5 @@ const LoginBtn = styled(BaseBtn)`
 
   &:hover {
     background-color: #3b6edb;
-  }
-`;
-
-const HomeBtn = styled(BaseBtn)`
-  background-color: white;
-  color: #767676;
-  border: 0.8px solid #d1d1d1;
-  cursor: pointer;
-
-  justify-content: center;
-  display: flex;
-  align-items: center;
-
-  &:hover {
-    background-color: #f9f9f9;
   }
 `;

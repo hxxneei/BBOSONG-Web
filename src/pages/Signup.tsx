@@ -6,8 +6,11 @@ import BbosongLogoGaRo from "../assets/BbosongLogoGaRo.svg";
 import PolicyModal from "../modal/PolicyModal";
 import { useAuth } from "../hooks/useAuth";
 import { checkLoginId } from "../api/auth";
+import { useNavigate } from "react-router-dom";
 
 const SignupPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -48,7 +51,9 @@ const SignupPage: React.FC = () => {
       if (error.response && error.response.status === 400) {
         alert("잘못된 요청입니다. 아이디 형식을 확인해 주세요.");
       } else if (error.response && error.response.status === 401) {
-        alert("아이디 중복 확인 API가 인증 필요 상태입니다. 서버 설정을 확인해 주세요.");
+        alert(
+          "아이디 중복 확인 API가 인증 필요 상태입니다. 서버 설정을 확인해 주세요.",
+        );
       } else {
         alert("중복 확인 중 오류가 발생했습니다.");
       }
@@ -72,6 +77,7 @@ const SignupPage: React.FC = () => {
 
     // 서버로 데이터 전송 (스웨거의 loginId, password, email 형식)
     await signup({ loginId, password, email });
+    navigate("/signup-complete");
   };
 
   return (
