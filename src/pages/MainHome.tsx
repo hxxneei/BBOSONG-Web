@@ -2,7 +2,7 @@ import styled from "styled-components";
 import MyClosetCard from "../components/MainHome/MyClosetCard";
 import LaundryRecommend from "../components/MainHome/LaundryRecommend";
 import RecentAnalysis from "../components/MainHome/RecentAnalysis";
-import MainLogo from "../assets/MainHome/MainLogo.svg";
+import MainLogo from "../assets/MainHome/MainLogo.png";
 
 export default function LoadingPage() {
   return (
@@ -39,8 +39,6 @@ const LogoImg = styled.img`
   width: 120px;
   height: auto;
   object-fit: contain;
-
-  filter: brightness(0) invert(1);
 `;
 
 const BlueBackground = styled.div`
@@ -48,7 +46,7 @@ const BlueBackground = styled.div`
   top: 0;
   left: 0;
   width: 100%;
-  height: 320px;
+  height: 270px;
   background-color: #4b80fc;
   z-index: 0;
 `;
@@ -58,6 +56,5 @@ const ContentContainer = styled.div`
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 30px;
+  padding-top: 10px;
 `;

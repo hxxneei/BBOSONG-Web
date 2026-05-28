@@ -35,6 +35,8 @@ const Container = styled.div`
   justify-content: center;
   height: 100%;
   padding: 20px;
+
+  transform: translateY(-42px);
 `;
 
 const Title = styled.h2`

@@ -22,9 +22,9 @@ interface RecommendationData {
 }
 
 const LaundryRecommend: React.FC = () => {
-  const [recommendations, setRecommendations] = useState<
-    RecommendationData[]
-  >([]);
+  const [recommendations, setRecommendations] = useState<RecommendationData[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -89,7 +89,8 @@ const LaundryRecommend: React.FC = () => {
       : [
           {
             title: "실내 건조",
-            description: "날씨 정보를 불러올 수 없어\n기본 세탁 가이드를 추천해요.",
+            description:
+              "날씨 정보를 불러올 수 없어\n기본 세탁 가이드를 추천해요.",
             iconType: "DEFAULT",
           },
         ];
@@ -108,7 +109,10 @@ const LaundryRecommend: React.FC = () => {
 
           return (
             <RecommendCard key={`${recommend.title}-${cardIndex}`}>
-              <WeatherEmoji role="img" aria-label={recommend.iconType || "laundry"}>
+              <WeatherEmoji
+                role="img"
+                aria-label={recommend.iconType || "laundry"}
+              >
                 {displayEmoji}
               </WeatherEmoji>
               <TextGroup>
@@ -133,7 +137,7 @@ const LaundryRecommend: React.FC = () => {
 export default LaundryRecommend;
 
 const SectionContainer = styled.div`
-  margin: 20px 20px;
+  margin: 2px 20px;
 `;
 
 const SectionTitle = styled.h2`

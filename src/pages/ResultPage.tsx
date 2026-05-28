@@ -202,7 +202,7 @@ const Phone = styled.main`
   max-width: 430px;
   display: flex;
   flex-direction: column;
-  padding: 24px 16px 0px;
+  padding: 2px 6px 0px;
   box-sizing: border-box;
   position: relative;
 `;
@@ -210,7 +210,6 @@ const Phone = styled.main`
 const ContentArea = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 20px;
 
   &::-webkit-scrollbar {
     display: none;

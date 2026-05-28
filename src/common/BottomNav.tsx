@@ -6,19 +6,26 @@ import camera from "../assets/navBtnIcon/camera.svg";
 import chat from "../assets/navBtnIcon/chat.svg";
 import mypage from "../assets/navBtnIcon/mypage.svg";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const BottomNav = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const isActive = (path: string) => pathname.toLowerCase() === path;
+
   return (
     <Bar>
-      <Item onClick={() => navigate("/main-home")}>
-        <Icon src={home} />
+      <Item
+        onClick={() => navigate("/main-home")}
+        $active={isActive("/main-home")}
+      >
+        <Icon src={home} alt="" $active={isActive("/main-home")} />
         <Label>홈 화면</Label>
       </Item>
 
-      <Item onClick={() => navigate("/mapview")}>
-        <Icon src={map} />
+      <Item onClick={() => navigate("/mapview")} $active={isActive("/mapview")}>
+        <Icon src={map} alt="" $active={isActive("/mapview")} />
         <Label>지도</Label>
       </Item>
 
@@ -28,13 +35,16 @@ const BottomNav = () => {
         </CenterBtn>
       </CenterWrap>
 
-      <Item onClick={() => navigate("/chatpage")}>
-        <Icon src={chat} />
+      <Item
+        onClick={() => navigate("/chatpage")}
+        $active={isActive("/chatpage")}
+      >
+        <Icon src={chat} alt="" $active={isActive("/chatpage")} />
         <Label>챗봇</Label>
       </Item>
 
-      <Item onClick={() => navigate("/mypage")}>
-        <Icon src={mypage} />
+      <Item onClick={() => navigate("/mypage")} $active={isActive("/mypage")}>
+        <Icon src={mypage} alt="" $active={isActive("/mypage")} />
         <Label>마이 페이지</Label>
       </Item>
     </Bar>
@@ -61,7 +71,7 @@ const Bar = styled.nav`
   z-index: 50;
 `;
 
-const Item = styled.button`
+const Item = styled.button<{ $active?: boolean }>`
   appearance: none;
   border: 0;
   background: transparent;
@@ -69,21 +79,25 @@ const Item = styled.button`
   justify-items: center;
   gap: 6px;
 
-  color: #aeaeae;
+  color: ${(props) => (props.$active ? "#4B80FC" : "#aeaeae")};
 
   margin-top: -5px;
 `;
 
-const Icon = styled.img`
+const Icon = styled.img<{ $active?: boolean }>`
   width: 27px;
   height: 28px;
   object-fit: contain;
+  filter: ${(props) =>
+    props.$active
+      ? "brightness(0) saturate(100%) invert(49%) sepia(76%) saturate(2575%) hue-rotate(205deg) brightness(101%) contrast(98%)"
+      : "none"};
 `;
 
 const Label = styled.span`
   font-size: 11px;
   line-height: 1;
-  color: #aeaeae;
+  color: currentColor;
 `;
 
 const CenterWrap = styled.div`

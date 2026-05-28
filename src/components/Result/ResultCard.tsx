@@ -63,7 +63,9 @@ const ProductImg = styled.img`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 `;
 
-const List = styled.dl``;
+const List = styled.dl`
+  margin: 0;
+`;
 
 const Row = styled.div`
   display: grid;

@@ -20,7 +20,7 @@ export default function TitleHeader({
 }
 const Wrap = styled.div`
   margin-bottom: 32px;
-  margin-top: 72px;
+  margin-top: 42px;
 
   display: flex;
   flex-direction: column;
