@@ -12,13 +12,11 @@ export interface WeatherLaundryResponse {
       skyStatus: string;
       precipitationType: string;
     };
-    recommendations: [
-      {
-        title: string;
-        description: string;
-        iconType: string;
-      },
-    ];
+    recommendations: {
+      title: string;
+      description: string;
+      iconType: string;
+    }[];
   };
 }
 

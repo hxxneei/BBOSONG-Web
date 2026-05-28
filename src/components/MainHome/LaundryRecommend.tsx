@@ -4,6 +4,10 @@ import { getWeatherLaundry } from "../../api/weather";
 
 const emojiMap: Record<string, string> = {
   SUN: "☀️",
+  INDOOR: "☀️",
+  DELAY: "👕",
+  DEHUMIDIFY: "💨",
+  LAUNDRY: "🧺",
   RAIN: "🌧️",
   CLOUD: "☁️",
   SNOW: "❄️",
@@ -18,7 +22,9 @@ interface RecommendationData {
 }
 
 const LaundryRecommend: React.FC = () => {
-  const [recommend, setRecommend] = useState<RecommendationData | null>(null);
+  const [recommendations, setRecommendations] = useState<
+    RecommendationData[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,10 +36,11 @@ const LaundryRecommend: React.FC = () => {
           try {
             const res = await getWeatherLaundry(latitude, longitude);
             if (res.isSuccess && res.result.recommendations.length > 0) {
-              setRecommend(res.result.recommendations[0]);
+              setRecommendations(res.result.recommendations);
             }
           } catch (error) {
             console.error("날씨 세탁 추천 데이터 호출 실패:", error);
+            await fetchDefaultWeather();
           } finally {
             setIsLoading(false);
           }
@@ -54,7 +61,7 @@ const LaundryRecommend: React.FC = () => {
       const SEOUL_LON = 126.978;
       const res = await getWeatherLaundry(SEOUL_LAT, SEOUL_LON);
       if (res.isSuccess && res.result.recommendations.length > 0) {
-        setRecommend(res.result.recommendations[0]);
+        setRecommendations(res.result.recommendations);
       }
     } catch (e) {
       console.error(e);
@@ -76,12 +83,16 @@ const LaundryRecommend: React.FC = () => {
     );
   }
 
-  const displayTitle = recommend?.title || "실내 건조";
-  const displayDesc =
-    recommend?.description ||
-    "날씨 정보를 불러올 수 없어\n기본 세탁 가이드를 추천해요.";
-  const displayEmoji =
-    emojiMap[recommend?.iconType || "DEFAULT"] || emojiMap["DEFAULT"];
+  const displayRecommendations =
+    recommendations.length > 0
+      ? recommendations
+      : [
+          {
+            title: "실내 건조",
+            description: "날씨 정보를 불러올 수 없어\n기본 세탁 가이드를 추천해요.",
+            iconType: "DEFAULT",
+          },
+        ];
 
   return (
     <SectionContainer>
@@ -89,22 +100,32 @@ const LaundryRecommend: React.FC = () => {
         오늘의 <span className="highlight">추천 세탁</span>
       </SectionTitle>
 
-      <RecommendCard>
-        <WeatherEmoji role="img" aria-label={recommend?.iconType || "laundry"}>
-          {displayEmoji}
-        </WeatherEmoji>
-        <TextGroup>
-          <CardTitle>{displayTitle}</CardTitle>
-          <CardDesc>
-            {displayDesc.split("\n").map((line, index) => (
-              <React.Fragment key={index}>
-                {line}
-                {index !== displayDesc.split("\n").length - 1 && <br />}
-              </React.Fragment>
-            ))}
-          </CardDesc>
-        </TextGroup>
-      </RecommendCard>
+      <CardScroller>
+        {displayRecommendations.map((recommend, cardIndex) => {
+          const displayEmoji =
+            emojiMap[recommend.iconType || "DEFAULT"] || emojiMap["DEFAULT"];
+          const displayDesc = recommend.description;
+
+          return (
+            <RecommendCard key={`${recommend.title}-${cardIndex}`}>
+              <WeatherEmoji role="img" aria-label={recommend.iconType || "laundry"}>
+                {displayEmoji}
+              </WeatherEmoji>
+              <TextGroup>
+                <CardTitle>{recommend.title}</CardTitle>
+                <CardDesc>
+                  {displayDesc.split("\n").map((line, index) => (
+                    <React.Fragment key={index}>
+                      {line}
+                      {index !== displayDesc.split("\n").length - 1 && <br />}
+                    </React.Fragment>
+                  ))}
+                </CardDesc>
+              </TextGroup>
+            </RecommendCard>
+          );
+        })}
+      </CardScroller>
     </SectionContainer>
   );
 };
@@ -124,9 +145,23 @@ const SectionTitle = styled.h2`
   }
 `;
 
+const CardScroller = styled.div`
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 0 20px 8px 0;
+  margin-right: -20px;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 const RecommendCard = styled.div`
   width: 100%;
   max-width: 342px;
+  flex: 0 0 min(342px, calc(100vw - 40px));
   min-height: 74px;
   background: white;
   border-radius: 16px;
@@ -135,7 +170,8 @@ const RecommendCard = styled.div`
   align-items: center;
   gap: 20px;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
-  margin: 0 auto;
+  margin: 0;
+  scroll-snap-align: start;
 `;
 
 const WeatherEmoji = styled.div`
