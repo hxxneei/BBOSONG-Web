@@ -12,9 +12,9 @@ interface IdFieldProps {
   errorText?: string;
   subText?: string;
   defaultValue?: string;
-
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCheck?: () => void;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const IdField: React.FC<IdFieldProps> = ({
@@ -27,6 +27,7 @@ const IdField: React.FC<IdFieldProps> = ({
   defaultValue,
   value,
   onChange,
+  onCheck,
 }) => {
   return (
     <InputGroupContainer>
@@ -45,7 +46,11 @@ const IdField: React.FC<IdFieldProps> = ({
           value={value}
           onChange={onChange}
         />
-        {showCheckBtn && <CheckButton type="button">중복 확인</CheckButton>}
+        {showCheckBtn && (
+          <CheckButton type="button" onClick={onCheck}>
+            중복 확인
+          </CheckButton>
+        )}
       </InputRow>
 
       {/* 에러 텍스트 (아이콘 포함) */}

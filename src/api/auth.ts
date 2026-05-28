@@ -14,6 +14,25 @@ export const postSignupLocal = async (data: SignupRequest) => {
   );
   return response.data;
 };
+
+export const checkLoginId = async (loginId: string) => {
+  const response = await axios.get<
+    ApiResponse<{ loginId: string; available: boolean; duplicated: boolean }>
+  >(
+    "https://api.bbosongi.com/api/auth/signup/local/check-login-id",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        accept: "*/*",
+      },
+      params: {
+        loginId,
+      },
+    },
+  );
+  return response.data;
+};
+
 export const postLoginLocal = async (data: LoginRequest) => {
   const response = await axiosInstance.post("/auth/login/local", data);
   return response.data;

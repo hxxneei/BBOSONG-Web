@@ -5,12 +5,16 @@ import PolicySection from "../components/Signup/PolicySection";
 import BbosongLogoGaRo from "../assets/BbosongLogoGaRo.svg";
 import PolicyModal from "../modal/PolicyModal";
 import { useAuth } from "../hooks/useAuth";
+import { checkLoginId } from "../api/auth";
 
 const SignupPage: React.FC = () => {
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [email, setEmail] = useState("");
+
+  // 중복 확인
+  const [isIdChecked, setIsIdChecked] = useState(false);
 
   // 약관 모달
   const [isServiceAgreed, setIsServiceAgreed] = useState(false);
@@ -19,11 +23,47 @@ const SignupPage: React.FC = () => {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isMarketingModalOpen, setIsMarketingModalOpen] = useState(false);
 
-  const { signup, isLoading } = useAuth(); // 회원가입 로직 훅
+  const { signup, isLoading } = useAuth(); // 회원가입
 
-  // 2. 가입 버튼 실행 함수
+  const handleCheckIdDuplication = async () => {
+    if (!loginId.trim()) {
+      alert("아이디를 입력해 주세요.");
+      return;
+    }
+    try {
+      const response = await checkLoginId(loginId);
+
+      if (response.isSuccess) {
+        const { available } = response.result;
+        if (available) {
+          alert("사용 가능한 아이디입니다. ");
+          setIsIdChecked(true);
+        } else {
+          alert("이미 사용 중인 아이디입니다. ");
+          setIsIdChecked(false);
+        }
+      }
+    } catch (error: any) {
+      console.error("중복 확인 에러:", error);
+      if (error.response && error.response.status === 400) {
+        alert("잘못된 요청입니다. 아이디 형식을 확인해 주세요.");
+      } else if (error.response && error.response.status === 401) {
+        alert("아이디 중복 확인 API가 인증 필요 상태입니다. 서버 설정을 확인해 주세요.");
+      } else {
+        alert("중복 확인 중 오류가 발생했습니다.");
+      }
+      setIsIdChecked(false);
+    }
+  };
+
+  // 가입 버튼 실행 함수
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault(); // 페이지 새로고침 방지
+
+    if (!isIdChecked) {
+      alert("아이디 중복 확인을 먼저 완료해 주세요!");
+      return;
+    }
 
     if (password !== passwordConfirm) {
       alert("비밀번호가 일치하지 않습니다!");
@@ -54,7 +94,11 @@ const SignupPage: React.FC = () => {
           placeholder="아이디를 입력해주세요"
           showCheckBtn
           value={loginId}
-          onChange={(e) => setLoginId(e.target.value)}
+          onChange={(e) => {
+            setLoginId(e.target.value);
+            setIsIdChecked(false);
+          }}
+          onCheck={handleCheckIdDuplication}
         />
 
         <IdField
@@ -138,7 +182,12 @@ const SignupPage: React.FC = () => {
           type="submit"
           // 필수 약관(isServiceAgreed) 동의까지 해야 버튼이 활성화되게 수정!
           disabled={
-            isLoading || !loginId || !password || !email || !isServiceAgreed
+            isLoading ||
+            !loginId ||
+            !password ||
+            !email ||
+            !isServiceAgreed ||
+            !isIdChecked
           }
         >
           {isLoading ? "가입 중..." : "회원가입"}
