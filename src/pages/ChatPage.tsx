@@ -8,6 +8,7 @@ import { sendChatMessage, getChatMessages } from "../api/chat";
 export interface MessageStructure {
   from: "user" | "bot";
   text: string;
+  imageUrl?: string | null;
 }
 
 interface ChatPageProps {
@@ -37,7 +38,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
           const history = res.result.map((msg) => ({
             from:
               msg.senderType === "USER" ? ("user" as const) : ("bot" as const),
-            text: msg.content,
+            text: msg.content || "",
+            imageUrl: msg.imageUrl,
           }));
           setMessages(history);
         } else {
@@ -67,28 +69,42 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
   const handleSendMessage = async (imageFile: File | null = null) => {
     if (!input.trim() && !imageFile) return;
 
-    let previewText = input.trim();
-    if (imageFile) {
-      previewText = URL.createObjectURL(imageFile);
-    }
+    const previewImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
+    const previewMessage: MessageStructure = {
+      from: "user",
+      text: input.trim(),
+      imageUrl: previewImageUrl,
+    };
 
-    setMessages((prev) => [...prev, { from: "user", text: previewText }]);
+    setMessages((prev) => [...prev, previewMessage]);
 
     const currentInput = input;
     setInput("");
 
     try {
       const res = await sendChatMessage(currentInput, imageFile);
+      if (previewImageUrl) {
+        URL.revokeObjectURL(previewImageUrl);
+      }
       if (res.isSuccess) {
         setMessages((prev) => [
-          ...prev,
+          ...prev.slice(0, -1),
+          {
+            from: "user",
+            text: res.result.userMessage.content || "",
+            imageUrl: res.result.userMessage.imageUrl,
+          },
           {
             from: "bot",
-            text: res.result.assistantMessage.content,
+            text: res.result.assistantMessage.content || "",
+            imageUrl: res.result.assistantMessage.imageUrl,
           },
         ]);
       }
     } catch (error) {
+      if (previewImageUrl) {
+        URL.revokeObjectURL(previewImageUrl);
+      }
       console.error("채팅 전송 실패:", error);
       setMessages((prev) => [
         ...prev,

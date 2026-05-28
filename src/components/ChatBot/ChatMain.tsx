@@ -8,7 +8,7 @@ import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 import { Icon } from "@iconify/react";
 
 interface Props {
-  messages: { from: string; text: string }[]; // 기존 가짜 데이터 구조로 복구
+  messages: { from: string; text: string; imageUrl?: string | null }[];
   input: string;
   setInput: (val: string) => void;
   onSendMessage: () => void;
@@ -84,8 +84,17 @@ const ChatMain: React.FC<Props> = ({
         </EntryText>
 
         {messages.map((msg, i) => (
-          <Bubble key={i} $isUser={msg.from === "user"}>
-            {msg.text}
+          <Bubble
+            key={i}
+            $isUser={msg.from === "user"}
+            $hasImage={Boolean(msg.imageUrl)}
+          >
+            {msg.imageUrl && (
+              <MessageImage src={msg.imageUrl} alt="채팅 이미지" />
+            )}
+            {msg.text && msg.text !== "[이미지 첨부]" && (
+              <MessageText>{msg.text}</MessageText>
+            )}
           </Bubble>
         ))}
       </ChatBody>
@@ -108,7 +117,7 @@ const ChatMain: React.FC<Props> = ({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && onSendMessage()}
+            onKeyDown={(e) => e.key === "Enter" && onSendMessage()}
             placeholder="뽀송이에게 무엇이든 물어보세요!"
           />
           <button className="icon-btn">
@@ -198,6 +207,7 @@ const NameArea = styled.div`
 const ChatBody = styled.div`
   flex: 1;
   padding: 20px;
+  padding-bottom: 80px;
   background: linear-gradient(#bcdcff, #dff1ff);
   overflow-y: auto;
   display: flex;
@@ -216,15 +226,35 @@ const EntryText = styled.div`
   margin: 10px 0;
 `;
 
-const Bubble = styled.div<{ $isUser: boolean }>`
+const Bubble = styled.div<{ $isUser: boolean; $hasImage?: boolean }>`
   max-width: 75%;
-  padding: 10px 18px;
-  border-radius: 30px;
+  padding: ${(props) => (props.$hasImage ? "0px" : "10px 18px")};
+  border-radius: ${(props) => (props.$hasImage ? "18px" : "30px")};
   font-size: 13px;
   align-self: ${(props) => (props.$isUser ? "flex-end" : "flex-start")};
-  background: ${(props) => (props.$isUser ? "#4B80FC" : "white")};
+  background: ${(props) =>
+    props.$hasImage ? "transparent" : props.$isUser ? "#4B80FC" : "white"};
   color: ${(props) => (props.$isUser ? "white" : "#333")};
-  box-shadow: 0px 4px 5px 0px rgba(75, 128, 252, 0.3);
+  box-shadow: 0px 4px 5px 0px #4b80fc4d;
+`;
+
+const MessageImage = styled.img`
+  display: block;
+  width: 140px;
+  height: 140px;
+  border-radius: 14px;
+  object-fit: contain;
+  background: #fff;
+`;
+
+const MessageText = styled.span`
+  display: block;
+  white-space: pre-wrap;
+
+  img + & {
+    margin-top: 8px;
+    padding: 0 8px 4px;
+  }
 `;
 
 const InputSection = styled.div`

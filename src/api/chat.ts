@@ -4,6 +4,7 @@ export interface ChatMessage {
   chatMessageId: number;
   senderType: "USER" | "ASSISTANT";
   content: string;
+  imageUrl: string | null;
   createdAt: string;
 }
 
