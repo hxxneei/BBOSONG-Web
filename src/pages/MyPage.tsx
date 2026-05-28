@@ -1,6 +1,6 @@
 import { useViewportVH } from "../hooks/useViewportVH";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // 추가
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
 
@@ -9,6 +9,7 @@ import { HeaderWrapper } from "../components/mypage/HeaderWrapper";
 import { SectionWrapper } from "../components/mypage/SectionWrapper";
 import { InfoRow } from "../components/mypage/Row";
 import { deleteMemberMe, getMemberMe, postLogout } from "../api/member";
+import { updateNickname, updateBirthDate } from "../api/auth"; // ⭕ 가져오신 수정 API 2개 안전하게 연결
 
 interface MemberInfo {
   email: string;
@@ -26,14 +27,17 @@ const MyPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
 
-  // 1. 페이지 접속 시 내 정보 불러오기
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"nickname" | "birth">("nickname");
+  const [editValue, setEditValue] = useState("");
+
+  //내 정보 불러오기
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
         const res = await getMemberMe();
         if (res.isSuccess) {
           setMemberInfo(res.result);
-          // 실시간 화면 표시 및 다른 컴포넌트 동기화를 위해 로컬스토리지도 업데이트
           if (res.result.nickname) {
             localStorage.setItem("nickname", res.result.nickname);
           }
@@ -48,27 +52,26 @@ const MyPage: React.FC = () => {
     fetchMemberData();
   }, []);
 
-  // 2. 로그아웃 처리
+  // 로그아웃
   const handleLogout = async () => {
     if (!window.confirm("로그아웃 하시겠습니까?")) return;
 
     try {
       await postLogout();
-      // 성공 여부와 상관없이 프론트 토큰 및 유저 정보 청소
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("nickname");
-      localStorage.removeItem("chat_history"); // 채팅 기록도 깔끔하게 비우기
+      localStorage.removeItem("chat_history");
 
       alert("로그아웃 되었습니다.");
-      navigate("/login"); // 로그인 페이지로 이동
+      navigate("/login");
     } catch (error) {
       console.error("로그아웃 실패:", error);
       alert("로그아웃 처리 중 오류가 발생했습니다.");
     }
   };
 
-  // 3. 회원 탈퇴 처리
+  // 3. 회원 탈퇴 처리 (떡볶이님 순정 로직 그대로 유지)
   const handleWithdraw = async () => {
     if (isWithdrawing) return;
 
@@ -94,10 +97,52 @@ const MyPage: React.FC = () => {
     } catch (error: any) {
       console.error("회원 탈퇴 실패:", error);
       alert(
-        error.response?.data?.message || "회원 탈퇴 처리 중 오류가 발생했습니다.",
+        error.response?.data?.message ||
+          "회원 탈퇴 처리 중 오류가 발생했습니다.",
       );
     } finally {
       setIsWithdrawing(false);
+    }
+  };
+
+  const handleOpenEditModal = (
+    type: "nickname" | "birth",
+    currentVal: string | null,
+  ) => {
+    setModalType(type);
+    setEditValue(currentVal || "");
+    setIsModalOpen(true);
+  };
+
+  const handleSaveInfo = async () => {
+    if (!editValue.trim()) {
+      alert("값을 입력해 주세요.");
+      return;
+    }
+
+    try {
+      if (modalType === "nickname") {
+        const res = await updateNickname(editValue);
+        if (res.isSuccess) {
+          alert("닉네임이 변경되었습니다. ✨");
+          setMemberInfo((prev) =>
+            prev ? { ...prev, nickname: res.result.nickname } : null,
+          );
+          localStorage.setItem("nickname", res.result.nickname);
+        }
+      } else {
+        const res = await updateBirthDate(editValue);
+        if (res.isSuccess) {
+          alert("생년월일이 변경되었습니다. ");
+          setMemberInfo((prev) =>
+            prev ? { ...prev, birth: res.result.birth } : null,
+          );
+        }
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("정보 수정 실패:", error);
+      alert("정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
     }
   };
 
@@ -126,10 +171,9 @@ const MyPage: React.FC = () => {
             )
           }
           hint={memberInfo?.nickname ? "변경하기" : "등록하기"}
-          onClick={() => {
-            // 별도의 닉네임 설정/수정 페이지나 모달로 이동
-            // navigate("/mypage/edit-nickname");
-          }}
+          onClick={() =>
+            handleOpenEditModal("nickname", memberInfo?.nickname || null)
+          }
         />
         <InfoRow
           icon={<Mail size={18} />}
@@ -141,18 +185,17 @@ const MyPage: React.FC = () => {
           label="생년월일"
           value={
             memberInfo?.birth
-              ? memberInfo.birth.replace(/-/g, ".") // 2026-05-21 -> 2026.05.21 변환
+              ? memberInfo.birth.replace(/-/g, ".")
               : "등록된 생년월일이 없습니다"
           }
           hint={memberInfo?.birth ? "변경하기" : "등록하기"}
-          onClick={() => {
-            // 별도의 생년월일 설정/수정 페이지나 모달로 이동
-            // navigate("/mypage/edit-birth");
-          }}
+          onClick={() =>
+            handleOpenEditModal("birth", memberInfo?.birth || null)
+          }
         />
       </SectionWrapper>
 
-      {/* 옷장 관리 */}
+      {/* 옷장 관리*/}
       <SectionWrapper title="옷장 관리">
         <InfoRow
           icon={<Icon icon="mdi:hanger" width="20" height="20" />}
@@ -177,7 +220,7 @@ const MyPage: React.FC = () => {
         <InfoRow
           icon={<Icon icon="bi:chat-dots" width="20" height="20" />}
           label="로그아웃"
-          onClick={handleLogout} // 로그아웃 함수 연결
+          onClick={handleLogout}
         />
         <InfoRow
           icon={<UserX size={18} />}
@@ -185,6 +228,34 @@ const MyPage: React.FC = () => {
           onClick={handleWithdraw}
         />
       </SectionWrapper>
+
+      {/* mypage 모달 창  */}
+      {isModalOpen && (
+        <ModalDimmed onClick={() => setIsModalOpen(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>
+              {modalType === "nickname" ? "닉네임 변경" : "생년월일 변경"}
+            </ModalTitle>
+
+            <ModalInput
+              type={modalType === "nickname" ? "text" : "date"}
+              placeholder={
+                modalType === "nickname"
+                  ? "새로운 닉네임을 입력하세요"
+                  : "YYYY-MM-DD"
+              }
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              maxLength={modalType === "nickname" ? 40 : undefined}
+            />
+
+            <ModalButtonGroup>
+              <CancelBtn onClick={() => setIsModalOpen(false)}>취소</CancelBtn>
+              <SaveBtn onClick={handleSaveInfo}>저장</SaveBtn>
+            </ModalButtonGroup>
+          </ModalContent>
+        </ModalDimmed>
+      )}
     </Screen>
   );
 };
@@ -195,6 +266,7 @@ const Screen = styled.main`
   min-height: 100dvh;
   color: #111827;
   padding-bottom: env(safe-area-inset-bottom);
+  background-color: white;
 `;
 
 const Strong = styled.strong`
@@ -215,4 +287,84 @@ const LoadingText = styled.div`
   height: 100vh;
   color: #6b7280;
   font-size: 14px;
+`;
+
+const ModalDimmed = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+`;
+
+const ModalContent = styled.div`
+  width: 90%;
+  max-width: 320px;
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+`;
+
+const ModalTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 18px 0;
+  text-align: center;
+`;
+
+const ModalInput = styled.input`
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 22px;
+  box-sizing: border-box;
+  color: #000;
+  background-color: #fff;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: #2563eb;
+  }
+`;
+
+const ModalButtonGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  width: 100%;
+`;
+
+const BaseModalBtn = styled.button`
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+`;
+
+const CancelBtn = styled(BaseModalBtn)`
+  background-color: #f3f4f6;
+  color: #4b5563;
+  &:hover {
+    background-color: #e5e7eb;
+  }
+`;
+
+const SaveBtn = styled(BaseModalBtn)`
+  background-color: #2563eb;
+  color: white;
+  &:hover {
+    background-color: #1d4ed8;
+  }
 `;

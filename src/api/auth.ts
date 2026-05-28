@@ -18,18 +18,15 @@ export const postSignupLocal = async (data: SignupRequest) => {
 export const checkLoginId = async (loginId: string) => {
   const response = await axios.get<
     ApiResponse<{ loginId: string; available: boolean; duplicated: boolean }>
-  >(
-    "https://api.bbosongi.com/api/auth/signup/local/check-login-id",
-    {
-      headers: {
-        "Content-Type": "application/json",
-        accept: "*/*",
-      },
-      params: {
-        loginId,
-      },
+  >("https://api.bbosongi.com/api/auth/signup/local/check-login-id", {
+    headers: {
+      "Content-Type": "application/json",
+      accept: "*/*",
     },
-  );
+    params: {
+      loginId,
+    },
+  });
   return response.data;
 };
 
@@ -67,5 +64,21 @@ export const postReissue = async (refreshToken: string) => {
     },
   );
 
+  return response.data;
+};
+
+// 닉네임 수정
+export const updateNickname = async (nickname: string) => {
+  const response = await axiosInstance.patch("/members/me/nickname", {
+    nickname,
+  });
+  return response.data;
+};
+
+// 생년월일 수정
+export const updateBirthDate = async (birthDate: string) => {
+  const response = await axiosInstance.patch("/members/me/birth-date", {
+    birthDate,
+  });
   return response.data;
 };
