@@ -8,7 +8,7 @@ import { Calendar, Mail, UserX } from "lucide-react";
 import { HeaderWrapper } from "../components/mypage/HeaderWrapper";
 import { SectionWrapper } from "../components/mypage/SectionWrapper";
 import { InfoRow } from "../components/mypage/Row";
-import { getMemberMe, postLogout } from "../api/member";
+import { deleteMemberMe, getMemberMe, postLogout } from "../api/member";
 
 interface MemberInfo {
   email: string;
@@ -24,6 +24,7 @@ const MyPage: React.FC = () => {
   // 내 정보 상태 관리
   const [memberInfo, setMemberInfo] = useState<MemberInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   // 1. 페이지 접속 시 내 정보 불러오기
   useEffect(() => {
@@ -64,6 +65,39 @@ const MyPage: React.FC = () => {
     } catch (error) {
       console.error("로그아웃 실패:", error);
       alert("로그아웃 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 3. 회원 탈퇴 처리
+  const handleWithdraw = async () => {
+    if (isWithdrawing) return;
+
+    const confirmed = window.confirm(
+      "회원 탈퇴 시 계정, 채팅, 의류, 즐겨찾기 데이터가 모두 삭제됩니다.\n정말 탈퇴하시겠습니까?",
+    );
+    if (!confirmed) return;
+
+    setIsWithdrawing(true);
+    try {
+      const res = await deleteMemberMe();
+      if (res.isSuccess) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("nickname");
+        localStorage.removeItem("chat_history");
+
+        alert("회원 탈퇴가 완료되었습니다.");
+        navigate("/login", { replace: true });
+      } else {
+        alert(res.message || "회원 탈퇴 처리 중 오류가 발생했습니다.");
+      }
+    } catch (error: any) {
+      console.error("회원 탈퇴 실패:", error);
+      alert(
+        error.response?.data?.message || "회원 탈퇴 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsWithdrawing(false);
     }
   };
 
@@ -147,10 +181,8 @@ const MyPage: React.FC = () => {
         />
         <InfoRow
           icon={<UserX size={18} />}
-          label="회원 탈퇴"
-          onClick={() => {
-            /* withdraw */
-          }}
+          label={isWithdrawing ? "탈퇴 처리 중..." : "회원 탈퇴"}
+          onClick={handleWithdraw}
         />
       </SectionWrapper>
     </Screen>
