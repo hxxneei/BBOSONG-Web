@@ -5,6 +5,7 @@ import KakaoLogin from "../assets/LoginPage/KakaoLogin.svg";
 import GoogleLogin from "../assets/LoginPage/GoogleLogin.svg";
 import BbosongLogo from "../assets/BbosongLogo.svg";
 import { postLoginLocal } from "../api/auth";
+import ConfirmModal from "../components/Modal/ConfirmModal";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +13,20 @@ const Login: React.FC = () => {
   // 입력값 저장 상태 함수
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertModalTitle, setAlertModalTitle] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
+
+  const showAlertModal = (message: string) => {
+    setAlertModalTitle(message);
+    setIsAlertModalOpen(true);
+
+    setTimeout(() => {
+      setIsAlertModalOpen(false);
+    }, 1200);
+  };
 
   const handleSocialLogin = (provider: "kakao" | "google") => {
     window.location.href = `https://api.bbosongi.com/oauth2/authorization/${provider}`;
@@ -23,7 +37,7 @@ const Login: React.FC = () => {
     e.preventDefault(); // 새로고침 방지
 
     if (!loginId || !password) {
-      alert("아이디와 비밀번호를 모두 입력해주세요!");
+      showAlertModal("아이디와 비밀번호를\n모두 입력해주세요!");
       return;
     }
 
@@ -39,14 +53,16 @@ const Login: React.FC = () => {
         const userNickname = res.result.nickname || "보송이회원";
         localStorage.setItem("nickname", userNickname);
 
-        alert("로그인 성공");
-        navigate("/main-home");
+        showAlertModal("로그인 성공 !");
+        setTimeout(() => {
+          navigate("/main-home");
+        }, 1100);
       }
     } catch (error: any) {
       console.error("로그인 실패:", error);
-      alert(
-        error.response?.data?.message || "로그인 정보가 올바르지 않습니다.",
-      );
+      const errorMsg =
+        error.response?.data?.message || "로그인 정보가 올바르지 않습니다.";
+      showAlertModal(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +116,13 @@ const Login: React.FC = () => {
           />
         </ButtonGroup>
       </form>
+      <ConfirmModal
+        open={isAlertModalOpen}
+        title={alertModalTitle}
+        confirmText="확인"
+        cancelText=""
+        onConfirm={() => setIsAlertModalOpen(false)}
+      />
     </LoginContainer>
   );
 };

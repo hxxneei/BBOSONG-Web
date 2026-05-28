@@ -6,6 +6,9 @@ type ConfirmModalProps = {
   confirmText?: string; // 확인 버튼 라벨
   cancelText?: string; // 취소 버튼 라벨
   className?: string;
+
+  onConfirm?: () => void;
+  onCancel?: () => void;
 };
 
 export default function ConfirmModal({
@@ -14,27 +17,35 @@ export default function ConfirmModal({
   confirmText = "확인",
   cancelText = "취소",
   className,
+
+  onConfirm,
+  onCancel,
 }: ConfirmModalProps) {
   if (!open) return null;
   return (
     <Layer className={className}>
-      <Dim />
+      <Dim onClick={onCancel} />
       <Card role="dialog" aria-modal="true">
         <Title>{title}</Title>
 
         <BtnCol>
-          <PrimaryBtn type="button">{confirmText}</PrimaryBtn>
-          <GhostBtn type="button">{cancelText}</GhostBtn>
+          <PrimaryBtn type="button" onClick={onConfirm}>
+            {confirmText}
+          </PrimaryBtn>
+          {cancelText && (
+            <GhostBtn type="button" onClick={onCancel}>
+              {cancelText}
+            </GhostBtn>
+          )}
         </BtnCol>
       </Card>
     </Layer>
   );
 }
-
 const Layer = styled.div`
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 2999;
 `;
 
 const Dim = styled.div`
@@ -51,42 +62,48 @@ const Card = styled.div`
   width: min(301px, calc(100% - 48px));
   background: #ffffff;
   border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 20px 20px 16px;
-  height: 188px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 24px 20px 16px;
+  min-height: 120px;
+  height: fit-content;
 `;
 
 const Title = styled.p`
-  margin: 8px 0 16px;
+  margin: 8px 0 20px;
   text-align: center;
   color: #111827;
-  font-weight: 400;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.4;
   letter-spacing: -0.2px;
+  white-space: pre-line;
 `;
 
 const BtnCol = styled.div`
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
 
 const BaseBtn = styled.button`
-  width: 253px;
-  height: 40px;
+  width: 100%;
+  height: 42px;
   border: 0;
-  border-radius: 5px;
-  font-weight: 400;
+  border-radius: 8px;
+  font-weight: 600;
   font-size: 14px;
-  cursor: default;
+  cursor: pointer;
 `;
 
 const PrimaryBtn = styled(BaseBtn)`
-  background: #4b80fc; /* 메인 파랑 */
+  background: #4b80fc;
   color: #fff;
   box-shadow: inset 0 -1px rgba(0, 0, 0, 0.08);
 `;
 
 const GhostBtn = styled(BaseBtn)`
-  background: #ebf0f7; /* 연한 회색/블루 톤 */
-  color: #808080; /* 흐린 텍스트 느낌 */
+  background: #ebf0f7;
+  color: #808080;
 `;

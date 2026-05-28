@@ -7,6 +7,7 @@ import PolicyModal from "../modal/PolicyModal";
 import { useAuth } from "../hooks/useAuth";
 import { checkLoginId } from "../api/auth";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../components/Modal/ConfirmModal";
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,11 +27,23 @@ const SignupPage: React.FC = () => {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isMarketingModalOpen, setIsMarketingModalOpen] = useState(false);
 
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertModalTitle, setAlertModalTitle] = useState("");
+
   const { signup, isLoading } = useAuth(); // 회원가입
+
+  const showAlertModal = (message: string) => {
+    setAlertModalTitle(message);
+    setIsAlertModalOpen(true);
+
+    setTimeout(() => {
+      setIsAlertModalOpen(false);
+    }, 1200);
+  };
 
   const handleCheckIdDuplication = async () => {
     if (!loginId.trim()) {
-      alert("아이디를 입력해 주세요.");
+      showAlertModal("아이디를 입력해 주세요.");
       return;
     }
     try {
@@ -39,23 +52,23 @@ const SignupPage: React.FC = () => {
       if (response.isSuccess) {
         const { available } = response.result;
         if (available) {
-          alert("사용 가능한 아이디입니다. ");
+          showAlertModal("사용 가능한 아이디입니다.");
           setIsIdChecked(true);
         } else {
-          alert("이미 사용 중인 아이디입니다. ");
+          showAlertModal("이미 사용 중인 아이디입니다. ");
           setIsIdChecked(false);
         }
       }
     } catch (error: any) {
       console.error("중복 확인 에러:", error);
       if (error.response && error.response.status === 400) {
-        alert("잘못된 요청입니다. 아이디 형식을 확인해 주세요.");
+        showAlertModal("잘못된 요청입니다.\n아이디 형식을 확인해 주세요.");
       } else if (error.response && error.response.status === 401) {
-        alert(
-          "아이디 중복 확인 API가 인증 필요 상태입니다. 서버 설정을 확인해 주세요.",
+        showAlertModal(
+          "아이디 중복 확인 API가 인증 필요 상태입니다.\n서버 설정을 확인해 주세요.",
         );
       } else {
-        alert("중복 확인 중 오류가 발생했습니다.");
+        showAlertModal("중복 확인 중 오류가 발생했습니다.");
       }
       setIsIdChecked(false);
     }
@@ -75,7 +88,7 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    // 서버로 데이터 전송 (스웨거의 loginId, password, email 형식)
+    // 서버로 데이터 전송
     await signup({ loginId, password, email });
     navigate("/signup-complete");
   };
@@ -132,12 +145,12 @@ const SignupPage: React.FC = () => {
         />
 
         <PolicySection
-          // 1. 체크 상태 데이터 전달
+          // 체크 상태 데이터 전달
           isServiceAgreed={isServiceAgreed}
           setIsServiceAgreed={setIsServiceAgreed}
           isMarketingAgreed={isMarketingAgreed}
           setIsMarketingAgreed={setIsMarketingAgreed}
-          // 2. 모달 여는 함수 전달
+          // 모달 여는 함수 전달
           onOpenService={() => setIsServiceModalOpen(true)}
           onOpenMarketing={() => setIsMarketingModalOpen(true)}
         />
@@ -183,10 +196,8 @@ const SignupPage: React.FC = () => {
             </>
           }
         />
-        {/* 4. 버튼 활성화 및 제출 타입 설정 */}
         <SignupButton
           type="submit"
-          // 필수 약관(isServiceAgreed) 동의까지 해야 버튼이 활성화되게 수정!
           disabled={
             isLoading ||
             !loginId ||
@@ -199,6 +210,13 @@ const SignupPage: React.FC = () => {
           {isLoading ? "가입 중..." : "회원가입"}
         </SignupButton>
       </form>
+      <ConfirmModal
+        open={isAlertModalOpen}
+        title={alertModalTitle}
+        confirmText="확인"
+        cancelText=""
+        onConfirm={() => setIsAlertModalOpen(false)}
+      />
     </SignupContainer>
   );
 };
