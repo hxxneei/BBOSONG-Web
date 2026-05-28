@@ -154,7 +154,7 @@ const InputGroup = styled.div`
     transition: all 0.2s;
 
     &::placeholder {
-      font-size: 9px;
+      font-size: 10px;
       color: #b5b5b5;
       position: relative;
       top: -8px;
@@ -197,8 +197,9 @@ const LoginBtn = styled.button`
   color: white;
   border: none;
   border-radius: 12px;
+  font-size: 16px;
   padding: 14px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s;
 
