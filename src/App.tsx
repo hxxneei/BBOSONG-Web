@@ -24,6 +24,7 @@ import MyClosetPage from "./pages/MyClosetPage";
 
 const App: React.FC = () => {
   const [chatStep, setChatStep] = useState(1);
+  const [isScannerCameraActive, setIsScannerCameraActive] = useState(false);
   const location = useLocation();
   const hideNavPaths = [
     "/",
@@ -37,8 +38,11 @@ const App: React.FC = () => {
   const isBaseHidePath = hideNavPaths.includes(location.pathname.toLowerCase());
   const isChatSubStep =
     location.pathname.toLowerCase() === "/chatpage" && chatStep !== 1;
+  const isScannerCameraPath =
+    location.pathname.toLowerCase() === "/fabric-scanner" &&
+    isScannerCameraActive;
 
-  const shouldHideNav = isBaseHidePath || isChatSubStep;
+  const shouldHideNav = isBaseHidePath || isChatSubStep || isScannerCameraPath;
 
   // const shouldHideNav = hideNavPaths.includes(location.pathname.toLowerCase());
 
@@ -53,7 +57,12 @@ const App: React.FC = () => {
           path="/chatpage"
           element={<ChatPage onStepChange={(step) => setChatStep(step)} />}
         />
-        <Route path="/fabric-scanner" element={<FabricScanner />} />
+        <Route
+          path="/fabric-scanner"
+          element={
+            <FabricScanner onCameraActiveChange={setIsScannerCameraActive} />
+          }
+        />
         <Route path="/result" element={<ResultPage />} />
         <Route path="/signup-compelet" element={<SignupComplete />} />
         <Route path="/main-home" element={<MainHome />} />

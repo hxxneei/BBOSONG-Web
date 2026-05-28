@@ -1,11 +1,8 @@
-// 📄 src/components/MapView.tsx
-
 import { useEffect, useState } from "react";
 
 import MapBottomSheet from "../common/MapBottomSheet";
 import type { KakaoPlace } from "../common/MapBottomSheet";
 
-// 💡 API 통신 함수들을 가져옵니다.
 import {
   getFavoriteStores,
   addFavoriteStore,

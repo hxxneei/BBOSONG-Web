@@ -203,7 +203,7 @@ const SearchInput = styled.input`
 
 const ContentZone = styled.div`
   flex: 1;
-  padding: 0 20px 40px;
+  padding: 0 20px calc(120px + env(safe-area-inset-bottom, 0px));
 `;
 
 const ClothesGrid = styled.div`

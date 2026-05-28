@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Title from "../components/FabricScanner/Title";
 import PreviewImage from "../components/FabricScanner/PreviewImage";
 import ImageDescription from "../components/FabricScanner/ImageDescription";
@@ -15,11 +15,26 @@ import type { ClothesAnalysisResult } from "../types/clothes";
 import { useNavigate } from "react-router-dom";
 // 경로도 나중에 @ 수정
 
-export default function FabricScanner() {
+type FabricScannerProps = {
+  onCameraActiveChange?: (active: boolean) => void;
+};
+
+export default function FabricScanner({
+  onCameraActiveChange,
+}: FabricScannerProps) {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // 분석 중 로딩 상태
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    return () => onCameraActiveChange?.(false);
+  }, [onCameraActiveChange]);
+
+  const closeCamera = () => {
+    setIsCameraActive(false);
+    onCameraActiveChange?.(false);
+  };
 
   const dataURLtoFile = (dataurl: string, filename: string) => {
     const arr = dataurl.split(",");
@@ -36,7 +51,7 @@ export default function FabricScanner() {
   // 갤러리 or 사진찍기 선택 시, 실행 로직
   const handleCapture = async (imageFile: File) => {
     // 권한 처리 추가
-    setIsCameraActive(false);
+    closeCamera();
     setIsLoading(true);
     try {
       const res: ApiResponse<ClothesAnalysisResult> =
@@ -72,7 +87,7 @@ export default function FabricScanner() {
               const file = dataURLtoFile(base64Image, "captured_cloth.png");
               handleCapture(file);
             }}
-            onClose={() => setIsCameraActive(false)}
+            onClose={closeCamera}
           />
         </CameraOnlyWrap>
       ) : (
@@ -93,7 +108,10 @@ export default function FabricScanner() {
             onChange={handlePickGallery}
           />
           <Actions
-            onStartCamera={() => setIsCameraActive(true)}
+            onStartCamera={() => {
+              setIsCameraActive(true);
+              onCameraActiveChange?.(true);
+            }}
             onPickGallery={() =>
               document.getElementById("gallery-input")?.click()
             }
