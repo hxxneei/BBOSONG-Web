@@ -4,12 +4,24 @@ import styled from "styled-components";
 import { Icon } from "@iconify/react";
 import { toggleClothesFavorite, type ClothesItem } from "../api/clothes";
 import axiosInstance from "../api/axiosInstance";
+import ConfirmModal from "../components/Modal/ConfirmModal";
 
 export default function MyClosetPage() {
   const navigate = useNavigate();
   const [clothes, setFavorites] = useState<ClothesItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
+
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    open: boolean;
+    title: string;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    open: false,
+    title: "",
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     const fetchFavoriteClothes = async () => {
@@ -27,16 +39,32 @@ export default function MyClosetPage() {
     fetchFavoriteClothes();
   }, []);
 
-  const handleHeartToggle = async (id: number, e: React.MouseEvent) => {
+  // ⭕ 모달 닫기용 헬퍼 함수
+  const closeConfirmModal = () => {
+    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleHeartToggle = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      const res = await toggleClothesFavorite(id, false);
-      if (res.isSuccess) {
-        setFavorites((prev) => prev.filter((item) => item.clothesId !== id));
-      }
-    } catch (err) {
-      console.error("하트 해제 처리 중 오류 발생 :", err);
-    }
+
+    setConfirmModalConfig({
+      open: true,
+      title: "즐겨찾기를 해제하시겠습니까?",
+      onCancel: closeConfirmModal,
+      onConfirm: async () => {
+        closeConfirmModal();
+        try {
+          const res = await toggleClothesFavorite(id, false);
+          if (res.isSuccess) {
+            setFavorites((prev) =>
+              prev.filter((item) => item.clothesId !== id),
+            );
+          }
+        } catch (err) {
+          console.error("하트 해제 처리 중 오류 발생 :", err);
+        }
+      },
+    });
   };
 
   const filteredClothes = clothes.filter((item) =>
@@ -135,6 +163,12 @@ export default function MyClosetPage() {
       <FloatingMenuBtn>
         <Icon icon="pepicons-pencil:dots-y" width="24" height={24} />
       </FloatingMenuBtn>
+      <ConfirmModal
+        open={confirmModalConfig.open}
+        title={confirmModalConfig.title}
+        onConfirm={confirmModalConfig.onConfirm}
+        onCancel={confirmModalConfig.onCancel}
+      />
     </PageWrapper>
   );
 }
