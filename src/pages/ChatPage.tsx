@@ -18,22 +18,44 @@ interface ChatPageProps {
 }
 
 const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<number>(() => {
+    const savedStep = sessionStorage.getItem("bbosong_chat_step");
+    return savedStep ? Number(savedStep) : 1;
+  });
+
   const [input, setInput] = useState("");
   const [userName, setUserName] = useState(
     () => localStorage.getItem("nickname") || "회원",
   );
-  const [messages, setMessages] = useState<MessageStructure[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [messages, setMessages] = useState<MessageStructure[]>(() => {
+    const savedMessages = sessionStorage.getItem("bbosong_chat_messages");
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    return sessionStorage.getItem("bbosong_chat_isLoading") === "true";
+  });
 
   useEffect(() => {
+    sessionStorage.setItem("bbosong_chat_step", String(step));
     if (onStepChange) {
       onStepChange(step);
     }
   }, [step, onStepChange]);
 
   useEffect(() => {
+    sessionStorage.setItem("bbosong_chat_messages", JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    sessionStorage.setItem("bbosong_chat_isLoading", String(isLoading));
+  }, [isLoading]);
+
+  useEffect(() => {
     const loadChatHistory = async () => {
+      if (messages.length > 0) return;
+
       try {
         const res = await getChatMessages();
         if (res.isSuccess && res.result.length > 0) {
