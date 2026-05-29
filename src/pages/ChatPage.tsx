@@ -24,10 +24,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
     () => localStorage.getItem("nickname") || "회원",
   );
   const [messages, setMessages] = useState<MessageStructure[]>([]);
-
-  // ...  입력 중 말풍선
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [inputText, setInputText] = useState("");
 
   useEffect(() => {
     if (onStepChange) {
@@ -71,41 +68,70 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
     }
   }, [step, userName]);
 
-  const handleSendMessage = async (imageFile: File | null = null) => {
-    if (!input.trim() && !imageFile) return;
+  const handleSendMessage = async (
+    textToSend: string,
+    imageFile: File | null = null,
+  ) => {
+    if (!textToSend.trim() && !imageFile) return;
 
-    const previewImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
-    const previewMessage: MessageStructure = {
-      from: "user",
-      text: input.trim(),
-      imageUrl: previewImageUrl,
-    };
-
-    setMessages((prev) => [...prev, previewMessage]);
-
-    const currentInput = input;
     setInput("");
 
+    const newNewMessages: MessageStructure[] = [];
+    const previewImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
+
+    if (previewImageUrl) {
+      newNewMessages.push({
+        from: "user",
+        text: "[이미지 첨부]",
+        imageUrl: previewImageUrl,
+      });
+    }
+
+    if (textToSend.trim()) {
+      newNewMessages.push({
+        from: "user",
+        text: textToSend.trim(),
+        imageUrl: null,
+      });
+    }
+
+    setMessages((prev) => [...prev, ...newNewMessages]);
     setIsLoading(true);
 
     try {
-      const res = await sendChatMessage(currentInput, imageFile);
+      const res = await sendChatMessage(textToSend.trim(), imageFile);
+
       if (previewImageUrl) {
         URL.revokeObjectURL(previewImageUrl);
       }
+
       if (res.isSuccess) {
-        setMessages((prev) => [
-          ...prev.slice(0, -1),
-          {
+        const responseMessages: MessageStructure[] = [];
+
+        if (res.result.userMessage.imageUrl) {
+          responseMessages.push({
             from: "user",
-            text: res.result.userMessage.content || "",
+            text: "[이미지 첨부]",
             imageUrl: res.result.userMessage.imageUrl,
-          },
-          {
-            from: "bot",
-            text: res.result.assistantMessage.content || "",
-            imageUrl: res.result.assistantMessage.imageUrl,
-          },
+          });
+        }
+        if (res.result.userMessage.content) {
+          responseMessages.push({
+            from: "user",
+            text: res.result.userMessage.content,
+            imageUrl: null,
+          });
+        }
+
+        responseMessages.push({
+          from: "bot",
+          text: res.result.assistantMessage.content || "",
+          imageUrl: res.result.assistantMessage.imageUrl,
+        });
+
+        setMessages((prev) => [
+          ...prev.slice(0, -newNewMessages.length),
+          ...responseMessages,
         ]);
       }
     } catch (error) {
@@ -134,8 +160,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
           messages={messages}
           input={input}
           setInput={setInput}
-          onSendMessage={() => handleSendMessage(null)}
-          onSendWithImage={(file) => handleSendMessage(file)}
+          onSendMessage={(text, file) => handleSendMessage(text, file)}
+          onSendWithImage={(file) => handleSendMessage("", file)}
           onBack={() => setStep(1)}
           userName={userName}
           isLoading={isLoading}

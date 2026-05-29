@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
 
 import cameraBtn from "../../assets/ChatPage/cameraBtn.svg";
@@ -12,7 +12,7 @@ interface Props {
   messages: { from: string; text: string; imageUrl?: string | null }[];
   input: string;
   setInput: (val: string) => void;
-  onSendMessage: () => void;
+  onSendMessage: (text: string, file: File | null) => void;
   onSendWithImage: (file: File) => void; // 이미지 파일 전송용 핸들러 추가
   onBack: () => void;
   userName?: string; // 이름 전달용은 유지
@@ -32,6 +32,9 @@ const ChatMain: React.FC<Props> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
   const handleCameraClick = () => {
     fileInputRef.current?.click();
   };
@@ -39,24 +42,36 @@ const ChatMain: React.FC<Props> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const selectedFile = files[0];
-      onSendWithImage(selectedFile);
+      const file = files[0];
+      setSelectedImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
     }
   };
-  // useEffect(() => {
-  //   if (messages.length > 0 && scrollRef.current) {
-  //     const timer = setTimeout(() => {
-  //       if (scrollRef.current) {
-  //         scrollRef.current.scrollTo({
-  //           top: scrollRef.current.scrollHeight,
-  //           behavior: "smooth",
-  //         });
-  //       }
-  //     }, 100);
 
-  //     return () => clearTimeout(timer); // 메모리 누수 방지용 청소
-  //   }
-  // }, [messages]);
+  const handleCancelImage = () => {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleFinalSubmit = () => {
+    if (!input.trim() && !selectedImageFile) return;
+
+    // 🚀 부모인 ChatPage의 handleSendMessage로 텍스트와 파일 객체를 유실 없이 정상 배달!
+    onSendMessage(input, selectedImageFile);
+
+    // 전송 처리가 완전히 끝났으므로 내 임시 대기 장소 초기화
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   useEffect(() => {
     if ((messages.length > 0 || isLoading) && scrollRef.current) {
       const timer = setTimeout(() => {
@@ -71,7 +86,6 @@ const ChatMain: React.FC<Props> = ({
       return () => clearTimeout(timer);
     }
   }, [messages, isLoading]);
-
   return (
     <Container>
       <TopArea>
@@ -117,17 +131,36 @@ const ChatMain: React.FC<Props> = ({
         {isLoading && <ChatLoading />}
       </ChatBody>
 
-      <InputSection>
-        <InputBox>
-          <input
-            type="file"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept="image/*"
+        onChange={handleFileChange}
+      />
 
-          <button className="icon-btn" onClick={handleCameraClick}>
+      <InputSection>
+        {imagePreviewUrl && (
+          <ImagePreviewBar>
+            <PreviewContainer>
+              <img src={imagePreviewUrl} alt="업로드 대기 샘플" />
+              <CancelImageBtn onClick={handleCancelImage}>
+                <Icon
+                  icon="ic:baseline-close"
+                  width="16"
+                  height="16"
+                  color="white"
+                />
+              </CancelImageBtn>
+            </PreviewContainer>
+          </ImagePreviewBar>
+        )}
+        <InputBox>
+          <button
+            className="icon-btn"
+            type="button"
+            onClick={handleCameraClick}
+          >
             <img src={cameraBtn} alt="camera" />
           </button>
 
@@ -135,13 +168,13 @@ const ChatMain: React.FC<Props> = ({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && onSendMessage()}
+            onKeyDown={(e) => e.key === "Enter" && handleFinalSubmit()}
             placeholder="뽀송이에게 무엇이든 물어보세요!"
           />
           <button className="icon-btn">
             <img src={micBtn} alt="mic" />
           </button>
-          <button className="icon-btn" onClick={onSendMessage}>
+          <button className="icon-btn" onClick={handleFinalSubmit}>
             <img src={sendBtn} alt="send" />
           </button>
         </InputBox>
@@ -328,5 +361,49 @@ const InputBox = styled.div`
     &:active {
       transform: scale(0.9);
     }
+  }
+`;
+
+const ImagePreviewBar = styled.div`
+  width: 90%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 12px;
+`;
+
+const PreviewContainer = styled.div`
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(75, 128, 252, 0.2);
+  overflow: visible; /* 엑스표 단추가 삐져나갈 수 있게 처리 */
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+`;
+
+const CancelImageBtn = styled.button`
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #374151; /* 챠콜 회색 원형 단추 */
+  border: 1.5px solid white;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    background-color: #1f2937;
   }
 `;
