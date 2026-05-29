@@ -7,23 +7,30 @@ import Actions from "../components/FabricScanner/Actions";
 import CameraPreview from "../common/CameraPreview";
 import Loading from "../pages/Loading";
 
-import { postClothesAnalysis } from "../api/clothes";
-
-import type { ApiResponse } from "../types/auth";
-import type { ClothesAnalysisResult } from "../types/clothes";
+import {
+  getClothesAnalysisResult,
+  postClothesAnalysis,
+} from "../api/clothes";
 
 import { useNavigate } from "react-router-dom";
-// 경로도 나중에 @ 수정
 
 type FabricScannerProps = {
   onCameraActiveChange?: (active: boolean) => void;
 };
 
+const POLLING_INTERVAL_MS = 2500;
+const MAX_POLLING_COUNT = 60;
+
+const wait = (ms: number) =>
+  new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+
 export default function FabricScanner({
   onCameraActiveChange,
 }: FabricScannerProps) {
   const [isCameraActive, setIsCameraActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // 분석 중 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -42,33 +49,65 @@ export default function FabricScanner({
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
+
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
+
     return new File([u8arr], filename, { type: mime });
   };
 
-  // 갤러리 or 사진찍기 선택 시, 실행 로직
   const handleCapture = async (imageFile: File) => {
-    // 권한 처리 추가
     closeCamera();
     setIsLoading(true);
+
     try {
-      const res: ApiResponse<ClothesAnalysisResult> =
-        await postClothesAnalysis(imageFile);
-      if (res.isSuccess) {
-        const imageUrl = URL.createObjectURL(imageFile);
-        // 결과 페이지 이동
-        navigate("/result", { state: { serverData: res.result, imageUrl } });
+      const analysisJob = await postClothesAnalysis(imageFile);
+
+      if (!analysisJob.isSuccess) {
+        alert("분석 요청에 실패했습니다.");
+        return;
       }
-    } catch (error) {
+
+      const { jobId } = analysisJob.result;
+
+      for (let count = 0; count < MAX_POLLING_COUNT; count += 1) {
+        await wait(POLLING_INTERVAL_MS);
+
+        const analysisResult = await getClothesAnalysisResult(jobId);
+        const { status, result, errorMessage } = analysisResult.result;
+
+        if (status === "SUCCESS" && result) {
+          const imageUrl = URL.createObjectURL(imageFile);
+
+          navigate("/result", {
+            state: { serverData: result, imageUrl, imageFile },
+          });
+          return;
+        }
+
+        if (status === "FAILED") {
+          alert(errorMessage || "분석에 실패했습니다.");
+          return;
+        }
+      }
+
+      alert("분석 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.");
+    } catch (error: any) {
+      if (error?.response?.status === 429) {
+        alert("요청이 많습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+
       alert("분석 실패");
     } finally {
       setIsLoading(false);
     }
   };
+
   const handlePickGallery = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       handleCapture(file);
     }
@@ -95,11 +134,10 @@ export default function FabricScanner({
           <Title titleLeft="스마트 AI" titleRight="분석 카메라" />
           <PreviewImage />
           <ImageDescription
-            line1="옷을 카메라에 비추어 실시간으로"
-            strong="옷/세탁 정보"
+            line1="옷을 카메라에 비추면 실시간으로"
+            strong="의류 정보"
             line2="를 확인해보세요!"
           />
-          {/* hidden input */}
           <input
             type="file"
             id="gallery-input"

@@ -2,6 +2,22 @@ import axiosInstance from "./axiosInstance";
 import type { ApiResponse } from "../types/auth";
 import type { ClothesAnalysisResult } from "../types/clothes";
 
+export type ClothesAnalysisStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "SUCCESS"
+  | "FAILED";
+
+export interface ClothesAnalysisJob {
+  jobId: number;
+  status: ClothesAnalysisStatus;
+}
+
+export interface ClothesAnalysisJobResult extends ClothesAnalysisJob {
+  result: ClothesAnalysisResult | null;
+  errorMessage: string | null;
+}
+
 // 의류 분석
 export const postClothesAnalysis = async (imageFile: File) => {
   const formData = new FormData();
@@ -13,7 +29,7 @@ export const postClothesAnalysis = async (imageFile: File) => {
 
   console.log("새로 로그인 후 토큰", token);
 
-  const response = await axiosInstance.post<ApiResponse<ClothesAnalysisResult>>(
+  const response = await axiosInstance.post<ApiResponse<ClothesAnalysisJob>>(
     "/clothes/analysis",
     formData,
     {
@@ -24,6 +40,15 @@ export const postClothesAnalysis = async (imageFile: File) => {
       },
     },
   );
+
+  return response.data;
+};
+
+export const getClothesAnalysisResult = async (jobId: number) => {
+  const response =
+    await axiosInstance.get<ApiResponse<ClothesAnalysisJobResult>>(
+      `/clothes/analysis/${jobId}`,
+    );
 
   return response.data;
 };
