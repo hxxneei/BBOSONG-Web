@@ -67,7 +67,12 @@ export default function ClothDetailView({
               <Name>{item.name}</Name>
             </div>
             <HeartSlot>
-              <HeartBtn active={item.isFavorite} onClick={onToggleFavorite} />
+              <HeartBtn
+                active={item.isFavorite}
+                onClick={(e) => {
+                  if (onToggleFavorite) onToggleFavorite();
+                }}
+              />
             </HeartSlot>
           </Row>
 

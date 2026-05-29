@@ -7,9 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import type { ClothesAnalysisResult } from "../types/clothes";
 import ResultButtonGroup from "../components/Result/ResultBtnGroup";
 import { postSaveClothes } from "../api/clothes";
-
 import ConfirmModal from "../components/Modal/ConfirmModal";
-
 import ResultDummy from "../assets/ResultDummy.png";
 
 const transformServerData = (
@@ -64,7 +62,6 @@ type Props = {
   onToggleBookmark?: () => void;
   onRescan?: () => void;
   onSave?: (data: ResultData) => void;
-
   title?: string;
   rightIcon?: string;
   onRightIconClick?: () => void;
@@ -76,8 +73,6 @@ type Props = {
 export default function ResultPage({
   bookmarked = false,
   onBack,
-  onToggleBookmark,
-  onRescan,
   onSave,
   tags,
   showButtons = true,
@@ -92,17 +87,34 @@ export default function ResultPage({
 
   const [isBookmarked, setIsBookmarked] = useState<boolean>(bookmarked);
 
-  // 모달
-  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
-  const [alertModalTitle, setAlertModalTitle] = useState("");
+  // 📝 모달 전용 상태창 배선 구조화 (동적 함수 결속을 위해 객체형으로 업그레이드)
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    open: boolean;
+    title: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: "",
+    onConfirm: () => {},
+  });
 
-  const showAlertModal = (message: string) => {
-    setAlertModalTitle(message);
-    setIsAlertModalOpen(true);
+  const closeConfirmModal = () => {
+    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
+  };
 
-    setTimeout(() => {
-      setIsAlertModalOpen(false);
-    }, 1200);
+  // ⭕ [교정] 자동으로 꺼지는 타이머를 지우고, 동적으로 행동(onConfirm)을 제어하도록 전면 교정
+  const showAlertModal = (
+    message: string,
+    customConfirmAction?: () => void,
+  ) => {
+    setConfirmModalConfig({
+      open: true,
+      title: message,
+      onConfirm: () => {
+        closeConfirmModal();
+        if (customConfirmAction) customConfirmAction();
+      },
+    });
   };
 
   const handleBack = onBack ?? (() => window.history.back());
@@ -120,11 +132,7 @@ export default function ResultPage({
   };
 
   const handleRetryClick = () => {
-    if (onRescan) {
-      onRescan();
-    } else {
-      navigate("/fabric-scanner");
-    }
+    navigate("/fabric-scanner");
   };
 
   const handleSaveClick = async () => {
@@ -134,7 +142,7 @@ export default function ResultPage({
     }
 
     try {
-      let finalCategory = "상의"; // 기본값 안전망
+      let finalCategory = "상의";
 
       if (serverData?.categoryName) {
         finalCategory = serverData.categoryName.trim();
@@ -155,7 +163,6 @@ export default function ResultPage({
       };
 
       const formData = new FormData();
-
       formData.append(
         "request",
         new Blob([JSON.stringify(clothData)], { type: "application/json" }),
@@ -176,10 +183,11 @@ export default function ResultPage({
 
       if (res.isSuccess) {
         console.log("저장 완료, 등록 결과:", res.result);
-        showAlertModal("내 옷장에 \n저장되었습니다! ");
-        setTimeout(() => {
+
+        // ⭕ [교정] 유저가 알림창에서 [확인]을 누르는 시점에 깔끔하게 내 옷장 페이지로 이동하도록 싱크업!
+        showAlertModal("내 옷장에 저장되었습니다! 🧺", () => {
           navigate("/closetpage");
-        }, 1100);
+        });
       }
     } catch (err) {
       console.error("의류 저장 통신 중 프론트엔드 예외 발생:", err);
@@ -211,12 +219,15 @@ export default function ResultPage({
           </Bottom>
         )}
       </Phone>
+
+      {/* ⭕ [매칭 완료] 취소 버튼이 없는 단방향 구조이므로 cancelText="" 전달 및 동적 바인딩 */}
       <ConfirmModal
-        open={isAlertModalOpen}
-        title={alertModalTitle}
+        open={confirmModalConfig.open}
+        title={confirmModalConfig.title}
         confirmText="확인"
         cancelText=""
-        onConfirm={() => setIsAlertModalOpen(false)}
+        onConfirm={confirmModalConfig.onConfirm}
+        onCancel={closeConfirmModal}
       />
     </Shell>
   );
@@ -245,7 +256,6 @@ const Phone = styled.main`
 const ContentArea = styled.div`
   flex: 1;
   overflow-y: auto;
-
   &::-webkit-scrollbar {
     display: none;
   }

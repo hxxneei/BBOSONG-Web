@@ -3,7 +3,7 @@ import { Icon } from "@iconify/react";
 
 interface HeartButtonProps {
   active?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export default function HeartButton({

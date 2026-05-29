@@ -11,6 +11,7 @@ import {
   toggleClothesFavorite,
 } from "../api/clothes";
 import DeleteModal from "./DeleteModal";
+import ConfirmModal from "../components/Modal/ConfirmModal";
 
 export default function ClosetDetailPage() {
   //const location = useLocation();
@@ -25,6 +26,19 @@ export default function ClosetDetailPage() {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDeletedSuccess, setIsDeletedSuccess] = useState<boolean>(false);
+
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    open: boolean;
+    title: string;
+    onConfirm: () => void;
+    onCancel?: () => void;
+    cancelText?: string;
+  }>({
+    open: false,
+    title: "",
+    onConfirm: () => {},
+    cancelText: "취소",
+  });
 
   useEffect(() => {
     if (!clothesId || isNaN(clothesId)) {
@@ -84,17 +98,52 @@ export default function ClosetDetailPage() {
     fetchDetail();
   }, [clothesId, navigate]);
 
-  const handleToggleFavoriteAPI = async () => {
+  const closeConfirmModal = () => {
+    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleToggleFavoriteAPI = () => {
     if (!clothItem || !clothesId) return;
 
-    const nextFavoriteState = !clothItem.isFavorite; // 반대 상태 계산
+    const nextFavoriteState = !clothItem.isFavorite;
 
+    if (clothItem.isFavorite) {
+      setConfirmModalConfig({
+        open: true,
+        title: "즐겨찾기를 해제하시겠습니까?",
+        cancelText: "취소",
+        onCancel: closeConfirmModal,
+        onConfirm: async () => {
+          closeConfirmModal();
+          await executeToggleAPI(nextFavoriteState, "해제");
+        },
+      });
+    } else {
+      executeToggleAPI(nextFavoriteState, "추가");
+    }
+  };
+
+  const executeToggleAPI = async (
+    nextState: boolean,
+    mode: "추가" | "해제",
+  ) => {
+    if (!clothesId) return;
     try {
-      const res = await toggleClothesFavorite(clothesId, nextFavoriteState);
+      const res = await toggleClothesFavorite(clothesId, nextState);
       if (res.isSuccess) {
         setClothItem((prev) =>
-          prev ? { ...prev, isFavorite: nextFavoriteState } : null,
+          prev ? { ...prev, isFavorite: nextState } : null,
         );
+
+        setConfirmModalConfig({
+          open: true,
+          title:
+            mode === "추가"
+              ? "즐겨찾기에 추가되었습니다! "
+              : "즐겨찾기가 취소되었습니다. ",
+          cancelText: "",
+          onConfirm: closeConfirmModal,
+        });
       } else {
         alert("즐겨찾기 상태 변경에 실패했습니다.");
       }
@@ -155,6 +204,13 @@ export default function ClosetDetailPage() {
           onConfirm={handleRealDeleteAPI}
         />
       )}
+      <ConfirmModal
+        open={confirmModalConfig.open}
+        title={confirmModalConfig.title}
+        onConfirm={confirmModalConfig.onConfirm}
+        onCancel={confirmModalConfig.onCancel}
+        cancelText={confirmModalConfig.cancelText}
+      />
     </ViewWrapper>
   );
 }

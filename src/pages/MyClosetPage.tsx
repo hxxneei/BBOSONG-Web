@@ -39,7 +39,6 @@ export default function MyClosetPage() {
     fetchFavoriteClothes();
   }, []);
 
-  // ⭕ 모달 닫기용 헬퍼 함수
   const closeConfirmModal = () => {
     setConfirmModalConfig((prev) => ({ ...prev, open: false }));
   };
@@ -160,9 +159,6 @@ export default function MyClosetPage() {
         )}
       </ContentZone>
 
-      <FloatingMenuBtn>
-        <Icon icon="pepicons-pencil:dots-y" width="24" height={24} />
-      </FloatingMenuBtn>
       <ConfirmModal
         open={confirmModalConfig.open}
         title={confirmModalConfig.title}
