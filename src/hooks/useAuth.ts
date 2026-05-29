@@ -10,12 +10,12 @@ export const useAuth = () => {
     try {
       const response = await postSignupLocal(data);
       if (response.isSuccess) {
-        alert("회원가입이 완료되었습니다!");
-        return response.result;
+        return true;
       }
+      return false;
     } catch (err) {
       console.error("회원가입 에러:", err);
-      alert("회원가입 중 오류가 발생했어요.");
+      return false;
     } finally {
       setIsLoading(false);
     }
