@@ -79,12 +79,12 @@ const SignupPage: React.FC = () => {
     e.preventDefault(); // 페이지 새로고침 방지
 
     if (!isIdChecked) {
-      alert("아이디 중복 확인을 먼저 완료해 주세요!");
+      showAlertModal("아이디 중복 확인을 먼저 완료해 주세요");
       return;
     }
 
     if (password !== passwordConfirm) {
-      alert("비밀번호가 일치하지 않습니다!");
+      showAlertModal("비밀번호가 일치하지 않습니다!");
       return;
     }
 

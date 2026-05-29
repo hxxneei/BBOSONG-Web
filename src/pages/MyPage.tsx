@@ -9,7 +9,8 @@ import { HeaderWrapper } from "../components/mypage/HeaderWrapper";
 import { SectionWrapper } from "../components/mypage/SectionWrapper";
 import { InfoRow } from "../components/mypage/Row";
 import { deleteMemberMe, getMemberMe, postLogout } from "../api/member";
-import { updateNickname, updateBirthDate } from "../api/auth"; // ⭕ 가져오신 수정 API 2개 안전하게 연결
+import { updateNickname, updateBirthDate } from "../api/auth";
+import ConfirmModal from "../components/Modal/ConfirmModal";
 
 interface MemberInfo {
   email: string;
@@ -30,6 +31,23 @@ const MyPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"nickname" | "birth">("nickname");
   const [editValue, setEditValue] = useState("");
+
+  // 모달
+
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    onClose?: () => void;
+    cancelText?: string;
+  }>({
+    open: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+    cancelText: "취소",
+  });
 
   //내 정보 불러오기
   useEffect(() => {
@@ -52,57 +70,102 @@ const MyPage: React.FC = () => {
     fetchMemberData();
   }, []);
 
-  // 로그아웃
-  const handleLogout = async () => {
-    if (!window.confirm("로그아웃 하시겠습니까?")) return;
-
-    try {
-      await postLogout();
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("nickname");
-      localStorage.removeItem("chat_history");
-
-      alert("로그아웃 되었습니다.");
-      navigate("/login");
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-      alert("로그아웃 처리 중 오류가 발생했습니다.");
-    }
+  const closeConfirmModal = () => {
+    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
   };
 
-  // 3. 회원 탈퇴 처리 (떡볶이님 순정 로직 그대로 유지)
-  const handleWithdraw = async () => {
+  // 로그아웃
+  const handleLogout = () => {
+    setConfirmModalConfig({
+      open: true,
+      title: "로그아웃",
+      message: "정말 로그아웃 하시겠습니까?",
+      onConfirm: async () => {
+        closeConfirmModal();
+        try {
+          await postLogout();
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("nickname");
+          localStorage.removeItem("chat_history");
+
+          // 로그아웃 완료 커스텀 경고 팝업 가이드
+          setConfirmModalConfig({
+            open: true,
+            title: "알림",
+            message: "로그아웃 되었습니다.",
+            onConfirm: () => {
+              closeConfirmModal();
+              navigate("/login");
+            },
+          });
+        } catch (error) {
+          console.error("로그아웃 실패:", error);
+          setConfirmModalConfig({
+            open: true,
+            title: "오류",
+            message: "로그아웃 처리 중 오류가 발생했습니다.",
+            onConfirm: closeConfirmModal,
+          });
+        }
+      },
+      onClose: closeConfirmModal,
+    });
+  };
+
+  // 회원 탈퇴 처리
+  const handleWithdraw = () => {
     if (isWithdrawing) return;
 
-    const confirmed = window.confirm(
-      "회원 탈퇴 시 계정, 채팅, 의류, 즐겨찾기 데이터가 모두 삭제됩니다.\n정말 탈퇴하시겠습니까?",
-    );
-    if (!confirmed) return;
+    setConfirmModalConfig({
+      open: true,
+      title: "회원 탈퇴",
+      message:
+        "회원 탈퇴 시 계정, 채팅, 의류, 즐겨찾기 데이터가 모두 삭제됩니다.\n정말 탈퇴하시겠습니까?",
+      onConfirm: async () => {
+        closeConfirmModal();
+        setIsWithdrawing(true);
+        try {
+          const res = await deleteMemberMe();
+          if (res.isSuccess) {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("nickname");
+            localStorage.removeItem("chat_history");
 
-    setIsWithdrawing(true);
-    try {
-      const res = await deleteMemberMe();
-      if (res.isSuccess) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("nickname");
-        localStorage.removeItem("chat_history");
-
-        alert("회원 탈퇴가 완료되었습니다.");
-        navigate("/login", { replace: true });
-      } else {
-        alert(res.message || "회원 탈퇴 처리 중 오류가 발생했습니다.");
-      }
-    } catch (error: any) {
-      console.error("회원 탈퇴 실패:", error);
-      alert(
-        error.response?.data?.message ||
-          "회원 탈퇴 처리 중 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsWithdrawing(false);
-    }
+            setConfirmModalConfig({
+              open: true,
+              title: "탈퇴 완료",
+              message: "회원 탈퇴가 완료되었습니다.",
+              onConfirm: () => {
+                closeConfirmModal();
+                navigate("/login", { replace: true });
+              },
+            });
+          } else {
+            setConfirmModalConfig({
+              open: true,
+              title: "알림",
+              message: res.message || "회원 탈퇴 처리 중 오류가 발생했습니다.",
+              onConfirm: closeConfirmModal,
+            });
+          }
+        } catch (error: any) {
+          console.error("회원 탈퇴 실패:", error);
+          setConfirmModalConfig({
+            open: true,
+            title: "탈퇴 실패",
+            message:
+              error.response?.data?.message ||
+              "회원 탈퇴 처리 중 오류가 발생했습니다.",
+            onConfirm: closeConfirmModal,
+          });
+        } finally {
+          setIsWithdrawing(false);
+        }
+      },
+      onClose: closeConfirmModal,
+    });
   };
 
   const handleOpenEditModal = (
@@ -116,7 +179,12 @@ const MyPage: React.FC = () => {
 
   const handleSaveInfo = async () => {
     if (!editValue.trim()) {
-      alert("값을 입력해 주세요.");
+      setConfirmModalConfig({
+        open: true,
+        title: "경고",
+        message: "값을 입력해 주세요.",
+        onConfirm: closeConfirmModal,
+      });
       return;
     }
 
@@ -124,25 +192,47 @@ const MyPage: React.FC = () => {
       if (modalType === "nickname") {
         const res = await updateNickname(editValue);
         if (res.isSuccess) {
-          alert("닉네임이 변경되었습니다. ✨");
-          setMemberInfo((prev) =>
-            prev ? { ...prev, nickname: res.result.nickname } : null,
-          );
-          localStorage.setItem("nickname", res.result.nickname);
+          setIsModalOpen(false);
+          setConfirmModalConfig({
+            open: true,
+            title: "변경 성공",
+            message: "닉네임이 변경되었습니다. ",
+            cancelText: "",
+            onConfirm: () => {
+              closeConfirmModal();
+              setMemberInfo((prev) =>
+                prev ? { ...prev, nickname: res.result.nickname } : null,
+              );
+              localStorage.setItem("nickname", res.result.nickname);
+            },
+          });
         }
       } else {
         const res = await updateBirthDate(editValue);
         if (res.isSuccess) {
-          alert("생년월일이 변경되었습니다. ");
-          setMemberInfo((prev) =>
-            prev ? { ...prev, birth: res.result.birth } : null,
-          );
+          setIsModalOpen(false);
+          setConfirmModalConfig({
+            open: true,
+            title: "변경 성공",
+            message: "생년월일이 변경되었습니다.",
+            cancelText: "",
+            onConfirm: () => {
+              closeConfirmModal();
+              setMemberInfo((prev) =>
+                prev ? { ...prev, birth: res.result.birth } : null,
+              );
+            },
+          });
         }
       }
-      setIsModalOpen(false);
     } catch (error) {
       console.error("정보 수정 실패:", error);
-      alert("정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      setConfirmModalConfig({
+        open: true,
+        title: "오류",
+        message: "정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.",
+        onConfirm: closeConfirmModal,
+      });
     }
   };
 
@@ -256,6 +346,13 @@ const MyPage: React.FC = () => {
           </ModalContent>
         </ModalDimmed>
       )}
+      <ConfirmModal
+        open={confirmModalConfig.open}
+        title={confirmModalConfig.message}
+        onConfirm={confirmModalConfig.onConfirm}
+        onCancel={confirmModalConfig.onClose}
+        cancelText={confirmModalConfig.cancelText}
+      />
     </Screen>
   );
 };

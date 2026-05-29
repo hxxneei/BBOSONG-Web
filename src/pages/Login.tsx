@@ -53,7 +53,7 @@ const Login: React.FC = () => {
         const userNickname = res.result.nickname || "보송이회원";
         localStorage.setItem("nickname", userNickname);
 
-        showAlertModal("로그인 성공 !");
+        showAlertModal("로그인 성공 ");
         setTimeout(() => {
           navigate("/main-home");
         }, 1100);
