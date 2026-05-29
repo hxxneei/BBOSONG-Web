@@ -3,10 +3,12 @@ import styled from "styled-components";
 import TopBar from "../components/Result/TopBar";
 import ResultCard from "../components/Result/ResultCard";
 import type { ResultData } from "../components/Result/ResultCard";
-import { useLocation, useNavigate } from "react-router-dom"; // 💡 이동을 위해 useNavigate 추가
+import { useLocation, useNavigate } from "react-router-dom";
 import type { ClothesAnalysisResult } from "../types/clothes";
 import ResultButtonGroup from "../components/Result/ResultBtnGroup";
-import { postSaveClothes } from "../api/clothes"; // 🚀 태민님 저장 API 임포트
+import { postSaveClothes } from "../api/clothes";
+
+import ConfirmModal from "../components/Modal/ConfirmModal";
 
 import ResultDummy from "../assets/ResultDummy.png";
 
@@ -89,9 +91,33 @@ export default function ResultPage({
     : mock;
 
   const [isBookmarked, setIsBookmarked] = useState<boolean>(bookmarked);
+
+  // 모달
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertModalTitle, setAlertModalTitle] = useState("");
+
+  const showAlertModal = (message: string) => {
+    setAlertModalTitle(message);
+    setIsAlertModalOpen(true);
+
+    setTimeout(() => {
+      setIsAlertModalOpen(false);
+    }, 1200);
+  };
+
   const handleBack = onBack ?? (() => window.history.back());
-  const handleToggleBookmark =
-    onToggleBookmark ?? (() => setIsBookmarked((prev) => !prev));
+
+  const myToggleBookmark = () => {
+    setIsBookmarked((prev) => {
+      const nextState = !prev;
+      if (nextState) {
+        showAlertModal("즐겨찾는 옷으로 등록되었습니다! ❤️");
+      } else {
+        showAlertModal("즐겨찾기가 취소되었습니다. 💔");
+      }
+      return nextState;
+    });
+  };
 
   const handleRetryClick = () => {
     if (onRescan) {
@@ -150,12 +176,14 @@ export default function ResultPage({
 
       if (res.isSuccess) {
         console.log("저장 완료, 등록 결과:", res.result);
-        alert("옷장에  저장되었습니다! ");
-        navigate("/closetpage");
+        showAlertModal("내 옷장에 \n저장되었습니다! ");
+        setTimeout(() => {
+          navigate("/closetpage");
+        }, 1100);
       }
     } catch (err) {
       console.error("의류 저장 통신 중 프론트엔드 예외 발생:", err);
-      alert("저장 처리에 실패했습니다. 콘솔창 로그를 확인해 주세요.");
+      showAlertModal("저장 처리에 실패했습니다.\n다시 시도해 주세요.");
     }
   };
 
@@ -166,8 +194,8 @@ export default function ResultPage({
           title="분석 결과"
           bookmarked={isBookmarked}
           onBack={handleBack}
-          onToggleBookmark={handleToggleBookmark}
-          showBookmark={false}
+          onToggleBookmark={myToggleBookmark}
+          showBookmark={true}
         />
 
         <ContentArea>
@@ -183,6 +211,13 @@ export default function ResultPage({
           </Bottom>
         )}
       </Phone>
+      <ConfirmModal
+        open={isAlertModalOpen}
+        title={alertModalTitle}
+        confirmText="확인"
+        cancelText=""
+        onConfirm={() => setIsAlertModalOpen(false)}
+      />
     </Shell>
   );
 }
