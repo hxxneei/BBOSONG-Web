@@ -6,6 +6,7 @@ import micBtn from "../../assets/ChatPage/micBtn.svg";
 import sendBtn from "../../assets/ChatPage/sendBtn.svg";
 import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 import { Icon } from "@iconify/react";
+import ChatLoading from "./ChatLoading";
 
 interface Props {
   messages: { from: string; text: string; imageUrl?: string | null }[];
@@ -15,6 +16,7 @@ interface Props {
   onSendWithImage: (file: File) => void; // 이미지 파일 전송용 핸들러 추가
   onBack: () => void;
   userName?: string; // 이름 전달용은 유지
+  isLoading: boolean;
 }
 
 const ChatMain: React.FC<Props> = ({
@@ -25,6 +27,7 @@ const ChatMain: React.FC<Props> = ({
   onSendWithImage,
   onBack,
   userName,
+  isLoading,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,8 +43,22 @@ const ChatMain: React.FC<Props> = ({
       onSendWithImage(selectedFile);
     }
   };
+  // useEffect(() => {
+  //   if (messages.length > 0 && scrollRef.current) {
+  //     const timer = setTimeout(() => {
+  //       if (scrollRef.current) {
+  //         scrollRef.current.scrollTo({
+  //           top: scrollRef.current.scrollHeight,
+  //           behavior: "smooth",
+  //         });
+  //       }
+  //     }, 100);
+
+  //     return () => clearTimeout(timer); // 메모리 누수 방지용 청소
+  //   }
+  // }, [messages]);
   useEffect(() => {
-    if (messages.length > 0 && scrollRef.current) {
+    if ((messages.length > 0 || isLoading) && scrollRef.current) {
       const timer = setTimeout(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTo({
@@ -51,9 +68,9 @@ const ChatMain: React.FC<Props> = ({
         }
       }, 100);
 
-      return () => clearTimeout(timer); // 메모리 누수 방지용 청소
+      return () => clearTimeout(timer);
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   return (
     <Container>
@@ -97,6 +114,7 @@ const ChatMain: React.FC<Props> = ({
             )}
           </Bubble>
         ))}
+        {isLoading && <ChatLoading />}
       </ChatBody>
 
       <InputSection>

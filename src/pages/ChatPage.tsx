@@ -5,6 +5,8 @@ import ChatPrepare from "../components/ChatBot/ChatPrepare";
 import ChatMain from "../components/ChatBot/ChatMain";
 import { sendChatMessage, getChatMessages } from "../api/chat";
 
+import ChatLoading from "../components/ChatBot/ChatLoading";
+
 export interface MessageStructure {
   from: "user" | "bot";
   text: string;
@@ -22,7 +24,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
     () => localStorage.getItem("nickname") || "회원",
   );
   const [messages, setMessages] = useState<MessageStructure[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // ...  입력 중 말풍선
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [inputText, setInputText] = useState("");
 
   useEffect(() => {
     if (onStepChange) {
@@ -81,6 +86,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
     const currentInput = input;
     setInput("");
 
+    setIsLoading(true);
+
     try {
       const res = await sendChatMessage(currentInput, imageFile);
       if (previewImageUrl) {
@@ -113,6 +120,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
           text: "서버와 연결이 불안정해요. 다시 시도해 주세요. 😥",
         },
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,6 +138,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
           onSendWithImage={(file) => handleSendMessage(file)}
           onBack={() => setStep(1)}
           userName={userName}
+          isLoading={isLoading}
         />
       )}
     </ChatWrapper>
