@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "../common/SearchBar";
+import styled from "styled-components";
 import ClothGrid from "../components/CategoryPage/ClothGrid"; // 격자 부품
 import Header from "../components/CategoryPage/Header";
 import {
@@ -65,7 +66,6 @@ export default function TopPage() {
   }, [currentCategory]);
 
   const handleSearchSubmit = async () => {
-    // 만약 검색어가 텅 비어있으면 전체 기본 목록을 다시 띄워줍니다.
     if (!searchQuery.trim()) {
       fetchClothes();
       return;
@@ -73,10 +73,9 @@ export default function TopPage() {
 
     try {
       setIsLoading(true);
-      // Swagger의 명세에 맞춰서 검색어(keyword)와 현재 카테고리(category) 전달!
       const res = await getSearchClothes(searchQuery, currentCategory);
       if (res.isSuccess) {
-        setClothesList(formatClothesData(res.result)); // 검색 결과 격자에 렌더링!
+        setClothesList(formatClothesData(res.result));
       }
     } catch (error) {
       console.error("의류 이름 검색 실패:", error);
@@ -124,7 +123,7 @@ export default function TopPage() {
   };
 
   return (
-    <div>
+    <PageWrapper>
       <Header title={currentCategory} onBack={handleBack} />
       <SearchBar
         value={searchQuery}
@@ -147,6 +146,19 @@ export default function TopPage() {
           onItemClick={handleClothClick}
         />
       )}
-    </div>
+    </PageWrapper>
   );
 }
+
+const PageWrapper = styled.div`
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: white;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+`;
