@@ -3,8 +3,7 @@ import PlusIcon from "../../assets/MainHome/PlusIcon.svg";
 import HangerIcon from "../../assets/MainHome/HangerIcon.svg";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../api/axiosInstance";
-import { type ClothesItem } from "../../api/clothes";
+import { getFavoriteClothes, type ClothesItem } from "../../api/clothes";
 import { Icon } from "@iconify/react";
 
 const MyClosetCard: React.FC = () => {
@@ -15,9 +14,9 @@ const MyClosetCard: React.FC = () => {
   useEffect(() => {
     const fetchHomeFavorites = async () => {
       try {
-        const res = await axiosInstance.get("clothes/favorites");
-        if (res.data.isSuccess) {
-          const top5 = res.data.result.slice(0, 5);
+        const res = await getFavoriteClothes();
+        if (res.isSuccess) {
+          const top5 = res.result.slice(0, 5);
           setFavorites(top5);
         }
       } catch (err) {
@@ -136,11 +135,6 @@ const ShortcutBtn = styled.button`
   color: #888;
   font-size: 13px;
   cursor: pointer;
-`;
-
-const FlipIcon = styled.img`
-  width: 14px;
-  transform: scaleX(-1);
 `;
 
 const ScrollWrapper = styled.div`

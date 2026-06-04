@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import Title from "../components/FabricScanner/Title";
 import PreviewImage from "../components/FabricScanner/PreviewImage";
@@ -13,6 +14,7 @@ import {
 } from "../api/clothes";
 
 import { useNavigate } from "react-router-dom";
+import { optimizeImageFile } from "../utils/imageOptimizer";
 
 type FabricScannerProps = {
   onCameraActiveChange?: (active: boolean) => void;
@@ -43,26 +45,15 @@ export default function FabricScanner({
     onCameraActiveChange?.(false);
   };
 
-  const dataURLtoFile = (dataurl: string, filename: string) => {
-    const arr = dataurl.split(",");
-    const mime = arr[0].match(/:(.*?);/)![1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-
-    return new File([u8arr], filename, { type: mime });
-  };
-
   const handleCapture = async (imageFile: File) => {
     closeCamera();
     setIsLoading(true);
 
     try {
-      const analysisJob = await postClothesAnalysis(imageFile);
+      const optimizedImageFile = await optimizeImageFile(imageFile, {
+        fileName: "cloth_analysis.jpg",
+      });
+      const analysisJob = await postClothesAnalysis(optimizedImageFile);
 
       if (!analysisJob.isSuccess) {
         alert("분석 요청에 실패했습니다.");
@@ -78,10 +69,14 @@ export default function FabricScanner({
         const { status, result, errorMessage } = analysisResult.result;
 
         if (status === "SUCCESS" && result) {
-          const imageUrl = URL.createObjectURL(imageFile);
+          const imageUrl = URL.createObjectURL(optimizedImageFile);
 
           navigate("/result", {
-            state: { serverData: result, imageUrl, imageFile },
+            state: {
+              serverData: result,
+              imageUrl,
+              imageFile: optimizedImageFile,
+            },
           });
           return;
         }
@@ -93,8 +88,8 @@ export default function FabricScanner({
       }
 
       alert("분석 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.");
-    } catch (error: any) {
-      if (error?.response?.status === 429) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
         alert("요청이 많습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
@@ -122,10 +117,7 @@ export default function FabricScanner({
       ) : isCameraActive ? (
         <CameraOnlyWrap>
           <CameraPreview
-            onCapture={(base64Image: string) => {
-              const file = dataURLtoFile(base64Image, "captured_cloth.png");
-              handleCapture(file);
-            }}
+            onCapture={handleCapture}
             onClose={closeCamera}
           />
         </CameraOnlyWrap>
@@ -143,7 +135,10 @@ export default function FabricScanner({
             id="gallery-input"
             hidden
             accept="image/*"
-            onChange={handlePickGallery}
+            onChange={(event) => {
+              handlePickGallery(event);
+              event.target.value = "";
+            }}
           />
           <Actions
             onStartCamera={() => {

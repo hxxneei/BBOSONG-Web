@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
-import { toggleClothesFavorite, type ClothesItem } from "../api/clothes";
-import axiosInstance from "../api/axiosInstance";
+import {
+  getFavoriteClothes,
+  toggleClothesFavorite,
+  type ClothesItem,
+} from "../api/clothes";
 import ConfirmModal from "../components/Modal/ConfirmModal";
 
 export default function MyClosetPage() {
@@ -26,9 +29,9 @@ export default function MyClosetPage() {
   useEffect(() => {
     const fetchFavoriteClothes = async () => {
       try {
-        const res = await axiosInstance.get("clothes/favorites");
-        if (res.data.isSuccess) {
-          setFavorites(res.data.result);
+        const res = await getFavoriteClothes();
+        if (res.isSuccess) {
+          setFavorites(res.result);
         }
       } catch (err) {
         console.error("즐겨찾기 옷 목록을 가져오지 못했습니다. ", err);
@@ -310,24 +313,6 @@ const ClothesName = styled.h3`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`;
-
-const FloatingMenuBtn = styled.button`
-  position: fixed;
-  bottom: 40px;
-  right: calc(50% - 195px);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #4b80fc;
-  border: none;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 90;
 `;
 
 const CenterMessage = styled.div`

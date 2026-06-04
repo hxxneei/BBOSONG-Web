@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import KakaoLogin from "../assets/LoginPage/KakaoLogin.svg";
@@ -6,6 +7,7 @@ import GoogleLogin from "../assets/LoginPage/GoogleLogin.svg";
 import BbosongLogo from "../assets/BbosongLogo.svg";
 import { postLoginLocal } from "../api/auth";
 import ConfirmModal from "../components/Modal/ConfirmModal";
+import { saveAuthTokens, saveNickname } from "../utils/authStorage";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -46,23 +48,20 @@ const Login: React.FC = () => {
       const res = await postLoginLocal({ loginId, password });
 
       if (res.isSuccess) {
-        localStorage.setItem("grantType", res.result.grantType);
-        localStorage.setItem("accessToken", res.result.accessToken);
-        localStorage.setItem("refreshToken", res.result.refreshToken);
+        saveAuthTokens(res.result);
 
         const userNickname = res.result.nickname || "보송이회원";
-        localStorage.setItem("nickname", userNickname);
+        saveNickname(userNickname);
 
-        showAlertModal("로그인 성공 ");
-        setTimeout(() => {
-          navigate("/main-home");
-        }, 1100);
+        navigate("/main-home", { replace: true });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("로그인 실패:", error);
       const errorMsg =
-        error.response?.data?.message || "로그인 정보가 올바르지 않습니다.";
-      showAlertModal(errorMsg);
+        axios.isAxiosError<{ message?: string }>(error)
+          ? error.response?.data?.message
+          : undefined;
+      showAlertModal(errorMsg || "로그인 정보가 올바르지 않습니다.");
     } finally {
       setIsLoading(false);
     }

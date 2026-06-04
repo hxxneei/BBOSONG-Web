@@ -1,5 +1,6 @@
 import { useViewportVH } from "../hooks/useViewportVH";
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Icon } from "@iconify/react";
@@ -11,6 +12,13 @@ import { InfoRow } from "../components/mypage/Row";
 import { deleteMemberMe, getMemberMe, postLogout } from "../api/member";
 import { updateNickname, updateBirthDate } from "../api/auth";
 import ConfirmModal from "../components/Modal/ConfirmModal";
+import { clearAuthStorage, saveNickname } from "../utils/authStorage";
+import {
+  clearMemberCache,
+  getCachedMember,
+  setCachedMember,
+  updateCachedMember,
+} from "../utils/memberCache";
 
 interface MemberInfo {
   email: string;
@@ -51,13 +59,22 @@ const MyPage: React.FC = () => {
 
   //내 정보 불러오기
   useEffect(() => {
+    const cachedMember = getCachedMember();
+
+    if (cachedMember) {
+      setMemberInfo(cachedMember);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchMemberData = async () => {
       try {
         const res = await getMemberMe();
         if (res.isSuccess) {
           setMemberInfo(res.result);
+          setCachedMember(res.result);
           if (res.result.nickname) {
-            localStorage.setItem("nickname", res.result.nickname);
+            saveNickname(res.result.nickname);
           }
         }
       } catch (error) {
@@ -84,10 +101,8 @@ const MyPage: React.FC = () => {
         closeConfirmModal();
         try {
           await postLogout();
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("nickname");
-          localStorage.removeItem("chat_history");
+          clearAuthStorage();
+          clearMemberCache();
 
           // 로그아웃 완료 커스텀 경고 팝업 가이드
           setConfirmModalConfig({
@@ -128,10 +143,8 @@ const MyPage: React.FC = () => {
         try {
           const res = await deleteMemberMe();
           if (res.isSuccess) {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("nickname");
-            localStorage.removeItem("chat_history");
+            clearAuthStorage();
+            clearMemberCache();
 
             setConfirmModalConfig({
               open: true,
@@ -150,14 +163,16 @@ const MyPage: React.FC = () => {
               onConfirm: closeConfirmModal,
             });
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("회원 탈퇴 실패:", error);
+          const errorMessage = axios.isAxiosError<{ message?: string }>(error)
+            ? error.response?.data?.message
+            : undefined;
           setConfirmModalConfig({
             open: true,
             title: "탈퇴 실패",
             message:
-              error.response?.data?.message ||
-              "회원 탈퇴 처리 중 오류가 발생했습니다.",
+              errorMessage || "회원 탈퇴 처리 중 오류가 발생했습니다.",
             onConfirm: closeConfirmModal,
           });
         } finally {
@@ -203,7 +218,8 @@ const MyPage: React.FC = () => {
               setMemberInfo((prev) =>
                 prev ? { ...prev, nickname: res.result.nickname } : null,
               );
-              localStorage.setItem("nickname", res.result.nickname);
+              updateCachedMember({ nickname: res.result.nickname });
+              saveNickname(res.result.nickname);
             },
           });
         }
@@ -221,6 +237,7 @@ const MyPage: React.FC = () => {
               setMemberInfo((prev) =>
                 prev ? { ...prev, birth: res.result.birth } : null,
               );
+              updateCachedMember({ birth: res.result.birth });
             },
           });
         }

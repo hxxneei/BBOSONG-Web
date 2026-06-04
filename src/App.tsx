@@ -1,28 +1,46 @@
 import GlobalStyle from "./styles/GlobalStyles";
-import FabricScanner from "./pages/FabricScanner";
-import ResultPage from "./pages/ResultPage";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import ChatPage from "./pages/ChatPage";
 import BottomNav from "./common/BottomNav";
 
-import React from "react";
-import { useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import styled from "styled-components";
 import Firstpage from "./pages/Firstpage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import SignupComplete from "./pages/SignupCompelet";
-import MainHome from "./pages/MainHome";
-import MyPage from "./pages/MyPage";
-import MapView from "./pages/MapView";
-import ClosetPage from "./pages/ClosetPage";
+import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import { hasAuthTokens } from "./utils/authStorage";
 
-import TopPage from "./pages/CategoryPage";
-import ClosetDetailPage from "./pages/ClosetDetailPage";
-import OAuthCallbackPage from "./pages/OAuthCallbackPage";
-import FavoriteStoresPage from "./pages/FavoriteStoresPage";
-import MyClosetPage from "./pages/MyClosetPage";
+const importFabricScanner = () => import("./pages/FabricScanner");
+const importResultPage = () => import("./pages/ResultPage");
+const importChatPage = () => import("./pages/ChatPage");
+const importMainHome = () => import("./pages/MainHome");
+const importMyPage = () => import("./pages/MyPage");
+const importMapView = () => import("./pages/MapView");
+const importClosetPage = () => import("./pages/ClosetPage");
+const importTopPage = () => import("./pages/CategoryPage");
+const importClosetDetailPage = () => import("./pages/ClosetDetailPage");
+const importOAuthCallbackPage = () => import("./pages/OAuthCallbackPage");
+const importFavoriteStoresPage = () => import("./pages/FavoriteStoresPage");
+const importMyClosetPage = () => import("./pages/MyClosetPage");
 
-const App: React.FC = () => {
+const FabricScanner = lazy(importFabricScanner);
+const ResultPage = lazy(importResultPage);
+const ChatPage = lazy(importChatPage);
+const MainHome = lazy(importMainHome);
+const MyPage = lazy(importMyPage);
+const MapView = lazy(importMapView);
+const ClosetPage = lazy(importClosetPage);
+const TopPage = lazy(importTopPage);
+const ClosetDetailPage = lazy(importClosetDetailPage);
+const OAuthCallbackPage = lazy(importOAuthCallbackPage);
+const FavoriteStoresPage = lazy(importFavoriteStoresPage);
+const MyClosetPage = lazy(importMyClosetPage);
+
+const withAuth = (element: ReactNode) => <ProtectedRoute>{element}</ProtectedRoute>;
+
+const App = () => {
   const [chatStep, setChatStep] = useState(1);
   const [isScannerCameraActive, setIsScannerCameraActive] = useState(false);
   const location = useLocation();
@@ -46,38 +64,72 @@ const App: React.FC = () => {
 
   // const shouldHideNav = hideNavPaths.includes(location.pathname.toLowerCase());
 
+  useEffect(() => {
+    if (!hasAuthTokens() || location.pathname !== "/main-home") {
+      return;
+    }
+
+    const prefetchTimer = window.setTimeout(() => {
+      void Promise.allSettled([
+        importChatPage(),
+        importMapView(),
+        importMyPage(),
+        importClosetPage(),
+        importFabricScanner(),
+      ]);
+    }, 800);
+
+    return () => window.clearTimeout(prefetchTimer);
+  }, [location.pathname]);
+
   return (
     <>
       <GlobalStyle />
-      <Routes>
-        <Route path="/" element={<Firstpage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/chatpage"
-          element={<ChatPage onStepChange={(step) => setChatStep(step)} />}
-        />
-        <Route
-          path="/fabric-scanner"
-          element={
-            <FabricScanner onCameraActiveChange={setIsScannerCameraActive} />
-          }
-        />
-        <Route path="/result" element={<ResultPage />} />
-        <Route path="/signup-complete" element={<SignupComplete />} />
-        <Route path="/main-home" element={<MainHome />} />
-        <Route path="/mypage" element={<MyPage />} />
-        <Route path="/mapview" element={<MapView />} />
-        <Route path="/closetpage" element={<ClosetPage />} />
-        <Route path="/category-card" element={<TopPage />} />
-        <Route path="/my-closet/:id" element={<ClosetDetailPage />} />
-        <Route path="/oauth/success" element={<OAuthCallbackPage />} />
-        <Route path="/favorite-stores" element={<FavoriteStoresPage />} />
-        <Route path="/my-closet" element={<MyClosetPage />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Firstpage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/chatpage"
+            element={withAuth(
+              <ChatPage onStepChange={(step) => setChatStep(step)} />,
+            )}
+          />
+          <Route
+            path="/fabric-scanner"
+            element={withAuth(
+              <FabricScanner onCameraActiveChange={setIsScannerCameraActive} />
+            )}
+          />
+          <Route path="/result" element={withAuth(<ResultPage />)} />
+          <Route path="/signup-complete" element={<SignupComplete />} />
+          <Route path="/main-home" element={withAuth(<MainHome />)} />
+          <Route path="/mypage" element={withAuth(<MyPage />)} />
+          <Route path="/mapview" element={withAuth(<MapView />)} />
+          <Route path="/closetpage" element={withAuth(<ClosetPage />)} />
+          <Route path="/category-card" element={withAuth(<TopPage />)} />
+          <Route
+            path="/my-closet/:id"
+            element={withAuth(<ClosetDetailPage />)}
+          />
+          <Route path="/oauth/success" element={<OAuthCallbackPage />} />
+          <Route
+            path="/favorite-stores"
+            element={withAuth(<FavoriteStoresPage />)}
+          />
+          <Route path="/my-closet" element={withAuth(<MyClosetPage />)} />
+        </Routes>
+      </Suspense>
       {!shouldHideNav && <BottomNav />}
     </>
   );
 };
 
 export default App;
+
+const RouteFallback = styled.div`
+  min-height: 100vh;
+  min-height: 100svh;
+  background-color: white;
+`;

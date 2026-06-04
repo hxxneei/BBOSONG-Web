@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { memo, useCallback } from "react";
 import CategoryCard from "./Card";
 import IconTitle from "./IconTitle";
 
@@ -15,6 +16,13 @@ type Props = {
 };
 
 const CategorySection = ({ title, icon, items, onItemClick }: Props) => {
+  const handleItemClick = useCallback(
+    (label: string) => {
+      onItemClick(label);
+    },
+    [onItemClick],
+  );
+
   return (
     <Section>
       <IconTitle title={title} icon={icon} />
@@ -24,7 +32,7 @@ const CategorySection = ({ title, icon, items, onItemClick }: Props) => {
             key={item.label}
             icon={item.icon}
             label={item.label}
-            onClick={() => onItemClick(item.label)}
+            onClick={() => handleItemClick(item.label)}
           />
         ))}
       </Grid>
@@ -32,7 +40,7 @@ const CategorySection = ({ title, icon, items, onItemClick }: Props) => {
   );
 };
 
-export default CategorySection;
+export default memo(CategorySection);
 
 const Section = styled.div`
   &:not(:first-of-type) {

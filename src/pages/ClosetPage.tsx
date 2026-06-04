@@ -1,9 +1,9 @@
 import styled from "styled-components";
 import CategorySection from "../components/Closet/CategorySection";
 import BottomBtn from "../components/Closet/BottomBtn";
-import CategoryPage from "../pages/CategoryPage";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
 // PNG 아이콘 import
 import top from "../assets/closetIcon/CategoryCloset/top.png";
@@ -20,30 +20,30 @@ import onepiece from "../assets/closetIcon/CategoryCloset/onepiece.png";
 import gloves from "../assets/closetIcon/CategoryCloset/gloves.png";
 import scarf from "../assets/closetIcon/CategoryCloset/scarf.png";
 
+const clothing = [
+  { icon: top, label: "상의" },
+  { icon: outer, label: "아우터" },
+  { icon: pants, label: "하의" },
+  { icon: onepiece, label: "원피스/세트" },
+  { icon: innerwear, label: "이너웨어" },
+  { icon: training, label: "트레이닝" },
+];
+
+const accessories = [
+  { icon: hat, label: "모자" },
+  { icon: scarf, label: "스카프/머플러" },
+  { icon: socks, label: "양말" },
+  { icon: gloves, label: "장갑" },
+  { icon: bag, label: "가방" },
+  { icon: bedclothes, label: "침구류" },
+];
+
 const ClosetPage = () => {
   const navigate = useNavigate();
 
-  const handleCategoryClick = (label: string) => {
+  const handleCategoryClick = useCallback((label: string) => {
     navigate("/category-card", { state: { categoryName: label } });
-  };
-
-  const clothing = [
-    { icon: top, label: "상의" },
-    { icon: outer, label: "아우터" },
-    { icon: pants, label: "하의" },
-    { icon: onepiece, label: "원피스/세트" },
-    { icon: innerwear, label: "이너웨어" },
-    { icon: training, label: "트레이닝" },
-  ];
-
-  const accessories = [
-    { icon: hat, label: "모자" },
-    { icon: scarf, label: "스카프/머플러" },
-    { icon: socks, label: "양말" },
-    { icon: gloves, label: "장갑" },
-    { icon: bag, label: "가방" },
-    { icon: bedclothes, label: "침구류" },
-  ];
+  }, [navigate]);
 
   return (
     <Page>
@@ -74,7 +74,6 @@ const ClosetPage = () => {
 
       <BottomBtn
         size={42}
-        onClick={() => console.log("bag clicked")}
         ariaLabel="장바구니 열기"
       />
     </Page>
