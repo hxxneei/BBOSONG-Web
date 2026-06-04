@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import MapBottomSheet from "../common/MapBottomSheet";
 import type { KakaoPlace } from "../common/MapBottomSheet";
@@ -17,8 +17,68 @@ import MyLocationMarker from "../assets/markers/MyLocationMarker.svg";
 
 declare global {
   interface Window {
-    kakao: any;
+    kakao: KakaoSdk;
   }
+}
+
+interface KakaoPlaceSearchResult {
+  id: string;
+  place_name: string;
+  road_address_name?: string;
+  address_name: string;
+  phone: string;
+  place_url: string;
+  x: string;
+  y: string;
+}
+
+interface KakaoMapInstance {
+  setCenter: (position: unknown) => void;
+  panTo: (position: unknown) => void;
+}
+
+interface KakaoPlacesService {
+  keywordSearch: (
+    keyword: string,
+    callback: (data: KakaoPlaceSearchResult[], status: string) => void,
+    options?: Record<string, unknown>,
+  ) => void;
+}
+
+interface KakaoSdk {
+  maps: {
+    load: (callback: () => void) => void;
+    LatLng: new (latitude: number | string, longitude: number | string) => unknown;
+    Map: new (
+      container: HTMLElement,
+      options: { center: unknown; level: number },
+    ) => KakaoMapInstance;
+    Size: new (width: number, height: number) => unknown;
+    Point: new (x: number, y: number) => unknown;
+    MarkerImage: new (
+      imageSrc: string,
+      imageSize: unknown,
+      imageOption?: Record<string, unknown>,
+    ) => unknown;
+    Marker: new (options: {
+      map: KakaoMapInstance;
+      position: unknown;
+      image?: unknown;
+    }) => unknown;
+    services: {
+      Places: new () => KakaoPlacesService;
+      Status: {
+        OK: string;
+      };
+    };
+    event: {
+      addListener: (
+        target: unknown,
+        eventName: string,
+        handler: () => void,
+      ) => void;
+    };
+  };
 }
 
 const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_APP_KEY as string;
@@ -37,6 +97,7 @@ export default function MapView() {
 
   // 유저가 저장해둔 즐겨찾기 매장 목록 상태창
   const [myFavorites, setMyFavorites] = useState<FavoriteStoreResponse[]>([]);
+  const favoritesRef = useRef<FavoriteStoreResponse[]>([]);
 
   // 모달
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
@@ -50,6 +111,10 @@ export default function MapView() {
       setIsAlertModalOpen(false);
     }, 1200);
   };
+
+  useEffect(() => {
+    favoritesRef.current = myFavorites;
+  }, [myFavorites]);
 
   // 1. 처음 켜질 때 서버에서 내 즐겨찾기 목록 가져오기
   useEffect(() => {
@@ -134,7 +199,7 @@ export default function MapView() {
 
             ps.keywordSearch(
               "세탁소",
-              (data: any[], status: string) => {
+              (data: KakaoPlaceSearchResult[], status: string) => {
                 if (status === kakao.maps.services.Status.OK) {
                   const laundryImageSize = new kakao.maps.Size(57, 73);
                   const laundryImageOption = {
@@ -155,12 +220,11 @@ export default function MapView() {
                       image: laundryMarkerImage,
                     });
 
-                    // 이미 즐겨찾기한 매장인지 매칭 체크
-                    const matchedFavorite = myFavorites.find(
-                      (fav) => fav.kakaoPlaceId === place.id,
-                    );
-
                     kakao.maps.event.addListener(marker, "click", () => {
+                      const matchedFavorite = favoritesRef.current.find(
+                        (fav) => fav.kakaoPlaceId === place.id,
+                      );
+
                       setSelectedPlace({
                         id: place.id,
                         place_name: place.place_name,
@@ -192,7 +256,7 @@ export default function MapView() {
         );
       }
     }
-  }, [myFavorites]);
+  }, []);
 
   // 북마크 토글 이벤트 핸들러
   const handleToggleFavorite = async () => {

@@ -1,12 +1,24 @@
 import styled from "styled-components";
+import { memo } from "react";
 import HeartBtn from "../../common/HeartBtn";
 
+export interface ClothCardItem {
+  id: number;
+  category?: string;
+  categoryName?: string;
+  brand?: string;
+  name: string;
+  image?: string;
+  imageUrl?: string;
+  isFavorite?: boolean;
+}
+
 interface ClothCardProps {
-  item: any;
+  item: ClothCardItem;
   onToggleFavorite?: () => void;
 }
 
-export default function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
+function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
   return (
     <Card>
       <Image
@@ -29,6 +41,8 @@ export default function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
     </Card>
   );
 }
+
+export default memo(ClothCard);
 
 const Card = styled.div`
   width: 162px;

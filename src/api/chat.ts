@@ -1,5 +1,18 @@
 import axiosInstance from "./axiosInstance";
 
+const CHAT_MESSAGES_CACHE_TTL_MS = 2 * 60 * 1000;
+
+let chatMessagesCache:
+  | {
+      expiresAt: number;
+      data: GetMessagesResponse;
+    }
+  | null = null;
+
+export const clearChatMessagesCache = () => {
+  chatMessagesCache = null;
+};
+
 export interface ChatMessage {
   chatMessageId: number;
   senderType: "USER" | "ASSISTANT";
@@ -26,8 +39,18 @@ export interface SendMessageResponse {
 }
 
 export const getChatMessages = async () => {
+  if (chatMessagesCache && chatMessagesCache.expiresAt > Date.now()) {
+    return chatMessagesCache.data;
+  }
+
   const response =
     await axiosInstance.get<GetMessagesResponse>("/chat/messages");
+  if (response.data.isSuccess) {
+    chatMessagesCache = {
+      data: response.data,
+      expiresAt: Date.now() + CHAT_MESSAGES_CACHE_TTL_MS,
+    };
+  }
   return response.data;
 };
 
@@ -53,5 +76,8 @@ export const sendChatMessage = async (
       },
     },
   );
+  if (response.data.isSuccess) {
+    clearChatMessagesCache();
+  }
   return response.data;
 };

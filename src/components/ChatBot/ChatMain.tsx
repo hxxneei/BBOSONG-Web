@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useRef,
+  useEffect,
+  useState,
+} from "react";
 import styled from "styled-components";
 
 import cameraBtn from "../../assets/ChatPage/cameraBtn.svg";
@@ -13,7 +19,6 @@ interface Props {
   input: string;
   setInput: (val: string) => void;
   onSendMessage: (text: string, file: File | null) => void;
-  onSendWithImage: (file: File) => void; // 이미지 파일 전송용 핸들러 추가
   onBack: () => void;
   userName?: string; // 이름 전달용은 유지
   isLoading: boolean;
@@ -24,7 +29,6 @@ const ChatMain: React.FC<Props> = ({
   input,
   setInput,
   onSendMessage,
-  onSendWithImage,
   onBack,
   userName,
   isLoading,
@@ -35,20 +39,26 @@ const ChatMain: React.FC<Props> = ({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
-  const handleCameraClick = () => {
+  const handleCameraClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
       setSelectedImageFile(file);
-      setImagePreviewUrl(URL.createObjectURL(file));
+      setImagePreviewUrl((prevUrl) => {
+        if (prevUrl) {
+          URL.revokeObjectURL(prevUrl);
+        }
+        return URL.createObjectURL(file);
+      });
+      e.target.value = "";
     }
-  };
+  }, []);
 
-  const handleCancelImage = () => {
+  const handleCancelImage = useCallback(() => {
     if (imagePreviewUrl) {
       URL.revokeObjectURL(imagePreviewUrl);
     }
@@ -57,9 +67,10 @@ const ChatMain: React.FC<Props> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
+  }, [imagePreviewUrl]);
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = useCallback(() => {
+    if (isLoading) return;
     if (!input.trim() && !selectedImageFile) return;
 
     // 🚀 부모인 ChatPage의 handleSendMessage로 텍스트와 파일 객체를 유실 없이 정상 배달!
@@ -71,19 +82,28 @@ const ChatMain: React.FC<Props> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
+  }, [input, isLoading, onSendMessage, selectedImageFile]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
   useEffect(() => {
     if ((messages.length > 0 || isLoading) && scrollRef.current) {
-      const timer = setTimeout(() => {
+      const animationFrame = window.requestAnimationFrame(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTo({
             top: scrollRef.current.scrollHeight,
-            behavior: "smooth",
+            behavior: "auto",
           });
         }
-      }, 100);
+      });
 
-      return () => clearTimeout(timer);
+      return () => window.cancelAnimationFrame(animationFrame);
     }
   }, [messages, isLoading]);
   return (
@@ -116,12 +136,17 @@ const ChatMain: React.FC<Props> = ({
 
         {messages.map((msg, i) => (
           <Bubble
-            key={i}
+            key={`${msg.from}-${i}-${msg.text}`}
             $isUser={msg.from === "user"}
             $hasImage={Boolean(msg.imageUrl)}
           >
             {msg.imageUrl && (
-              <MessageImage src={msg.imageUrl} alt="채팅 이미지" />
+              <MessageImage
+                src={msg.imageUrl}
+                alt="채팅 이미지"
+                loading="lazy"
+                decoding="async"
+              />
             )}
             {msg.text && msg.text !== "[이미지 첨부]" && (
               <MessageText>{msg.text}</MessageText>
@@ -136,6 +161,7 @@ const ChatMain: React.FC<Props> = ({
         ref={fileInputRef}
         style={{ display: "none" }}
         accept="image/*"
+        capture="environment"
         onChange={handleFileChange}
       />
 
@@ -160,6 +186,7 @@ const ChatMain: React.FC<Props> = ({
             className="icon-btn"
             type="button"
             onClick={handleCameraClick}
+            disabled={isLoading}
           >
             <img src={cameraBtn} alt="camera" />
           </button>
@@ -169,12 +196,18 @@ const ChatMain: React.FC<Props> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFinalSubmit()}
+            disabled={isLoading}
             placeholder="뽀송이에게 무엇이든 물어보세요!"
           />
-          <button className="icon-btn">
+          <button className="icon-btn" type="button" disabled={isLoading}>
             <img src={micBtn} alt="mic" />
           </button>
-          <button className="icon-btn" onClick={handleFinalSubmit}>
+          <button
+            className="icon-btn"
+            type="button"
+            onClick={handleFinalSubmit}
+            disabled={isLoading}
+          >
             <img src={sendBtn} alt="send" />
           </button>
         </InputBox>
@@ -183,7 +216,7 @@ const ChatMain: React.FC<Props> = ({
   );
 };
 
-export default ChatMain;
+export default memo(ChatMain);
 
 const Container = styled.div`
   display: flex;
@@ -360,6 +393,11 @@ const InputBox = styled.div`
 
     &:active {
       transform: scale(0.9);
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.45;
     }
   }
 `;

@@ -1,21 +1,36 @@
 import styled from "styled-components";
-import ClothCard from "./ClothCard";
+import { memo, useCallback } from "react";
+import ClothCard, { type ClothCardItem } from "./ClothCard";
+
+export type ClothGridItem = ClothCardItem & {
+  onToggleFavorite?: () => void;
+};
+
 interface ClothGridProps {
-  items: any[];
+  items: ClothGridItem[];
   onItemClick: (clothesId: number) => void;
 }
 
-export default function ClothGrid({ items, onItemClick }: ClothGridProps) {
+function ClothGrid({ items, onItemClick }: ClothGridProps) {
+  const handleCardClick = useCallback(
+    (clothesId: number) => {
+      onItemClick(clothesId);
+    },
+    [onItemClick],
+  );
+
   return (
     <Grid>
       {items.map((cloth) => (
-        <CardWrapper key={cloth.id} onClick={() => onItemClick(cloth.id)}>
+        <CardWrapper key={cloth.id} onClick={() => handleCardClick(cloth.id)}>
           <ClothCard item={cloth} onToggleFavorite={cloth.onToggleFavorite} />
         </CardWrapper>
       ))}
     </Grid>
   );
 }
+
+export default memo(ClothGrid);
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, calc((100% - 100px) / 2));

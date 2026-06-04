@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import TopBar from "../components/Result/TopBar";
 import ResultCard from "../components/Result/ResultCard";
@@ -9,6 +9,12 @@ import ResultButtonGroup from "../components/Result/ResultBtnGroup";
 import { postSaveClothes } from "../api/clothes";
 import ConfirmModal from "../components/Modal/ConfirmModal";
 import ResultDummy from "../assets/ResultDummy.png";
+
+interface ResultPageLocationState {
+  serverData?: ClothesAnalysisResult;
+  imageUrl?: string;
+  imageFile?: File;
+}
 
 const transformServerData = (
   serverData: ClothesAnalysisResult,
@@ -79,10 +85,19 @@ export default function ResultPage({
 }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { serverData, imageUrl, imageFile } = (location.state as any) || {};
+  const { serverData, imageUrl, imageFile } =
+    (location.state as ResultPageLocationState | null) || {};
+
+  useEffect(() => {
+    return () => {
+      if (typeof imageUrl === "string" && imageUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [imageUrl]);
 
   const displayData = serverData
-    ? transformServerData(serverData, imageUrl)
+    ? transformServerData(serverData, imageUrl ?? "")
     : mock;
 
   const [isBookmarked, setIsBookmarked] = useState<boolean>(bookmarked);
@@ -182,8 +197,6 @@ export default function ResultPage({
       const res = await postSaveClothes(formData);
 
       if (res.isSuccess) {
-        console.log("저장 완료, 등록 결과:", res.result);
-
         // ⭕ [교정] 유저가 알림창에서 [확인]을 누르는 시점에 깔끔하게 내 옷장 페이지로 이동하도록 싱크업!
         showAlertModal("내 옷장에 저장되었습니다! 🧺", () => {
           navigate("/closetpage");

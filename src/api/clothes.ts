@@ -2,6 +2,37 @@ import axiosInstance from "./axiosInstance";
 import type { ApiResponse } from "../types/auth";
 import type { ClothesAnalysisResult } from "../types/clothes";
 
+const CLOTHES_CACHE_TTL_MS = 2 * 60 * 1000;
+
+interface CacheEntry<T> {
+  expiresAt: number;
+  data: T;
+}
+
+const clothesCache = new Map<string, CacheEntry<unknown>>();
+
+const getCachedData = <T>(key: string) => {
+  const cached = clothesCache.get(key) as CacheEntry<T> | undefined;
+
+  if (!cached || cached.expiresAt <= Date.now()) {
+    clothesCache.delete(key);
+    return null;
+  }
+
+  return cached.data;
+};
+
+const setCachedData = <T>(key: string, data: T) => {
+  clothesCache.set(key, {
+    data,
+    expiresAt: Date.now() + CLOTHES_CACHE_TTL_MS,
+  });
+};
+
+export const invalidateClothesCache = () => {
+  clothesCache.clear();
+};
+
 export type ClothesAnalysisStatus =
   | "PENDING"
   | "PROCESSING"
@@ -23,19 +54,11 @@ export const postClothesAnalysis = async (imageFile: File) => {
   const formData = new FormData();
   formData.append("image", imageFile);
 
-  const token =
-    localStorage.getItem("authorization") ||
-    localStorage.getItem("accessToken");
-
-  console.log("새로 로그인 후 토큰", token);
-
   const response = await axiosInstance.post<ApiResponse<ClothesAnalysisJob>>(
     "/clothes/analysis",
     formData,
     {
       headers: {
-        Authorization: token ? `Bearer ${token}` : "", // 대문자 버전
-        authorization: token ? `Bearer ${token}` : "", // 소문자 버전
         "Content-Type": "multipart/form-data",
       },
     },
@@ -64,6 +87,9 @@ export const postSaveClothes = async (formData: FormData) => {
       },
     },
   );
+  if (response.data.isSuccess) {
+    invalidateClothesCache();
+  }
   return response.data;
 };
 
@@ -98,11 +124,21 @@ export interface GetClosetResponse {
 }
 
 export const getClothesByCategory = async (category: string) => {
+  const cacheKey = `clothes:category:${category}`;
+  const cached = getCachedData<GetClosetResponse>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const response = await axiosInstance.get<GetClosetResponse>("/clothes", {
     params: {
       category: category,
     },
   });
+  if (response.data.isSuccess) {
+    setCachedData(cacheKey, response.data);
+  }
   return response.data;
 };
 
@@ -129,9 +165,19 @@ export interface GetClothesDetailResponse {
 
 // 상세 조회
 export const getClothesDetail = async (clothesId: number) => {
+  const cacheKey = `clothes:detail:${clothesId}`;
+  const cached = getCachedData<GetClothesDetailResponse>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const response = await axiosInstance.get<GetClothesDetailResponse>(
     `/clothes/${clothesId}`,
   );
+  if (response.data.isSuccess) {
+    setCachedData(cacheKey, response.data);
+  }
   return response.data;
 };
 
@@ -141,6 +187,9 @@ export const deleteClothes = async (clothesId: number) => {
     isSuccess: boolean;
     message: string;
   }>(`/clothes/${clothesId}`);
+  if (response.data.isSuccess) {
+    invalidateClothesCache();
+  }
   return response.data;
 };
 
@@ -167,7 +216,17 @@ export interface HomeSummaryResponse {
 
 // 홈 옷장 요약 조회
 export const getHomeSummary = async (): Promise<HomeSummaryResponse> => {
+  const cacheKey = "clothes:home-summary";
+  const cached = getCachedData<HomeSummaryResponse>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const response = await axiosInstance.get("/clothes/home");
+  if (response.data.isSuccess) {
+    setCachedData(cacheKey, response.data);
+  }
   return response.data;
 };
 export interface ClothesItem {
@@ -191,10 +250,37 @@ interface BaseResponse<T> {
 export const getClothesList = async (
   category?: string,
 ): Promise<BaseResponse<ClothesItem[]>> => {
+  const cacheKey = `clothes:list:${category || "all"}`;
+  const cached = getCachedData<BaseResponse<ClothesItem[]>>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const url = category
     ? `clothes?category=${encodeURIComponent(category)}`
     : "clothes";
   const response = await axiosInstance.get(url);
+  if (response.data.isSuccess) {
+    setCachedData(cacheKey, response.data);
+  }
+  return response.data;
+};
+
+export const getFavoriteClothes = async (): Promise<
+  BaseResponse<ClothesItem[]>
+> => {
+  const cacheKey = "clothes:favorites";
+  const cached = getCachedData<BaseResponse<ClothesItem[]>>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const response = await axiosInstance.get("clothes/favorites");
+  if (response.data.isSuccess) {
+    setCachedData(cacheKey, response.data);
+  }
   return response.data;
 };
 
@@ -206,6 +292,9 @@ export const toggleClothesFavorite = async (
   const response = await axiosInstance.patch(`clothes/${clothesId}/favorite`, {
     favorite: isFavorite,
   });
+  if (response.data.isSuccess) {
+    invalidateClothesCache();
+  }
   return response.data;
 };
 

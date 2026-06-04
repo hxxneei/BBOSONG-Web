@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { ChevronLeft } from "lucide-react";
 interface HeaderWrapperProp {
-  title: String;
+  title: string;
   onBack?: () => void;
   rightSlot?: React.ReactNode;
 }
