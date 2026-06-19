@@ -69,7 +69,7 @@ export default function ClothDetailView({
             <HeartSlot>
               <HeartBtn
                 active={item.isFavorite}
-                onClick={(e) => {
+                onClick={() => {
                   if (onToggleFavorite) onToggleFavorite();
                 }}
               />
@@ -77,7 +77,12 @@ export default function ClothDetailView({
           </Row>
 
           <ImgWrap>
-            <ProductImg src={item.image} alt={item.name} />
+            <ProductImg
+              src={item.image}
+              alt={item.name}
+              loading="lazy"
+              decoding="async"
+            />
           </ImgWrap>
         </Card>
 

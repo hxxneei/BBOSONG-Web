@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { saveAuthTokens } from "../utils/authStorage";
 
 const OAUTH_EXCHANGE_URL = "https://api.bbosongi.com/api/auth/oauth/exchange";
 
@@ -40,11 +41,7 @@ export default function OAuthCallbackPage() {
         const res = response.data;
 
         if (res.isSuccess) {
-          const { grantType, accessToken, refreshToken } = res.result;
-
-          localStorage.setItem("grantType", grantType);
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
+          saveAuthTokens(res.result);
 
           navigate("/main-home", { replace: true });
         } else {

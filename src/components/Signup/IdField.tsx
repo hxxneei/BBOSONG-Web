@@ -2,7 +2,6 @@ import React from "react";
 import styled from "styled-components";
 import RequiredMark from "../../assets/SignupPage/RequiredMark.svg";
 import CheckIcon from "../../assets/SignupPage/CheckIcon.svg";
-import { BaseBtn } from "../../common/BaseBtn";
 
 interface IdFieldProps {
   label: string;
@@ -161,16 +160,3 @@ const SubText = styled.p`
   font-weight: 400;
 `;
 
-const CheckBtn = styled(BaseBtn)`
-  background-color: #000;
-  color: #fff;
-  border-radius: 15px;
-  padding: 0 14px;
-  font-size: 12px;
-  white-space: nowrap; /* 글자 줄바꿈 방지 */
-
-  &:hover:not(:disabled) {
-    background-color: #b3b3b3;
-    color: #000;
-  }
-`;

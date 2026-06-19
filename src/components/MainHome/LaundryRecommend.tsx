@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import styled from "styled-components";
 import { getWeatherLaundry } from "../../api/weather";
 
+const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
+const SEOUL_LAT = 37.5665;
+const SEOUL_LON = 126.978;
+
 const emojiMap: Record<string, string> = {
   SUN: "☀️",
-  INDOOR: "☀️",
-  DELAY: "👕",
+  INDOOR: "🧺",
+  DELAY: "⏳",
   DEHUMIDIFY: "💨",
   LAUNDRY: "🧺",
   RAIN: "🌧️",
@@ -21,54 +25,148 @@ interface RecommendationData {
   iconType: string;
 }
 
-const LaundryRecommend: React.FC = () => {
+interface WeatherCache {
+  expiresAt: number;
+  recommendations: RecommendationData[];
+}
+
+let weatherCache: WeatherCache | null = null;
+let weatherRequest: Promise<RecommendationData[]> | null = null;
+
+const getCachedRecommendations = () => {
+  if (!weatherCache || weatherCache.expiresAt <= Date.now()) {
+    return null;
+  }
+
+  return weatherCache.recommendations;
+};
+
+const setWeatherCache = (recommendations: RecommendationData[]) => {
+  weatherCache = {
+    recommendations,
+    expiresAt: Date.now() + WEATHER_CACHE_TTL_MS,
+  };
+};
+
+const fetchWeatherRecommendations = async (
+  latitude: number,
+  longitude: number,
+) => {
+  const res = await getWeatherLaundry(latitude, longitude);
+
+  if (res.isSuccess && res.result.recommendations.length > 0) {
+    return res.result.recommendations;
+  }
+
+  return [];
+};
+
+const getWeatherRecommendations = async (
+  latitude: number,
+  longitude: number,
+) => {
+  const cachedRecommendations = getCachedRecommendations();
+
+  if (cachedRecommendations) {
+    return cachedRecommendations;
+  }
+
+  if (!weatherRequest) {
+    weatherRequest = fetchWeatherRecommendations(latitude, longitude)
+      .then((recommendations) => {
+        if (recommendations.length > 0) {
+          setWeatherCache(recommendations);
+        }
+
+        return recommendations;
+      })
+      .finally(() => {
+        weatherRequest = null;
+      });
+  }
+
+  return weatherRequest;
+};
+
+const fallbackRecommendations: RecommendationData[] = [
+  {
+    title: "실내건조 추천",
+    description: "날씨 정보를 불러올 수 없어\n기본 세탁 가이드를 추천해요.",
+    iconType: "DEFAULT",
+  },
+];
+
+const LaundryRecommend = () => {
   const [recommendations, setRecommendations] = useState<RecommendationData[]>(
     [],
   );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const cachedRecommendations = getCachedRecommendations();
+
+    if (cachedRecommendations) {
+      setRecommendations(cachedRecommendations);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const updateRecommendations = async (
+      latitude: number,
+      longitude: number,
+    ) => {
+      try {
+        const nextRecommendations = await getWeatherRecommendations(
+          latitude,
+          longitude,
+        );
+
+        if (isMounted) {
+          setRecommendations(nextRecommendations);
+        }
+      } catch (error) {
+        console.error("날씨 세탁 추천 데이터 호출 실패:", error);
+
+        try {
+          const defaultRecommendations = await getWeatherRecommendations(
+            SEOUL_LAT,
+            SEOUL_LON,
+          );
+
+          if (isMounted) {
+            setRecommendations(defaultRecommendations);
+          }
+        } catch (defaultError) {
+          console.error("기본 위치 날씨 데이터 호출 실패:", defaultError);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
-
-          try {
-            const res = await getWeatherLaundry(latitude, longitude);
-            if (res.isSuccess && res.result.recommendations.length > 0) {
-              setRecommendations(res.result.recommendations);
-            }
-          } catch (error) {
-            console.error("날씨 세탁 추천 데이터 호출 실패:", error);
-            await fetchDefaultWeather();
-          } finally {
-            setIsLoading(false);
-          }
+          updateRecommendations(latitude, longitude);
         },
         (error) => {
           console.error("GPS 위치 권한 거부 또는 획득 실패:", error);
-          fetchDefaultWeather();
+          updateRecommendations(SEOUL_LAT, SEOUL_LON);
         },
       );
     } else {
-      fetchDefaultWeather();
+      updateRecommendations(SEOUL_LAT, SEOUL_LON);
     }
-  }, []);
 
-  const fetchDefaultWeather = async () => {
-    try {
-      const SEOUL_LAT = 37.5665;
-      const SEOUL_LON = 126.978;
-      const res = await getWeatherLaundry(SEOUL_LAT, SEOUL_LON);
-      if (res.isSuccess && res.result.recommendations.length > 0) {
-        setRecommendations(res.result.recommendations);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -84,16 +182,7 @@ const LaundryRecommend: React.FC = () => {
   }
 
   const displayRecommendations =
-    recommendations.length > 0
-      ? recommendations
-      : [
-          {
-            title: "실내 건조",
-            description:
-              "날씨 정보를 불러올 수 없어\n기본 세탁 가이드를 추천해요.",
-            iconType: "DEFAULT",
-          },
-        ];
+    recommendations.length > 0 ? recommendations : fallbackRecommendations;
 
   return (
     <SectionContainer>
@@ -104,8 +193,8 @@ const LaundryRecommend: React.FC = () => {
       <CardScroller>
         {displayRecommendations.map((recommend, cardIndex) => {
           const displayEmoji =
-            emojiMap[recommend.iconType || "DEFAULT"] || emojiMap["DEFAULT"];
-          const displayDesc = recommend.description;
+            emojiMap[recommend.iconType || "DEFAULT"] || emojiMap.DEFAULT;
+          const descriptionLines = recommend.description.split("\n");
 
           return (
             <RecommendCard key={`${recommend.title}-${cardIndex}`}>
@@ -118,11 +207,11 @@ const LaundryRecommend: React.FC = () => {
               <TextGroup>
                 <CardTitle>{recommend.title}</CardTitle>
                 <CardDesc>
-                  {displayDesc.split("\n").map((line, index) => (
-                    <React.Fragment key={index}>
+                  {descriptionLines.map((line, index) => (
+                    <Fragment key={`${line}-${index}`}>
                       {line}
-                      {index !== displayDesc.split("\n").length - 1 && <br />}
-                    </React.Fragment>
+                      {index !== descriptionLines.length - 1 && <br />}
+                    </Fragment>
                   ))}
                 </CardDesc>
               </TextGroup>
@@ -179,7 +268,9 @@ const RecommendCard = styled.div`
 `;
 
 const WeatherEmoji = styled.div`
-  font-size: 40px;
+  width: 58px;
+  height: 58px;
+  font-size: 42px;
   display: flex;
   justify-content: center;
   align-items: center;

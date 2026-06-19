@@ -4,7 +4,7 @@ import cameraBtn from "../assets/cameraBtn.svg";
 import closeBtn from "../assets/closeBtn.svg";
 
 type Props = {
-  onCapture: (image: string) => void;
+  onCapture: (imageFile: File) => void;
   onClose?: () => void;
 };
 
@@ -67,15 +67,32 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
     if (!video) return;
 
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 1080;
-    canvas.height = video.videoHeight || 1920;
+    const sourceWidth = video.videoWidth || 1080;
+    const sourceHeight = video.videoHeight || 1920;
+    const maxDimension = 1600;
+    const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+
+    canvas.width = Math.round(sourceWidth * scale);
+    canvas.height = Math.round(sourceHeight * scale);
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-    onCapture(dataUrl);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+
+        onCapture(
+          new File([blob], "captured_cloth.jpg", {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          }),
+        );
+      },
+      "image/jpeg",
+      0.82,
+    );
   };
 
   return (

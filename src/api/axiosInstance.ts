@@ -1,21 +1,117 @@
 import axios from "axios";
-import { postReissue } from "./auth";
+import type { InternalAxiosRequestConfig } from "axios";
+import type { ReissueResponse } from "./auth";
+import {
+  clearAuthStorage,
+  getAccessToken,
+  getAccessTokenExpiresAt,
+  getRefreshToken,
+  getRefreshTokenExpiresAt,
+  saveAuthTokens,
+} from "../utils/authStorage";
+
+const API_BASE_URL = "https://api.bbosongi.com/api";
+const TOKEN_REFRESH_BUFFER_MS = 60 * 1000;
+
+let refreshRequest: Promise<string | null> | null = null;
 
 const axiosInstance = axios.create({
-  baseURL: "https://api.bbosongi.com/api",
-  timeout: 30000,
+  baseURL: API_BASE_URL,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
     accept: "*/*",
   },
 });
 
+const isTokenExpiringSoon = (expiresAt: string | null) => {
+  if (!expiresAt) {
+    return true;
+  }
+
+  const expiresAtMs = new Date(expiresAt).getTime();
+
+  if (Number.isNaN(expiresAtMs)) {
+    return true;
+  }
+
+  return expiresAtMs - Date.now() <= TOKEN_REFRESH_BUFFER_MS;
+};
+
+const requestTokenReissue = async () => {
+  const refreshToken = getRefreshToken();
+
+  if (!refreshToken) {
+    return null;
+  }
+
+  if (!refreshRequest) {
+    refreshRequest = axios
+      .post<ReissueResponse>(
+        `${API_BASE_URL}/auth/reissue`,
+        { refreshToken },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            accept: "*/*",
+          },
+        },
+      )
+      .then((response) => {
+        if (!response.data.isSuccess) {
+          return null;
+        }
+
+        saveAuthTokens(response.data.result);
+        return response.data.result.accessToken;
+      })
+      .catch((error) => {
+        console.error("토큰 재발급 실패:", error);
+        clearAuthStorage();
+        return null;
+      })
+      .finally(() => {
+        refreshRequest = null;
+      });
+  }
+
+  return refreshRequest;
+};
+
+const getValidAccessToken = async () => {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    return null;
+  }
+
+  if (!isTokenExpiringSoon(getAccessTokenExpiresAt())) {
+    return accessToken;
+  }
+
+  if (isTokenExpiringSoon(getRefreshTokenExpiresAt())) {
+    clearAuthStorage();
+    return null;
+  }
+
+  return requestTokenReissue();
+};
+
+const setAuthorizationHeader = (
+  config: InternalAxiosRequestConfig,
+  token: string,
+) => {
+  config.headers.Authorization = `Bearer ${token}`;
+};
+
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
+  async (config) => {
+    const token = await getValidAccessToken();
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      setAuthorizationHeader(config, token);
     }
+
     return config;
   },
   (error) => Promise.reject(error),
@@ -24,31 +120,19 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config; // 실패한 원래 요청 정보
+    const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem("refreshToken");
 
-      if (refreshToken) {
-        try {
-          // 토큰 재발급
-          const res = await postReissue(refreshToken);
+      const token = await requestTokenReissue();
 
-          if (res.isSuccess) {
-            // 새 토큰들 로컬 스토리지에 저장
-            localStorage.setItem("accessToken", res.result.accessToken);
-            localStorage.setItem("refreshToken", res.result.refreshToken);
-
-            originalRequest.headers.Authorization = `Bearer ${res.result.accessToken}`;
-            return axiosInstance(originalRequest);
-          }
-        } catch (reissueError) {
-          console.error("토큰 재발급 실패:", reissueError);
-          localStorage.clear();
-          window.location.href = "/login";
-        }
+      if (token) {
+        setAuthorizationHeader(originalRequest, token);
+        return axiosInstance(originalRequest);
       }
+
+      window.location.href = "/login";
     }
 
     return Promise.reject(error);

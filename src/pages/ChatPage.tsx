@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import styled from "styled-components";
 import FirstChatHome from "../components/ChatBot/FirstChatHome";
 import ChatPrepare from "../components/ChatBot/ChatPrepare";
 import ChatMain from "../components/ChatBot/ChatMain";
 import { sendChatMessage, getChatMessages } from "../api/chat";
-
-import ChatLoading from "../components/ChatBot/ChatLoading";
+import { optimizeImageFile } from "../utils/imageOptimizer";
 
 export interface MessageStructure {
   from: "user" | "bot";
@@ -17,44 +16,63 @@ interface ChatPageProps {
   onStepChange?: (step: number) => void;
 }
 
-const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
+const CHAT_MESSAGES_STORAGE_KEY = "bbosong_chat_messages";
+const CHAT_STEP_STORAGE_KEY = "bbosong_chat_step";
+const CHAT_LOADING_STORAGE_KEY = "bbosong_chat_isLoading";
+const MAX_STORED_MESSAGES = 80;
+
+const getStoredMessages = () => {
+  try {
+    const savedMessages = sessionStorage.getItem(CHAT_MESSAGES_STORAGE_KEY);
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  } catch {
+    sessionStorage.removeItem(CHAT_MESSAGES_STORAGE_KEY);
+    return [];
+  }
+};
+
+const ChatPage = ({ onStepChange }: ChatPageProps) => {
+  const shouldRefreshHistoryRef = useRef(
+    sessionStorage.getItem(CHAT_LOADING_STORAGE_KEY) === "true",
+  );
+
   const [step, setStep] = useState<number>(() => {
-    const savedStep = sessionStorage.getItem("bbosong_chat_step");
+    const savedStep = sessionStorage.getItem(CHAT_STEP_STORAGE_KEY);
     return savedStep ? Number(savedStep) : 1;
   });
 
   const [input, setInput] = useState("");
-  const [userName, setUserName] = useState(
-    () => localStorage.getItem("nickname") || "회원",
-  );
+  const userName = localStorage.getItem("nickname") || "회원";
 
-  const [messages, setMessages] = useState<MessageStructure[]>(() => {
-    const savedMessages = sessionStorage.getItem("bbosong_chat_messages");
-    return savedMessages ? JSON.parse(savedMessages) : [];
-  });
+  const [messages, setMessages] = useState<MessageStructure[]>(getStoredMessages);
 
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    return sessionStorage.getItem("bbosong_chat_isLoading") === "true";
-  });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    sessionStorage.setItem("bbosong_chat_step", String(step));
+    sessionStorage.setItem(CHAT_STEP_STORAGE_KEY, String(step));
     if (onStepChange) {
       onStepChange(step);
     }
   }, [step, onStepChange]);
 
   useEffect(() => {
-    sessionStorage.setItem("bbosong_chat_messages", JSON.stringify(messages));
+    const timer = window.setTimeout(() => {
+      sessionStorage.setItem(
+        CHAT_MESSAGES_STORAGE_KEY,
+        JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)),
+      );
+    }, 150);
+
+    return () => window.clearTimeout(timer);
   }, [messages]);
 
   useEffect(() => {
-    sessionStorage.setItem("bbosong_chat_isLoading", String(isLoading));
+    sessionStorage.setItem(CHAT_LOADING_STORAGE_KEY, String(isLoading));
   }, [isLoading]);
 
   useEffect(() => {
     const loadChatHistory = async () => {
-      if (messages.length > 0) return;
+      if (messages.length > 0 && !shouldRefreshHistoryRef.current) return;
 
       try {
         const res = await getChatMessages();
@@ -66,6 +84,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
             imageUrl: msg.imageUrl,
           }));
           setMessages(history);
+          shouldRefreshHistoryRef.current = false;
         } else {
           setMessages([
             {
@@ -73,6 +92,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
               text: `${userName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
             },
           ]);
+          shouldRefreshHistoryRef.current = false;
         }
       } catch (error) {
         console.error("채팅 내역 조회 실패:", error);
@@ -82,24 +102,36 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
             text: `${userName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
           },
         ]);
+        shouldRefreshHistoryRef.current = false;
       }
     };
 
     if (step === 3) {
       loadChatHistory();
     }
-  }, [step, userName]);
+  }, [messages.length, step, userName]);
 
-  const handleSendMessage = async (
+  const handleSendMessage = useCallback(async (
     textToSend: string,
     imageFile: File | null = null,
   ) => {
+    if (isLoading) return;
     if (!textToSend.trim() && !imageFile) return;
 
     setInput("");
 
+    const uploadImageFile = imageFile
+      ? await optimizeImageFile(imageFile, {
+          maxDimension: 1280,
+          quality: 0.8,
+          fileName: "chat_image.jpg",
+        })
+      : null;
+
     const newNewMessages: MessageStructure[] = [];
-    const previewImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
+    const previewImageUrl = uploadImageFile
+      ? URL.createObjectURL(uploadImageFile)
+      : null;
 
     if (previewImageUrl) {
       newNewMessages.push({
@@ -121,7 +153,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
     setIsLoading(true);
 
     try {
-      const res = await sendChatMessage(textToSend.trim(), imageFile);
+      const res = await sendChatMessage(textToSend.trim(), uploadImageFile);
 
       if (previewImageUrl) {
         URL.revokeObjectURL(previewImageUrl);
@@ -171,7 +203,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading]);
 
   return (
     <ChatWrapper>
@@ -183,7 +215,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ onStepChange }) => {
           input={input}
           setInput={setInput}
           onSendMessage={(text, file) => handleSendMessage(text, file)}
-          onSendWithImage={(file) => handleSendMessage("", file)}
           onBack={() => setStep(1)}
           userName={userName}
           isLoading={isLoading}

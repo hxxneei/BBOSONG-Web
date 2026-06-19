@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import styled from "styled-components";
 import IdField from "../components/Signup/IdField";
 import PolicySection from "../components/Signup/PolicySection";
@@ -59,11 +60,11 @@ const SignupPage: React.FC = () => {
           setIsIdChecked(false);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("중복 확인 에러:", error);
-      if (error.response && error.response.status === 400) {
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
         showAlertModal("잘못된 요청입니다.\n아이디 형식을 확인해 주세요.");
-      } else if (error.response && error.response.status === 401) {
+      } else if (axios.isAxiosError(error) && error.response?.status === 401) {
         showAlertModal(
           "아이디 중복 확인 API가 인증 필요 상태입니다.\n서버 설정을 확인해 주세요.",
         );
