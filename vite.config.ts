@@ -6,6 +6,17 @@ import svgr from "vite-plugin-svgr";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), svgr()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          styles: ["styled-components"],
+          http: ["axios"],
+        },
+      },
+    },
+  },
   server: {
     host: true,
     port: 3000,

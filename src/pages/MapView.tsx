@@ -81,7 +81,8 @@ interface KakaoSdk {
   };
 }
 
-const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_APP_KEY as string;
+const KAKAO_APP_KEY = (import.meta.env.VITE_KAKAO_APP_KEY ||
+  import.meta.env.VITE_KAKAO_MAP_API_KEY) as string | undefined;
 
 export default function MapView() {
   const [selectedPlace, setSelectedPlace] = useState<
@@ -133,6 +134,11 @@ export default function MapView() {
   }, []);
 
   useEffect(() => {
+    if (!KAKAO_APP_KEY) {
+      console.error("Kakao map app key is missing.");
+      return;
+    }
+
     if (window.kakao && window.kakao.maps) {
       window.kakao.maps.load(initMap);
       return;
