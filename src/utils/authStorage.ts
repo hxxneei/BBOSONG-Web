@@ -1,3 +1,5 @@
+import { markAuthSessionActive } from "./authEvents";
+
 export interface AuthTokenPayload {
   grantType: string;
   accessToken: string;
@@ -25,6 +27,7 @@ export const saveAuthTokens = (tokens: AuthTokenPayload) => {
   localStorage.setItem("accessTokenExpiresAt", tokens.accessTokenExpiresAt);
   localStorage.setItem("refreshToken", tokens.refreshToken);
   localStorage.setItem("refreshTokenExpiresAt", tokens.refreshTokenExpiresAt);
+  markAuthSessionActive();
 };
 
 export const clearAuthStorage = () => {

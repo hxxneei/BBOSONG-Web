@@ -34,6 +34,7 @@ export interface LoginResult {
   accessTokenExpiresAt: string; // "2026-05-12T05:18:31.069Z" 형태
   refreshToken: string;
   refreshTokenExpiresAt: string;
+  nickname?: string;
 }
 
 // 토큰 재발급 결과 데이터 (Result)

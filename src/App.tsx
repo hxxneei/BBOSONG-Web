@@ -3,7 +3,7 @@ import BottomNav from "./common/BottomNav";
 
 import { lazy, Suspense, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Firstpage from "./pages/Firstpage";
 import Login from "./pages/Login";
@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import SignupComplete from "./pages/SignupCompelet";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import { hasAuthTokens } from "./utils/authStorage";
+import { subscribeToAuthExpired } from "./utils/authEvents";
 
 const importFabricScanner = () => import("./pages/FabricScanner");
 const importResultPage = () => import("./pages/ResultPage");
@@ -44,6 +45,7 @@ const App = () => {
   const [chatStep, setChatStep] = useState(1);
   const [isScannerCameraActive, setIsScannerCameraActive] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const hideNavPaths = [
     "/",
     "/login",
@@ -61,6 +63,14 @@ const App = () => {
     isScannerCameraActive;
 
   const shouldHideNav = isBaseHidePath || isChatSubStep || isScannerCameraPath;
+
+  useEffect(() => {
+    return subscribeToAuthExpired(() => {
+      if (window.location.pathname !== "/login") {
+        navigate("/login", { replace: true });
+      }
+    });
+  }, [navigate]);
 
   // const shouldHideNav = hideNavPaths.includes(location.pathname.toLowerCase());
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { InternalAxiosRequestConfig } from "axios";
-import type { ReissueResponse } from "./auth";
+import type { ApiResponse, ReissueResult } from "../types/auth";
 import {
   getAccessToken,
   getAccessTokenExpiresAt,
@@ -9,20 +9,20 @@ import {
   resetSession,
   saveAuthTokens,
 } from "../utils/authStorage";
+import { notifyAuthExpired } from "../utils/authEvents";
+import { COMMON_AXIOS_CONFIG } from "./apiConfig";
+import publicAxios from "./publicAxios";
 
-const API_BASE_URL = "https://api.bbosongi.com/api";
 const TOKEN_REFRESH_BUFFER_MS = 60 * 1000;
 
 let refreshRequest: Promise<string | null> | null = null;
 
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 60000,
-  headers: {
-    "Content-Type": "application/json",
-    accept: "*/*",
-  },
-});
+const axiosInstance = axios.create(COMMON_AXIOS_CONFIG);
+
+const expireSession = () => {
+  resetSession();
+  notifyAuthExpired();
+};
 
 const isTokenExpiringSoon = (expiresAt: string | null) => {
   if (!expiresAt) {
@@ -42,25 +42,16 @@ const requestTokenReissue = async () => {
   const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
-    resetSession();
+    expireSession();
     return null;
   }
 
   if (!refreshRequest) {
-    refreshRequest = axios
-      .post<ReissueResponse>(
-        `${API_BASE_URL}/auth/reissue`,
-        { refreshToken },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            accept: "*/*",
-          },
-        },
-      )
+    refreshRequest = publicAxios
+      .post<ApiResponse<ReissueResult>>("/auth/reissue", { refreshToken })
       .then((response) => {
         if (!response.data.isSuccess) {
-          resetSession();
+          expireSession();
           return null;
         }
 
@@ -69,7 +60,7 @@ const requestTokenReissue = async () => {
       })
       .catch((error) => {
         console.error("토큰 재발급 실패:", error);
-        resetSession();
+        expireSession();
         return null;
       })
       .finally(() => {
@@ -92,7 +83,7 @@ const getValidAccessToken = async () => {
   }
 
   if (isTokenExpiringSoon(getRefreshTokenExpiresAt())) {
-    resetSession();
+    expireSession();
     return null;
   }
 
@@ -124,18 +115,22 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error);
+    }
 
-      const token = await requestTokenReissue();
+    if (originalRequest._retry) {
+      expireSession();
+      return Promise.reject(error);
+    }
 
-      if (token) {
-        setAuthorizationHeader(originalRequest, token);
-        return axiosInstance(originalRequest);
-      }
+    originalRequest._retry = true;
 
-      resetSession();
-      window.location.href = "/login";
+    const token = await requestTokenReissue();
+
+    if (token) {
+      setAuthorizationHeader(originalRequest, token);
+      return axiosInstance(originalRequest);
     }
 
     return Promise.reject(error);

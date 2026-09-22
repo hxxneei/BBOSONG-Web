@@ -1,10 +1,8 @@
 import styled from "styled-components";
 import { useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { saveAuthTokens } from "../utils/authStorage";
-
-const OAUTH_EXCHANGE_URL = "https://api.bbosongi.com/api/auth/oauth/exchange";
+import { postOAuthExchange } from "../api/auth";
 
 export default function OAuthCallbackPage() {
   const [searchParams] = useSearchParams();
@@ -28,17 +26,7 @@ export default function OAuthCallbackPage() {
       hasExchangedCode.current = true;
 
       try {
-        const response = await axios.post(
-          OAUTH_EXCHANGE_URL,
-          { code },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        const res = response.data;
+        const res = await postOAuthExchange(code);
 
         if (res.isSuccess) {
           saveAuthTokens(res.result);

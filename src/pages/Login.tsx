@@ -8,6 +8,7 @@ import BbosongLogo from "../assets/BbosongLogo.svg";
 import { postLoginLocal } from "../api/auth";
 import ConfirmModal from "../components/Modal/ConfirmModal";
 import { saveAuthTokens, saveNickname } from "../utils/authStorage";
+import { API_ORIGIN } from "../api/apiConfig";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Login: React.FC = () => {
   };
 
   const handleSocialLogin = (provider: "kakao" | "google") => {
-    window.location.href = `https://api.bbosongi.com/oauth2/authorization/${provider}`;
+    window.location.href = `${API_ORIGIN}/oauth2/authorization/${provider}`;
   };
 
   // Login 누르면 실행
@@ -54,7 +55,10 @@ const Login: React.FC = () => {
         saveNickname(userNickname);
 
         navigate("/main-home", { replace: true });
+        return;
       }
+
+      showAlertModal(res.message || "로그인 정보가 올바르지 않습니다.");
     } catch (error: unknown) {
       console.error("로그인 실패:", error);
       const errorMsg =
