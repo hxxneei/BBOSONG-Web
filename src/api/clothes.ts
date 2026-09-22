@@ -53,7 +53,10 @@ export interface ClothesAnalysisJobResult extends ClothesAnalysisJob {
 }
 
 // 의류 분석
-export const postClothesAnalysis = async (imageFile: File) => {
+export const postClothesAnalysis = async (
+  imageFile: File,
+  signal?: AbortSignal,
+) => {
   const formData = new FormData();
   formData.append("image", imageFile);
 
@@ -64,16 +67,21 @@ export const postClothesAnalysis = async (imageFile: File) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      signal,
     },
   );
 
   return response.data;
 };
 
-export const getClothesAnalysisResult = async (jobId: number) => {
+export const getClothesAnalysisResult = async (
+  jobId: number,
+  signal?: AbortSignal,
+) => {
   const response =
     await axiosInstance.get<ApiResponse<ClothesAnalysisJobResult>>(
       `/clothes/analysis/${jobId}`,
+      { signal },
     );
 
   return response.data;
