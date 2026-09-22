@@ -1,6 +1,7 @@
 import axiosInstance from "./axiosInstance";
 import type { ApiResponse } from "../types/auth";
 import type { ClothesAnalysisResult } from "../types/clothes";
+import { registerSessionResetter } from "../utils/authStorage";
 
 const CLOTHES_CACHE_TTL_MS = 2 * 60 * 1000;
 
@@ -32,6 +33,8 @@ const setCachedData = <T>(key: string, data: T) => {
 export const invalidateClothesCache = () => {
   clothesCache.clear();
 };
+
+registerSessionResetter(invalidateClothesCache);
 
 export type ClothesAnalysisStatus =
   | "PENDING"

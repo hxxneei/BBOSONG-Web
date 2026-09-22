@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import { registerSessionResetter } from "../utils/authStorage";
 
 const CHAT_MESSAGES_CACHE_TTL_MS = 2 * 60 * 1000;
 
@@ -12,6 +13,8 @@ let chatMessagesCache:
 export const clearChatMessagesCache = () => {
   chatMessagesCache = null;
 };
+
+registerSessionResetter(clearChatMessagesCache);
 
 export interface ChatMessage {
   chatMessageId: number;
