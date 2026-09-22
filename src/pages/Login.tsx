@@ -138,12 +138,18 @@ const LoginContainer = styled.div`
   justify-content: center;
   min-height: 100vh;
   background-color: white;
-  padding: 2px;
+  padding: 16px;
+
+  form {
+    width: 100%;
+    max-width: 342px;
+  }
 `;
 
 const SocialImg = styled.img`
   cursor: pointer;
-  width: 342px;
+  width: 100%;
+  max-width: 342px;
 `;
 
 const Logo = styled.div`
@@ -163,7 +169,7 @@ const Logo = styled.div`
 `;
 
 const InputGroup = styled.div`
-  width: 342px;
+  width: 100%;
   height: 55px;
   display: flex;
   flex-direction: column;
@@ -212,12 +218,14 @@ const Links = styled.div`
 const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
+  width: 100%;
   gap: 5px;
   margin-top: 120px;
 `;
 
 const LoginBtn = styled.button`
-  width: 342px;
+  width: 100%;
+  max-width: 342px;
   height: 55px;
   background-color: #4b80fcc1;
   color: white;

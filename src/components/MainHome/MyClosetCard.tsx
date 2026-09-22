@@ -98,7 +98,8 @@ const CardContainer = styled.div`
 
   align-items: center;
 
-  width: 368px;
+  width: calc(100% - 32px);
+  max-width: 368px;
   height: 224px;
 `;
 

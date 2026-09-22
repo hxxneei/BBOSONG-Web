@@ -29,7 +29,8 @@ export default function Button({
 
 const BaseBtn = styled.button`
   height: 61px;
-  width: 327px;
+  width: 100%;
+  max-width: 327px;
   border-radius: 16px;
   border: none;
   cursor: pointer;

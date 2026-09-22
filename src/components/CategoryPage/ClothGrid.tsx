@@ -33,13 +33,15 @@ function ClothGrid({ items, onItemClick }: ClothGridProps) {
 export default memo(ClothGrid);
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, calc((100% - 100px) / 2));
+  grid-template-columns: repeat(2, minmax(0, 162px));
   justify-content: center;
-  gap: 15px;
-  padding: 0px;
+  gap: 12px;
+  width: 100%;
+  padding: 0 16px;
 `;
 
 const CardWrapper = styled.div`
+  min-width: 0;
   cursor: pointer;
 
   &:active {

@@ -39,13 +39,15 @@ export default function SearchBar({
 const CenterRow = styled.div`
   display: flex;
   justify-content: center;
+  width: 100%;
   padding: 12px 16px;
 `;
 
 const SearchBox = styled.div`
   /* 가운데 위치 + 최대 너비 제어 (모바일/웹 공용) */
   position: relative;
-  width: 348px;
+  width: 100%;
+  max-width: 348px;
 `;
 
 const Input = styled.input`

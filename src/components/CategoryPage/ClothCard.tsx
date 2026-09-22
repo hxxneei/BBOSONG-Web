@@ -45,7 +45,8 @@ function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
 export default memo(ClothCard);
 
 const Card = styled.div`
-  width: 162px;
+  width: 100%;
+  max-width: 162px;
   height: 243px;
   position: relative;
   background: #fff;
