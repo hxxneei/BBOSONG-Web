@@ -427,7 +427,7 @@ const ModalInput = styled.input`
   border: 1px solid #d1d5db;
   border-radius: 14px;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: 16px;
   outline: none;
   margin-bottom: 22px;
   box-sizing: border-box;

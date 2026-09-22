@@ -373,7 +373,7 @@ const InputBox = styled.div`
     border: none;
     background: none;
     outline: none;
-    font-size: 14px;
+    font-size: 16px;
     color: #333333;
 
     &::placeholder {
