@@ -195,7 +195,12 @@ const ChatMain: React.FC<Props> = ({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleFinalSubmit()}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+
+              e.preventDefault();
+              handleFinalSubmit();
+            }}
             disabled={isLoading}
             placeholder="뽀송이에게 무엇이든 물어보세요!"
           />

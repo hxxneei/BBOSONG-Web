@@ -21,9 +21,14 @@ export default function SearchBar({
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
-          onKeyDown={(e) => e.key === "Enter" && onSubmit?.()}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+
+            e.preventDefault();
+            onSubmit?.();
+          }}
         />
-        <IconBtn aria-label="검색" onClick={onSubmit}>
+        <IconBtn type="button" aria-label="검색" onClick={onSubmit}>
           <Icon icon="mingcute:search-line" width={22} height={22} />
         </IconBtn>
       </SearchBox>
