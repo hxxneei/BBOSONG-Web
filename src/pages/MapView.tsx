@@ -287,7 +287,7 @@ export default function MapView() {
           kakaoPlaceId: selectedPlace.id,
           name: selectedPlace.place_name,
           address: selectedPlace.road_address_name,
-          phone: selectedPlace.phone || "전화번호 정보 없음",
+          phone: selectedPlace.phone || "",
           latitude: Number(selectedPlace.y || 0),
           longitude: Number(selectedPlace.x || 0),
           placeUrl: selectedPlace.place_url,
