@@ -2,11 +2,11 @@ import axios from "axios";
 import type { InternalAxiosRequestConfig } from "axios";
 import type { ReissueResponse } from "./auth";
 import {
-  clearAuthStorage,
   getAccessToken,
   getAccessTokenExpiresAt,
   getRefreshToken,
   getRefreshTokenExpiresAt,
+  resetSession,
   saveAuthTokens,
 } from "../utils/authStorage";
 
@@ -42,6 +42,7 @@ const requestTokenReissue = async () => {
   const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
+    resetSession();
     return null;
   }
 
@@ -59,6 +60,7 @@ const requestTokenReissue = async () => {
       )
       .then((response) => {
         if (!response.data.isSuccess) {
+          resetSession();
           return null;
         }
 
@@ -67,7 +69,7 @@ const requestTokenReissue = async () => {
       })
       .catch((error) => {
         console.error("토큰 재발급 실패:", error);
-        clearAuthStorage();
+        resetSession();
         return null;
       })
       .finally(() => {
@@ -90,7 +92,7 @@ const getValidAccessToken = async () => {
   }
 
   if (isTokenExpiringSoon(getRefreshTokenExpiresAt())) {
-    clearAuthStorage();
+    resetSession();
     return null;
   }
 
@@ -132,6 +134,7 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       }
 
+      resetSession();
       window.location.href = "/login";
     }
 

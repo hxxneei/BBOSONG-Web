@@ -12,9 +12,8 @@ import { InfoRow } from "../components/mypage/Row";
 import { deleteMemberMe, getMemberMe, postLogout } from "../api/member";
 import { updateNickname, updateBirthDate } from "../api/auth";
 import ConfirmModal from "../components/Modal/ConfirmModal";
-import { clearAuthStorage, saveNickname } from "../utils/authStorage";
+import { resetSession, saveNickname } from "../utils/authStorage";
 import {
-  clearMemberCache,
   getCachedMember,
   setCachedMember,
   updateCachedMember,
@@ -101,26 +100,18 @@ const MyPage: React.FC = () => {
         closeConfirmModal();
         try {
           await postLogout();
-          clearAuthStorage();
-          clearMemberCache();
-
-          // 로그아웃 완료 커스텀 경고 팝업 가이드
+        } catch (error) {
+          console.error("로그아웃 API 호출 실패:", error);
+        } finally {
+          resetSession();
           setConfirmModalConfig({
             open: true,
             title: "알림",
             message: "로그아웃 되었습니다.",
             onConfirm: () => {
               closeConfirmModal();
-              navigate("/login");
+              navigate("/login", { replace: true });
             },
-          });
-        } catch (error) {
-          console.error("로그아웃 실패:", error);
-          setConfirmModalConfig({
-            open: true,
-            title: "오류",
-            message: "로그아웃 처리 중 오류가 발생했습니다.",
-            onConfirm: closeConfirmModal,
           });
         }
       },
@@ -143,8 +134,7 @@ const MyPage: React.FC = () => {
         try {
           const res = await deleteMemberMe();
           if (res.isSuccess) {
-            clearAuthStorage();
-            clearMemberCache();
+            resetSession();
 
             setConfirmModalConfig({
               open: true,

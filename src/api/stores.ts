@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import { registerSessionResetter } from "../utils/authStorage";
 
 const STORE_CACHE_TTL_MS = 2 * 60 * 1000;
 
@@ -41,6 +42,8 @@ let favoriteStoresCache:
 export const invalidateStoresCache = () => {
   favoriteStoresCache = null;
 };
+
+registerSessionResetter(invalidateStoresCache);
 
 // 즐겨찾기 매장 목록 조회
 export const getFavoriteStores = async (): Promise<

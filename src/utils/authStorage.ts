@@ -16,6 +16,9 @@ const AUTH_STORAGE_KEYS = [
   "chat_history",
 ] as const;
 
+const CHAT_SESSION_STORAGE_PREFIX = "bbosong_chat_";
+const sessionResetters = new Set<() => void>();
+
 export const saveAuthTokens = (tokens: AuthTokenPayload) => {
   localStorage.setItem("grantType", tokens.grantType);
   localStorage.setItem("accessToken", tokens.accessToken);
@@ -26,6 +29,20 @@ export const saveAuthTokens = (tokens: AuthTokenPayload) => {
 
 export const clearAuthStorage = () => {
   AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+};
+
+export const registerSessionResetter = (resetter: () => void) => {
+  sessionResetters.add(resetter);
+};
+
+export const resetSession = () => {
+  clearAuthStorage();
+
+  Object.keys(sessionStorage)
+    .filter((key) => key.startsWith(CHAT_SESSION_STORAGE_PREFIX))
+    .forEach((key) => sessionStorage.removeItem(key));
+
+  sessionResetters.forEach((resetter) => resetter());
 };
 
 export const getAccessToken = () => localStorage.getItem("accessToken");

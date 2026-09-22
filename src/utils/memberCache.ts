@@ -1,3 +1,5 @@
+import { registerSessionResetter } from "./authStorage";
+
 interface MemberCacheData {
   email: string;
   nickname: string | null;
@@ -45,3 +47,5 @@ export const updateCachedMember = (data: Partial<MemberCacheData>) => {
 export const clearMemberCache = () => {
   memberCache = null;
 };
+
+registerSessionResetter(clearMemberCache);
