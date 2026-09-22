@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Title from "../components/FabricScanner/Title";
 import PreviewImage from "../components/FabricScanner/PreviewImage";
 import ImageDescription from "../components/FabricScanner/ImageDescription";
@@ -23,9 +23,27 @@ type FabricScannerProps = {
 const POLLING_INTERVAL_MS = 2500;
 const MAX_POLLING_COUNT = 60;
 
-const wait = (ms: number) =>
-  new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
+const createAbortError = () =>
+  new DOMException("분석 작업이 취소되었습니다.", "AbortError");
+
+const wait = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(createAbortError());
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", handleAbort);
+      resolve();
+    }, ms);
+
+    const handleAbort = () => {
+      window.clearTimeout(timer);
+      reject(createAbortError());
+    };
+
+    signal.addEventListener("abort", handleAbort, { once: true });
   });
 
 export default function FabricScanner({
@@ -33,12 +51,26 @@ export default function FabricScanner({
 }: FabricScannerProps) {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isMountedRef = useRef(true);
+  const analysisControllerRef = useRef<AbortController | null>(null);
+  const onCameraActiveChangeRef = useRef(onCameraActiveChange);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    return () => onCameraActiveChange?.(false);
+    onCameraActiveChangeRef.current = onCameraActiveChange;
   }, [onCameraActiveChange]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      analysisControllerRef.current?.abort();
+      analysisControllerRef.current = null;
+      onCameraActiveChangeRef.current?.(false);
+    };
+  }, []);
 
   const closeCamera = () => {
     setIsCameraActive(false);
@@ -46,6 +78,12 @@ export default function FabricScanner({
   };
 
   const handleCapture = async (imageFile: File) => {
+    analysisControllerRef.current?.abort();
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    analysisControllerRef.current = controller;
+
     closeCamera();
     setIsLoading(true);
 
@@ -53,23 +91,31 @@ export default function FabricScanner({
       const optimizedImageFile = await optimizeImageFile(imageFile, {
         fileName: "cloth_analysis.jpg",
       });
-      const analysisJob = await postClothesAnalysis(optimizedImageFile);
+
+      if (signal.aborted) return;
+
+      const analysisJob = await postClothesAnalysis(optimizedImageFile, signal);
 
       if (!analysisJob.isSuccess) {
-        alert("분석 요청에 실패했습니다.");
+        if (!signal.aborted) {
+          alert("분석 요청에 실패했습니다.");
+        }
         return;
       }
 
       const { jobId } = analysisJob.result;
 
       for (let count = 0; count < MAX_POLLING_COUNT; count += 1) {
-        await wait(POLLING_INTERVAL_MS);
+        await wait(POLLING_INTERVAL_MS, signal);
 
-        const analysisResult = await getClothesAnalysisResult(jobId);
+        const analysisResult = await getClothesAnalysisResult(jobId, signal);
         const { status, result, errorMessage } = analysisResult.result;
 
         if (status === "SUCCESS" && result) {
+          if (signal.aborted || !isMountedRef.current) return;
+
           const imageUrl = URL.createObjectURL(optimizedImageFile);
+          analysisControllerRef.current = null;
 
           navigate("/result", {
             state: {
@@ -82,13 +128,19 @@ export default function FabricScanner({
         }
 
         if (status === "FAILED") {
-          alert(errorMessage || "분석에 실패했습니다.");
+          if (!signal.aborted) {
+            alert(errorMessage || "분석에 실패했습니다.");
+          }
           return;
         }
       }
 
-      alert("분석 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.");
+      if (!signal.aborted) {
+        alert("분석 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.");
+      }
     } catch (error: unknown) {
+      if (signal.aborted || axios.isCancel(error)) return;
+
       if (axios.isAxiosError(error) && error.response?.status === 429) {
         alert("요청이 많습니다. 잠시 후 다시 시도해 주세요.");
         return;
@@ -96,7 +148,13 @@ export default function FabricScanner({
 
       alert("분석 실패");
     } finally {
-      setIsLoading(false);
+      if (analysisControllerRef.current === controller) {
+        analysisControllerRef.current = null;
+
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
+      }
     }
   };
 
@@ -104,7 +162,7 @@ export default function FabricScanner({
     const file = e.target.files?.[0];
 
     if (file) {
-      handleCapture(file);
+      void handleCapture(file);
     }
   };
 
@@ -117,7 +175,7 @@ export default function FabricScanner({
       ) : isCameraActive ? (
         <CameraOnlyWrap>
           <CameraPreview
-            onCapture={handleCapture}
+            onCapture={(file) => void handleCapture(file)}
             onClose={closeCamera}
           />
         </CameraOnlyWrap>
