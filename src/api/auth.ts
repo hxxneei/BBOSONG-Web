@@ -7,7 +7,9 @@ import type {
   SignupResult,
 } from "../types/auth";
 
-export const postSignupLocal = async (data: SignupRequest) => {
+export const postSignupLocal = async (
+  data: SignupRequest,
+): Promise<ApiResponse<SignupResult>> => {
   const response = await axiosInstance.post<ApiResponse<SignupResult>>(
     "/auth/signup/local",
     data,
