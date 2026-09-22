@@ -36,10 +36,6 @@ const SignupPage: React.FC = () => {
   const showAlertModal = (message: string) => {
     setAlertModalTitle(message);
     setIsAlertModalOpen(true);
-
-    setTimeout(() => {
-      setIsAlertModalOpen(false);
-    }, 1200);
   };
 
   const handleCheckIdDuplication = async () => {
@@ -79,6 +75,8 @@ const SignupPage: React.FC = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault(); // 페이지 새로고침 방지
 
+    if (isLoading) return;
+
     if (!isIdChecked) {
       showAlertModal("아이디 중복 확인을 먼저 완료해 주세요");
       return;
@@ -89,9 +87,14 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    // 서버로 데이터 전송
-    await signup({ loginId, password, email });
-    navigate("/signup-complete");
+    const result = await signup({ loginId, password, email });
+
+    if (result.isSuccess) {
+      navigate("/signup-complete");
+      return;
+    }
+
+    showAlertModal(result.message);
   };
 
   return (
@@ -203,6 +206,7 @@ const SignupPage: React.FC = () => {
             isLoading ||
             !loginId ||
             !password ||
+            !passwordConfirm ||
             !email ||
             !isServiceAgreed ||
             !isIdChecked

@@ -1,7 +1,7 @@
 // 회원가입
 export interface SignupRequest {
   loginId: string;
-  password?: string;
+  password: string;
   email: string;
 }
 
