@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import HeartBtn from "../../common/HeartBtn";
 
 export type ResultData = {
   categoryPath: string;
@@ -148,9 +147,6 @@ export default function ResultCard({ data, tags }: Props) {
         <Path>{d.categoryPath}</Path>
         <TitleRow>
           <ProductTitle>{d.name}</ProductTitle>
-          <HeartWrap>
-            <HeartBtn />
-          </HeartWrap>
         </TitleRow>
       </Head>
 
@@ -226,11 +222,4 @@ const TitleRow = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-`;
-
-const HeartWrap = styled.div`
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 `;

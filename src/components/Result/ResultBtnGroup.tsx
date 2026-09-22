@@ -5,16 +5,28 @@ import { BaseBtn } from "../../common/BaseBtn";
 interface ResultButtonGroupProps {
   onRetry: () => void;
   onSave: () => void;
+  isSaving: boolean;
 }
 
 const ResultButtonGroup: React.FC<ResultButtonGroupProps> = ({
   onRetry,
   onSave,
+  isSaving,
 }) => {
   return (
     <ButtonGroup>
-      <RetryBtn type="button" value="다시 검색하기" onClick={onRetry} />
-      <SaveBtn type="button" value="결과 저장하기" onClick={onSave} />
+      <RetryBtn
+        type="button"
+        value="다시 검색하기"
+        onClick={onRetry}
+        disabled={isSaving}
+      />
+      <SaveBtn
+        type="button"
+        value={isSaving ? "저장 중..." : "결과 저장하기"}
+        onClick={onSave}
+        disabled={isSaving}
+      />
     </ButtonGroup>
   );
 };
@@ -31,6 +43,11 @@ const RetryBtn = styled(BaseBtn)`
   &:hover {
     background-color: #e5e7eb;
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 `;
 
 const SaveBtn = styled(BaseBtn)`
@@ -43,6 +60,12 @@ const SaveBtn = styled(BaseBtn)`
   box-shadow: 0px 4px 14px rgba(75, 128, 252, 0.3);
   &:hover {
     background-color: #3b71f3;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background-color: #9db8fa;
+    box-shadow: none;
   }
 `;
 

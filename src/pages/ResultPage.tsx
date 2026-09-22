@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import TopBar from "../components/Result/TopBar";
 import ResultCard from "../components/Result/ResultCard";
@@ -8,7 +8,6 @@ import type { ClothesAnalysisResult } from "../types/clothes";
 import ResultButtonGroup from "../components/Result/ResultBtnGroup";
 import { postSaveClothes } from "../api/clothes";
 import ConfirmModal from "../components/Modal/ConfirmModal";
-import ResultDummy from "../assets/ResultDummy.png";
 
 interface ResultPageLocationState {
   serverData?: ClothesAnalysisResult;
@@ -43,43 +42,14 @@ const transformServerData = (
   };
 };
 
-const mock: ResultData = {
-  categoryPath: "의류 / 니트",
-  name: "폴로 코튼 케이블 니트",
-  image: ResultDummy,
-  material: "피마코튼",
-  color: "검정색",
-  wash: {
-    title: "세탁 방법",
-    items: [
-      "드라이클리닝 권장",
-      "약 30도 / 중성세제로 세탁기 사용가능",
-      "산소표백제로 표백",
-      "140~160도 다림질 가능",
-    ],
-  },
-  caution: { title: "주의사항", items: ["건조기 사용 금지", "뒤집어 세탁"] },
-};
-
 type Props = {
-  data?: ResultData;
-  bookmarked?: boolean;
   onBack?: () => void;
-  onToggleBookmark?: () => void;
-  onRescan?: () => void;
-  onSave?: (data: ResultData) => void;
-  title?: string;
-  rightIcon?: string;
-  onRightIconClick?: () => void;
   tags?: string[];
   showButtons?: boolean;
-  showBookmark?: boolean;
 };
 
 export default function ResultPage({
-  bookmarked = false,
   onBack,
-  onSave,
   tags,
   showButtons = true,
 }: Props) {
@@ -87,22 +57,14 @@ export default function ResultPage({
   const navigate = useNavigate();
   const { serverData, imageUrl, imageFile } =
     (location.state as ResultPageLocationState | null) || {};
+  const hasValidResult = Boolean(
+    serverData && imageUrl && imageFile instanceof File,
+  );
+  const displayData =
+    serverData && imageUrl ? transformServerData(serverData, imageUrl) : null;
+  const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = useRef(false);
 
-  useEffect(() => {
-    return () => {
-      if (typeof imageUrl === "string" && imageUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [imageUrl]);
-
-  const displayData = serverData
-    ? transformServerData(serverData, imageUrl ?? "")
-    : mock;
-
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(bookmarked);
-
-  // 📝 모달 전용 상태창 배선 구조화 (동적 함수 결속을 위해 객체형으로 업그레이드)
   const [confirmModalConfig, setConfirmModalConfig] = useState<{
     open: boolean;
     title: string;
@@ -113,11 +75,28 @@ export default function ResultPage({
     onConfirm: () => {},
   });
 
+  useEffect(() => {
+    if (!hasValidResult) {
+      navigate("/fabric-scanner", { replace: true });
+    }
+  }, [hasValidResult, navigate]);
+
+  useEffect(() => {
+    return () => {
+      if (typeof imageUrl === "string" && imageUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [imageUrl]);
+
+  if (!hasValidResult || !serverData || !imageFile || !displayData) {
+    return null;
+  }
+
   const closeConfirmModal = () => {
     setConfirmModalConfig((prev) => ({ ...prev, open: false }));
   };
 
-  // ⭕ [교정] 자동으로 꺼지는 타이머를 지우고, 동적으로 행동(onConfirm)을 제어하도록 전면 교정
   const showAlertModal = (
     message: string,
     customConfirmAction?: () => void,
@@ -134,42 +113,21 @@ export default function ResultPage({
 
   const handleBack = onBack ?? (() => window.history.back());
 
-  const myToggleBookmark = () => {
-    setIsBookmarked((prev) => {
-      const nextState = !prev;
-      if (nextState) {
-        showAlertModal("즐겨찾는 옷으로 등록되었습니다! ❤️");
-      } else {
-        showAlertModal("즐겨찾기가 취소되었습니다. 💔");
-      }
-      return nextState;
-    });
-  };
-
   const handleRetryClick = () => {
-    navigate("/fabric-scanner");
+    if (isSavingRef.current) return;
+    navigate("/fabric-scanner", { replace: true });
   };
 
   const handleSaveClick = async () => {
-    if (onSave) {
-      onSave(displayData);
-      return;
-    }
+    if (isSavingRef.current) return;
+
+    isSavingRef.current = true;
+    setIsSaving(true);
+    let saveSucceeded = false;
 
     try {
-      let finalCategory = "상의";
-
-      if (serverData?.categoryName) {
-        finalCategory = serverData.categoryName.trim();
-      } else if (displayData.categoryPath) {
-        const parts = displayData.categoryPath.split("/");
-        if (parts.length > 1) {
-          finalCategory = parts[1].trim();
-        }
-      }
-
       const clothData = {
-        categoryName: finalCategory,
+        categoryName: serverData.categoryName.trim(),
         name: displayData.name,
         material: displayData.material || "정보 없음",
         color: displayData.color || "정보 없음",
@@ -183,28 +141,27 @@ export default function ResultPage({
         new Blob([JSON.stringify(clothData)], { type: "application/json" }),
       );
 
-      if (imageFile) {
-        formData.append("image", imageFile);
-      } else {
-        const response = await fetch(displayData.image);
-        const blob = await response.blob();
-        const file = new File([blob], "clothes_image.png", {
-          type: "image/png",
-        });
-        formData.append("image", file);
-      }
+      formData.append("image", imageFile);
 
       const res = await postSaveClothes(formData);
 
       if (res.isSuccess) {
-        // ⭕ [교정] 유저가 알림창에서 [확인]을 누르는 시점에 깔끔하게 내 옷장 페이지로 이동하도록 싱크업!
+        saveSucceeded = true;
         showAlertModal("내 옷장에 저장되었습니다! 🧺", () => {
-          navigate("/closetpage");
+          navigate("/closetpage", { replace: true });
         });
+        return;
       }
+
+      showAlertModal(res.message || "저장 처리에 실패했습니다.\n다시 시도해 주세요.");
     } catch (err) {
       console.error("의류 저장 통신 중 프론트엔드 예외 발생:", err);
       showAlertModal("저장 처리에 실패했습니다.\n다시 시도해 주세요.");
+    } finally {
+      if (!saveSucceeded) {
+        isSavingRef.current = false;
+        setIsSaving(false);
+      }
     }
   };
 
@@ -213,10 +170,8 @@ export default function ResultPage({
       <Phone>
         <TopBar
           title="분석 결과"
-          bookmarked={isBookmarked}
           onBack={handleBack}
-          onToggleBookmark={myToggleBookmark}
-          showBookmark={true}
+          showBookmark={false}
         />
 
         <ContentArea>
@@ -228,19 +183,19 @@ export default function ResultPage({
             <ResultButtonGroup
               onRetry={handleRetryClick}
               onSave={handleSaveClick}
+              isSaving={isSaving}
             />
           </Bottom>
         )}
       </Phone>
 
-      {/* ⭕ [매칭 완료] 취소 버튼이 없는 단방향 구조이므로 cancelText="" 전달 및 동적 바인딩 */}
       <ConfirmModal
         open={confirmModalConfig.open}
         title={confirmModalConfig.title}
         confirmText="확인"
         cancelText=""
         onConfirm={confirmModalConfig.onConfirm}
-        onCancel={closeConfirmModal}
+        onCancel={confirmModalConfig.onConfirm}
       />
     </Shell>
   );
