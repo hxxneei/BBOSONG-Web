@@ -181,15 +181,12 @@ const InputGroup = styled.div`
     border-radius: 14px;
     background-color: #f3f3f3;
     padding: 16px;
-    font-size: 12px;
+    font-size: 16px;
     outline: none;
     transition: all 0.2s;
 
     &::placeholder {
-      font-size: 10px;
       color: #b5b5b5;
-      position: relative;
-      top: -8px;
     }
   }
 `;
