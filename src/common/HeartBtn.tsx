@@ -10,8 +10,18 @@ export default function HeartButton({
   active = false,
   onClick,
 }: HeartButtonProps) {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick?.(e);
+  };
+
   return (
-    <Button onClick={onClick} aria-label={active ? "찜 해제" : "찜하기"}>
+    <Button
+      type="button"
+      onClick={handleClick}
+      aria-label={active ? "찜 해제" : "찜하기"}
+    >
       {active ? (
         <Icon icon="mdi:heart" color="#4B80FC" width="22" height="22" />
       ) : (
