@@ -21,7 +21,8 @@ const Card = styled.section`
   overflow: hidden;
   margin: 0 auto;
 
-  width: 340px;
+  width: 100%;
+  max-width: 340px;
 `;
 
 const Head = styled.div`
@@ -51,7 +52,8 @@ const ImageWrap = styled.div`
 `;
 
 const ProductImg = styled.img`
-  width: 340px; // 329
+  width: 100%;
+  max-width: 340px;
   height: 260px;
   margin-top: 22px;
   margin-bottom: 2px;

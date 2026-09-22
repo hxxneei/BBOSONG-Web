@@ -156,7 +156,6 @@ const PageWrapper = styled.div`
   margin: 0 auto;
   background: white;
   box-sizing: border-box;
-  overflow-x: hidden;
   position: relative;
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
