@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 import styled from "styled-components";
 import cameraBtn from "../assets/cameraBtn.svg";
 import closeBtn from "../assets/closeBtn.svg";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 type Props = {
   onCapture: (imageFile: File) => void;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 const CameraPreview = ({ onCapture, onClose }: Props) => {
+  const { showAlert } = useFeedbackModal();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -41,8 +43,13 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
       } catch (err) {
         if (isMounted) {
           console.error("getUserMedia 에러:", err);
-          alert("카메라를 사용할 수 없습니다. 권한을 허용했는지 확인해주세요.");
-          onClose?.();
+          void showAlert(
+            "카메라를 사용할 수 없습니다. 권한을 허용했는지 확인해주세요.",
+          ).then(() => {
+            if (isMounted) {
+              onClose?.();
+            }
+          });
         }
       }
     };
@@ -60,7 +67,7 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
         streamRef.current = null;
       }
     };
-  }, [onClose]);
+  }, [onClose, showAlert]);
 
   const handleCapture = () => {
     const video = videoRef.current;

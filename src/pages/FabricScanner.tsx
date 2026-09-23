@@ -15,6 +15,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { optimizeImageFile } from "../utils/imageOptimizer";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 type FabricScannerProps = {
   onCameraActiveChange?: (active: boolean) => void;
@@ -56,6 +57,7 @@ export default function FabricScanner({
   const onCameraActiveChangeRef = useRef(onCameraActiveChange);
 
   const navigate = useNavigate();
+  const { showAlert } = useFeedbackModal();
 
   useEffect(() => {
     onCameraActiveChangeRef.current = onCameraActiveChange;
@@ -98,7 +100,7 @@ export default function FabricScanner({
 
       if (!analysisJob.isSuccess) {
         if (!signal.aborted) {
-          alert("분석 요청에 실패했습니다.");
+          void showAlert("분석 요청에 실패했습니다.");
         }
         return;
       }
@@ -129,24 +131,26 @@ export default function FabricScanner({
 
         if (status === "FAILED") {
           if (!signal.aborted) {
-            alert(errorMessage || "분석에 실패했습니다.");
+            void showAlert(errorMessage || "분석에 실패했습니다.");
           }
           return;
         }
       }
 
       if (!signal.aborted) {
-        alert("분석 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.");
+        void showAlert(
+          "분석 시간이 길어지고 있습니다. 잠시 후 다시 시도해 주세요.",
+        );
       }
     } catch (error: unknown) {
       if (signal.aborted || axios.isCancel(error)) return;
 
       if (axios.isAxiosError(error) && error.response?.status === 429) {
-        alert("요청이 많습니다. 잠시 후 다시 시도해 주세요.");
+        void showAlert("요청이 많습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
-      alert("분석 실패");
+      void showAlert("분석에 실패했습니다.");
     } finally {
       if (analysisControllerRef.current === controller) {
         analysisControllerRef.current = null;

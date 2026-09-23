@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef } from "react";
 import styled from "styled-components";
 
 type ConfirmModalProps = {
@@ -21,19 +22,71 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const titleId = useId();
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previouslyFocusedElement =
+      document.activeElement as HTMLElement | null;
+    const focusFrame = window.requestAnimationFrame(() => {
+      confirmButtonRef.current?.focus();
+    });
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && cancelText) {
+        event.preventDefault();
+        onCancel?.();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableButtons = [
+        confirmButtonRef.current,
+        cancelButtonRef.current,
+      ].filter((button): button is HTMLButtonElement => Boolean(button));
+      const firstButton = focusableButtons[0];
+      const lastButton = focusableButtons[focusableButtons.length - 1];
+
+      if (!firstButton || !lastButton) return;
+
+      if (event.shiftKey && document.activeElement === firstButton) {
+        event.preventDefault();
+        lastButton.focus();
+      } else if (!event.shiftKey && document.activeElement === lastButton) {
+        event.preventDefault();
+        firstButton.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement?.focus();
+    };
+  }, [cancelText, onCancel, open]);
+
   if (!open) return null;
   return (
     <Layer className={className}>
-      <Dim onClick={onCancel} />
-      <Card role="dialog" aria-modal="true">
-        <Title>{title}</Title>
+      <Dim onClick={cancelText ? onCancel : undefined} />
+      <Card
+        role={cancelText ? "dialog" : "alertdialog"}
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <Title id={titleId}>{title}</Title>
 
         <BtnCol>
-          <PrimaryBtn type="button" onClick={onConfirm}>
+          <PrimaryBtn ref={confirmButtonRef} type="button" onClick={onConfirm}>
             {confirmText}
           </PrimaryBtn>
           {cancelText && (
-            <GhostBtn type="button" onClick={onCancel}>
+            <GhostBtn ref={cancelButtonRef} type="button" onClick={onCancel}>
               {cancelText}
             </GhostBtn>
           )}

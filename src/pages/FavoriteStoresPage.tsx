@@ -7,9 +7,11 @@ import {
   deleteFavoriteStore,
   type FavoriteStoreResponse,
 } from "../api/stores";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 export default function FavoriteStoresPage() {
   const navigate = useNavigate();
+  const { showConfirm } = useFeedbackModal();
   const [favorites, setFavorites] = useState<FavoriteStoreResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,7 +34,10 @@ export default function FavoriteStoresPage() {
   const handleDelete = async (storeId: number, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!window.confirm("즐겨찾는 매장에서 삭제하시겠습니까?")) return;
+    const shouldDelete = await showConfirm(
+      "즐겨찾는 매장에서 삭제하시겠습니까?",
+    );
+    if (!shouldDelete) return;
 
     try {
       const res = await deleteFavoriteStore(storeId);
