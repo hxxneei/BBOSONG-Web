@@ -8,7 +8,6 @@ import React, {
 import styled from "styled-components";
 
 import cameraBtn from "../../assets/ChatPage/cameraBtn.svg";
-import micBtn from "../../assets/ChatPage/micBtn.svg";
 import sendBtn from "../../assets/ChatPage/sendBtn.svg";
 import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 import { Icon } from "@iconify/react";
@@ -161,7 +160,6 @@ const ChatMain: React.FC<Props> = ({
         ref={fileInputRef}
         style={{ display: "none" }}
         accept="image/*"
-        capture="environment"
         onChange={handleFileChange}
       />
 
@@ -204,9 +202,6 @@ const ChatMain: React.FC<Props> = ({
             disabled={isLoading}
             placeholder="뽀송이에게 무엇이든 물어보세요!"
           />
-          <button className="icon-btn" type="button" disabled={isLoading}>
-            <img src={micBtn} alt="mic" />
-          </button>
           <button
             className="icon-btn"
             type="button"

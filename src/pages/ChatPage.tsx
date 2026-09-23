@@ -205,10 +205,21 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
     }
   }, [isLoading]);
 
+  const handleGoChat = useCallback(
+    (initialMessage?: string) => {
+      setStep(3);
+
+      if (initialMessage) {
+        void handleSendMessage(initialMessage);
+      }
+    },
+    [handleSendMessage],
+  );
+
   return (
     <ChatWrapper>
       {step === 1 && <FirstChatHome onStart={() => setStep(2)} />}
-      {step === 2 && <ChatPrepare onGoChat={() => setStep(3)} />}
+      {step === 2 && <ChatPrepare onGoChat={handleGoChat} />}
       {step === 3 && (
         <ChatMain
           messages={messages}

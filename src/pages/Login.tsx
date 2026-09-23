@@ -94,8 +94,6 @@ const Login: React.FC = () => {
         </InputGroup>
 
         <Links>
-          <button type="button">아이디 찾기</button>
-          <button type="button">비밀번호 찾기</button>
           <button type="button" onClick={() => navigate("/signup")}>
             회원가입
           </button>
