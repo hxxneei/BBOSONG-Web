@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { Icon } from "@iconify/react";
+import { ChevronLeft } from "lucide-react";
 import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 
 interface ChatPrepareProps {
@@ -15,12 +15,7 @@ const ChatPrepare: React.FC<ChatPrepareProps> = ({ onGoChat }) => {
     <PageWrapper>
       <TopAppBar>
         <BackButton onClick={() => navigate(-1)}>
-          <Icon
-            icon="mingcute:left-line"
-            width={24}
-            height={24}
-            color="#777777"
-          />
+          <ChevronLeft size={24} color="#777777" />
         </BackButton>
         <HeaderProfile>
           <ProfileImg src={BSProfile} alt="프로필" />{" "}

@@ -11,6 +11,7 @@ import {
   toggleClothesFavorite,
 } from "../api/clothes";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
+import { getClothesImageUrl } from "../utils/clothesImage";
 
 export default function ClosetDetailPage() {
   //const location = useLocation();
@@ -62,9 +63,7 @@ export default function ClosetDetailPage() {
             category: item.categoryName,
             brand: "BBOSONG",
             name: item.name,
-            image:
-              item.imageUrl ||
-              "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500",
+            image: getClothesImageUrl(item.imageUrl),
             material: item.material || "정보 없음",
             color: item.color || "정보 없음",
             wash: washArray,
@@ -166,7 +165,6 @@ export default function ClosetDetailPage() {
       <ClothDetailView
         title="상세 보기"
         item={clothItem}
-        rightIcon="mdi:trash-can-outline"
         onRightIconClick={() => void handleDelete()}
         onToggleFavorite={handleToggleFavoriteAPI}
       />

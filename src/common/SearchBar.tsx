@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { Search } from "lucide-react";
 
 type Props = {
   value?: string;
@@ -29,7 +29,7 @@ export default function SearchBar({
           }}
         />
         <IconBtn type="button" aria-label="검색" onClick={onSubmit}>
-          <Icon icon="mingcute:search-line" width={22} height={22} />
+          <Search size={22} />
         </IconBtn>
       </SearchBox>
     </CenterRow>

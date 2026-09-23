@@ -1,30 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import { getHomeSummary, type HomeClothingItem } from "../../api/clothes";
-import png1 from "../../assets/categorydummy/1.png";
+import type { HomeClothingItem } from "../../api/clothes";
+import {
+  getClothesImageUrl,
+  handleClothesImageError,
+} from "../../utils/clothesImage";
 
-const RecentAnalysis: React.FC = () => {
-  const [recentClothes, setRecentClothes] = useState<HomeClothingItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+type RecentAnalysisProps = {
+  recentClothes: HomeClothingItem[];
+  isLoading: boolean;
+};
 
-  useEffect(() => {
-    const fetchRecentData = async () => {
-      try {
-        setIsLoading(true);
-        const res = await getHomeSummary();
-        if (res.isSuccess) {
-          setRecentClothes(res.result.recentClothes.slice(0, 5));
-        }
-      } catch (err) {
-        console.error("최근 분석한 옷 로딩 실패 😭:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRecentData();
-  }, []);
-
+const RecentAnalysis: React.FC<RecentAnalysisProps> = ({
+  recentClothes,
+  isLoading,
+}) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "2026.05.25"; // 기본 예외처리
@@ -50,32 +40,25 @@ const RecentAnalysis: React.FC = () => {
             최근에 분석한 옷이 없어요! ✨
           </ItemName>
         ) : (
-          recentClothes.map((item) => {
-            const cleanImgUrl = item.imageUrl
-              ? item.imageUrl.replace(/^"|"$/g, "").trim()
-              : "";
-
-            return (
-              <AnalysisItem key={item.clothesId}>
-                <ImageWrapper>
-                  <ItemImg
-                    src={
-                      cleanImgUrl.includes("example.com") || !cleanImgUrl
-                        ? png1
-                        : cleanImgUrl
-                    }
-                    alt={item.name}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </ImageWrapper>
-                <TextInfo>
-                  <ItemName>{item.name}</ItemName>
-                  <AnalysisDate>{formatDate(item.createdAt)}</AnalysisDate>
-                </TextInfo>
-              </AnalysisItem>
-            );
-          })
+          recentClothes.slice(0, 5).map((item) => (
+            <AnalysisItem key={item.clothesId}>
+              <ImageWrapper>
+                <ItemImg
+                  src={getClothesImageUrl(item.imageUrl)}
+                  alt={item.name}
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                  decoding="async"
+                  onError={handleClothesImageError}
+                />
+              </ImageWrapper>
+              <TextInfo>
+                <ItemName>{item.name}</ItemName>
+                <AnalysisDate>{formatDate(item.createdAt)}</AnalysisDate>
+              </TextInfo>
+            </AnalysisItem>
+          ))
         )}
       </ListContainer>
     </SectionContainer>
@@ -104,16 +87,15 @@ const ListContainer = styled.div`
   flex-direction: column;
   gap: 12px;
 
-  height: 300px;       
+  height: 300px;
   overflow-y: auto;
-  weight: 
-  padding-right: 8px;  
+  padding-right: 8px;
 
   &::-webkit-scrollbar {
-    width: 4px; 
+    width: 4px;
   }
   &::-webkit-scrollbar-thumb {
-    background: #e0e0e0; 
+    background: #e0e0e0;
     border-radius: 10px;
 `;
 

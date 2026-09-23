@@ -1,6 +1,10 @@
 import styled from "styled-components";
 import { memo } from "react";
 import HeartBtn from "../../common/HeartBtn";
+import {
+  getClothesImageUrl,
+  handleClothesImageError,
+} from "../../utils/clothesImage";
 
 export interface ClothCardItem {
   id: number;
@@ -22,10 +26,11 @@ function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
   return (
     <Card>
       <Image
-        src={item.image || item.imageUrl || "https://via.placeholder.com/150"}
+        src={getClothesImageUrl(item.image || item.imageUrl)}
         alt={item.name}
         loading="lazy"
         decoding="async"
+        onError={handleClothesImageError}
       />
       <Info>
         <Category>{item.category || item.categoryName}</Category>
@@ -59,6 +64,7 @@ const Card = styled.div`
 const Image = styled.img`
   width: 100%;
   height: 130px;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 8px;
 `;

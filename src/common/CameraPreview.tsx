@@ -5,7 +5,7 @@ import closeBtn from "../assets/closeBtn.svg";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 type Props = {
-  onCapture: (imageFile: File) => void;
+  onCapture: (imageFile: File, isOptimized: boolean) => void;
   onClose?: () => void;
 };
 
@@ -95,6 +95,7 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
             type: "image/jpeg",
             lastModified: Date.now(),
           }),
+          true,
         );
       },
       "image/jpeg",

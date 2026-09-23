@@ -10,7 +10,7 @@ import styled from "styled-components";
 import cameraBtn from "../../assets/ChatPage/cameraBtn.svg";
 import sendBtn from "../../assets/ChatPage/sendBtn.svg";
 import BSProfile from "../../assets/ChatPage/BSProfile.webp";
-import { Icon } from "@iconify/react";
+import { ChevronLeft, X } from "lucide-react";
 import ChatLoading from "./ChatLoading";
 
 interface Props {
@@ -110,12 +110,7 @@ const ChatMain: React.FC<Props> = ({
       <TopArea>
         <TopRow>
           <BackBtn onClick={onBack}>
-            <Icon
-              icon="mingcute:left-line"
-              width={32}
-              height={32}
-              color="#767676"
-            />
+            <ChevronLeft size={32} color="#767676" />
           </BackBtn>
         </TopRow>
         <Header>
@@ -169,12 +164,7 @@ const ChatMain: React.FC<Props> = ({
             <PreviewContainer>
               <img src={imagePreviewUrl} alt="업로드 대기 샘플" />
               <CancelImageBtn onClick={handleCancelImage}>
-                <Icon
-                  icon="ic:baseline-close"
-                  width="16"
-                  height="16"
-                  color="white"
-                />
+                <X size={16} color="white" />
               </CancelImageBtn>
             </PreviewContainer>
           </ImagePreviewBar>

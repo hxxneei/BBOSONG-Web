@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { Heart } from "lucide-react";
 
 interface HeartButtonProps {
   active?: boolean;
@@ -22,11 +22,11 @@ export default function HeartButton({
       onClick={handleClick}
       aria-label={active ? "찜 해제" : "찜하기"}
     >
-      {active ? (
-        <Icon icon="mdi:heart" color="#4B80FC" width="22" height="22" />
-      ) : (
-        <Icon icon="mdi:heart-outline" color="#d1d5db" width="22" height="22" />
-      )}
+      <Heart
+        size={22}
+        color={active ? "#4B80FC" : "#d1d5db"}
+        fill={active ? "#4B80FC" : "none"}
+      />
     </Button>
   );
 }

@@ -35,6 +35,16 @@ interface KakaoPlaceSearchResult {
 interface KakaoMapInstance {
   setCenter: (position: unknown) => void;
   panTo: (position: unknown) => void;
+  getCenter: () => KakaoLatLng;
+}
+
+interface KakaoLatLng {
+  getLat: () => number;
+  getLng: () => number;
+}
+
+interface KakaoMarkerInstance {
+  setMap: (map: KakaoMapInstance | null) => void;
 }
 
 interface KakaoPlacesService {
@@ -48,7 +58,10 @@ interface KakaoPlacesService {
 interface KakaoSdk {
   maps: {
     load: (callback: () => void) => void;
-    LatLng: new (latitude: number | string, longitude: number | string) => unknown;
+    LatLng: new (
+      latitude: number | string,
+      longitude: number | string,
+    ) => KakaoLatLng;
     Map: new (
       container: HTMLElement,
       options: { center: unknown; level: number },
@@ -64,7 +77,7 @@ interface KakaoSdk {
       map: KakaoMapInstance;
       position: unknown;
       image?: unknown;
-    }) => unknown;
+    }) => KakaoMarkerInstance;
     services: {
       Places: new () => KakaoPlacesService;
       Status: {
@@ -85,6 +98,7 @@ const KAKAO_APP_KEY = (import.meta.env.VITE_KAKAO_APP_KEY ||
   import.meta.env.VITE_KAKAO_MAP_API_KEY) as string | undefined;
 const SEOUL_LAT = 37.5665;
 const SEOUL_LON = 126.978;
+const LAUNDRY_SEARCH_KEYWORDS = ["세탁소", "코인세탁", "빨래방"] as const;
 const GEOLOCATION_OPTIONS: PositionOptions = {
   timeout: 5000,
   maximumAge: 600000,
@@ -103,6 +117,9 @@ export default function MapView() {
     | null
   >(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const researchCurrentAreaRef = useRef<(() => void) | null>(null);
 
   // 유저가 저장해둔 즐겨찾기 매장 목록 상태창
   const [myFavorites, setMyFavorites] = useState<FavoriteStoreResponse[]>([]);
@@ -132,6 +149,9 @@ export default function MapView() {
     let isMounted = true;
     let script: HTMLScriptElement | null = null;
     let usesLoadEventListener = false;
+    let currentLocationMarker: KakaoMarkerInstance | null = null;
+    let laundryMarkers: KakaoMarkerInstance[] = [];
+    let latestSearchRequestId = 0;
 
     const handleScriptLoad = () => {
       if (!isMounted) return;
@@ -183,15 +203,26 @@ export default function MapView() {
         level: 4,
       });
 
-      const searchNearbyLaundries = (
+      const clearLaundryMarkers = () => {
+        laundryMarkers.forEach((marker) => marker.setMap(null));
+        laundryMarkers = [];
+      };
+
+      const searchNearbyLaundries = async (
         latitude: number,
         longitude: number,
         showCurrentLocation: boolean,
+        moveToLocation = true,
       ) => {
         if (!isMounted) return;
 
+        const searchRequestId = ++latestSearchRequestId;
         const location = new kakao.maps.LatLng(latitude, longitude);
-        map.setCenter(location);
+        if (moveToLocation) {
+          map.setCenter(location);
+        }
+        setIsMapReady(true);
+        setIsSearching(true);
 
         if (showCurrentLocation) {
           const markerImage = new kakao.maps.MarkerImage(
@@ -200,7 +231,8 @@ export default function MapView() {
             { offset: new kakao.maps.Point(24, 48) },
           );
 
-          new kakao.maps.Marker({
+          currentLocationMarker?.setMap(null);
+          currentLocationMarker = new kakao.maps.Marker({
             map,
             position: location,
             image: markerImage,
@@ -209,67 +241,98 @@ export default function MapView() {
 
         const places = new kakao.maps.services.Places();
 
-        places.keywordSearch(
-          "세탁소",
-          (data: KakaoPlaceSearchResult[], status: string) => {
-            if (!isMounted || status !== kakao.maps.services.Status.OK) return;
+        const searchResults = await Promise.all(
+          LAUNDRY_SEARCH_KEYWORDS.map(
+            (keyword) =>
+              new Promise<KakaoPlaceSearchResult[]>((resolve) => {
+                places.keywordSearch(
+                  keyword,
+                  (data, status) => {
+                    resolve(
+                      status === kakao.maps.services.Status.OK ? data : [],
+                    );
+                  },
+                  { location, radius: 2000 },
+                );
+              }),
+          ),
+        );
 
-            const laundryMarkerImage = new kakao.maps.MarkerImage(
-              LaundryMarker,
-              new kakao.maps.Size(57, 73),
-              { offset: new kakao.maps.Point(23, 46) },
+        if (!isMounted || searchRequestId !== latestSearchRequestId) return;
+
+        const uniquePlaces = new Map<string, KakaoPlaceSearchResult>();
+        searchResults.flat().forEach((place) => {
+          uniquePlaces.set(place.id, place);
+        });
+
+        clearLaundryMarkers();
+
+        const laundryMarkerImage = new kakao.maps.MarkerImage(
+          LaundryMarker,
+          new kakao.maps.Size(57, 73),
+          { offset: new kakao.maps.Point(23, 46) },
+        );
+
+        laundryMarkers = Array.from(uniquePlaces.values()).map((place) => {
+          const position = new kakao.maps.LatLng(place.y, place.x);
+          const marker = new kakao.maps.Marker({
+            map,
+            position,
+            image: laundryMarkerImage,
+          });
+
+          kakao.maps.event.addListener(marker, "click", () => {
+            if (!isMounted) return;
+
+            const matchedFavorite = favoritesRef.current.find(
+              (favorite) => favorite.kakaoPlaceId === place.id,
             );
 
-            data.forEach((place) => {
-              const position = new kakao.maps.LatLng(place.y, place.x);
-              const marker = new kakao.maps.Marker({
-                map,
-                position,
-                image: laundryMarkerImage,
-              });
-
-              kakao.maps.event.addListener(marker, "click", () => {
-                if (!isMounted) return;
-
-                const matchedFavorite = favoritesRef.current.find(
-                  (favorite) => favorite.kakaoPlaceId === place.id,
-                );
-
-                setSelectedPlace({
-                  id: place.id,
-                  place_name: place.place_name,
-                  road_address_name:
-                    place.road_address_name || place.address_name,
-                  address_name: place.address_name,
-                  phone: place.phone,
-                  place_url: place.place_url,
-                  x: place.x,
-                  y: place.y,
-                  storeId: matchedFavorite?.storeId,
-                  isFavorite: Boolean(matchedFavorite),
-                });
-
-                setIsSheetOpen(true);
-                map.panTo(position);
-              });
+            setSelectedPlace({
+              id: place.id,
+              place_name: place.place_name,
+              road_address_name: place.road_address_name || place.address_name,
+              address_name: place.address_name,
+              phone: place.phone,
+              place_url: place.place_url,
+              x: place.x,
+              y: place.y,
+              storeId: matchedFavorite?.storeId,
+              isFavorite: Boolean(matchedFavorite),
             });
-          },
-          { location, radius: 2000 },
+
+            setIsSheetOpen(true);
+            map.panTo(position);
+          });
+
+          return marker;
+        });
+
+        setIsSearching(false);
+      };
+
+      researchCurrentAreaRef.current = () => {
+        const center = map.getCenter();
+        void searchNearbyLaundries(
+          center.getLat(),
+          center.getLng(),
+          false,
+          false,
         );
       };
 
       const searchDefaultLocation = () => {
-        searchNearbyLaundries(SEOUL_LAT, SEOUL_LON, false);
+        void searchNearbyLaundries(SEOUL_LAT, SEOUL_LON, false);
       };
 
       if (!navigator.geolocation) {
-        searchDefaultLocation();
+        void searchDefaultLocation();
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          searchNearbyLaundries(
+          void searchNearbyLaundries(
             position.coords.latitude,
             position.coords.longitude,
             true,
@@ -277,7 +340,7 @@ export default function MapView() {
         },
         (error) => {
           console.error("위치 정보 획득 실패", error);
-          searchDefaultLocation();
+          void searchDefaultLocation();
         },
         GEOLOCATION_OPTIONS,
       );
@@ -285,6 +348,11 @@ export default function MapView() {
 
     return () => {
       isMounted = false;
+      latestSearchRequestId += 1;
+      researchCurrentAreaRef.current = null;
+      laundryMarkers.forEach((marker) => marker.setMap(null));
+      laundryMarkers = [];
+      currentLocationMarker?.setMap(null);
 
       if (script && usesLoadEventListener) {
         script.removeEventListener("load", handleScriptLoad);
@@ -293,6 +361,12 @@ export default function MapView() {
       }
     };
   }, []);
+
+  const handleResearchCurrentArea = () => {
+    setIsSheetOpen(false);
+    setSelectedPlace(null);
+    researchCurrentAreaRef.current?.();
+  };
 
   // 북마크 토글 이벤트 핸들러
   const handleToggleFavorite = async () => {
@@ -339,8 +413,17 @@ export default function MapView() {
   };
 
   return (
-    <>
+    <MapPage>
       <MapContainer id="map" />
+      {isMapReady && (
+        <ResearchButton
+          type="button"
+          onClick={handleResearchCurrentArea}
+          disabled={isSearching}
+        >
+          {isSearching ? "검색 중..." : "이 지역 재검색"}
+        </ResearchButton>
+      )}
       <MapBottomSheet
         isOpen={isSheetOpen && !!selectedPlace}
         place={selectedPlace}
@@ -348,9 +431,14 @@ export default function MapView() {
         isFavorite={selectedPlace?.isFavorite || false}
         onToggleFavorite={handleToggleFavorite}
       />
-    </>
+    </MapPage>
   );
 }
+
+const MapPage = styled.main`
+  position: relative;
+  width: 100%;
+`;
 
 const MapContainer = styled.div`
   width: 100%;
@@ -361,4 +449,28 @@ const MapContainer = styled.div`
     100dvh - var(--bottom-nav-height) - env(safe-area-inset-bottom, 0px)
   );
   background: #eee;
+`;
+
+const ResearchButton = styled.button`
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  z-index: 20;
+  transform: translateX(-50%);
+  min-width: 132px;
+  height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #4b80fc;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+  cursor: pointer;
+
+  &:disabled {
+    color: #94a3b8;
+    cursor: wait;
+  }
 `;

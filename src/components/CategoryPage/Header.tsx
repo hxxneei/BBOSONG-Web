@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { ChevronLeft } from "lucide-react";
 
 type Props = {
   title: string;
@@ -10,12 +10,7 @@ export default function ClosetHeader({ title, onBack }: Props) {
   return (
     <Header>
       <BackButton aria-label="뒤로가기" onClick={onBack}>
-        <Icon
-          icon="mingcute:left-line"
-          width={32}
-          height={32}
-          color="#AEAEAE"
-        />
+        <ChevronLeft size={32} color="#AEAEAE" />
       </BackButton>
       <Title>{title}</Title>
     </Header>

@@ -1,21 +1,62 @@
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import MyClosetCard from "../components/MainHome/MyClosetCard";
 import LaundryRecommend from "../components/MainHome/LaundryRecommend";
 import RecentAnalysis from "../components/MainHome/RecentAnalysis";
-import MainLogo from "../assets/MainHome/MainLogo.png";
+import MainLogo from "../assets/BbosongLogoGaRo.svg";
+import {
+  getHomeSummary,
+  type HomeSummaryResponse,
+} from "../api/clothes";
 
 export default function LoadingPage() {
+  const [homeSummary, setHomeSummary] = useState<
+    HomeSummaryResponse["result"] | null
+  >(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHomeSummary = async () => {
+      try {
+        const response = await getHomeSummary();
+        if (isMounted && response.isSuccess) {
+          setHomeSummary(response.result);
+        }
+      } catch (error) {
+        console.error("홈 의류 요약을 불러오지 못했습니다.", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchHomeSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <HomeWrapper>
       <BlueBackground />
 
       <ContentContainer>
         <LogoWrapper>
-          <LogoImg src={MainLogo} alt="BBOSONG LOGO" />
+          <LogoImg src={MainLogo} alt="BBOSONG" width={149} height={24} />
         </LogoWrapper>
-        <MyClosetCard />
+        <MyClosetCard
+          favorites={homeSummary?.favoriteClothes ?? []}
+          isLoading={isLoading}
+        />
         <LaundryRecommend />
-        <RecentAnalysis />
+        <RecentAnalysis
+          recentClothes={homeSummary?.recentClothes ?? []}
+          isLoading={isLoading}
+        />
       </ContentContainer>
     </HomeWrapper>
   );
@@ -37,9 +78,10 @@ const LogoWrapper = styled.div`
 `;
 
 const LogoImg = styled.img`
-  width: 120px;
+  width: 149px;
   height: auto;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 `;
 
 const BlueBackground = styled.div`

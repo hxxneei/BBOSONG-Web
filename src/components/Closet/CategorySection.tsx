@@ -3,6 +3,7 @@ import { memo, useCallback } from "react";
 import CategoryCard from "./Card";
 import IconTitle from "./IconTitle";
 import type { ClothesCategory } from "../../constants/clothesCategories";
+import type { LucideIcon } from "lucide-react";
 
 type Item = {
   icon: string;
@@ -11,7 +12,7 @@ type Item = {
 
 type Props = {
   title: string;
-  icon: string;
+  icon: LucideIcon;
   items: Item[];
   onItemClick: (label: ClothesCategory) => void;
 };

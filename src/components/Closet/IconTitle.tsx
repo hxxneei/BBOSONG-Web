@@ -1,16 +1,16 @@
-import { Icon } from "@iconify/react";
 import styled from "styled-components";
+import type { LucideIcon } from "lucide-react";
 
 type Props = {
   title: string;
-  icon: string;
+  icon: LucideIcon;
 };
 
-const IconTitle = ({ title, icon }: Props) => {
+const IconTitle = ({ title, icon: SectionIcon }: Props) => {
   return (
     <Wrap>
       <h2>{title}</h2>
-      <Icon icon={icon} width="30" height="30" color="#4B80FC" />
+      <SectionIcon size={30} color="#4B80FC" />
     </Wrap>
   );
 };

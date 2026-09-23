@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled, { keyframes, css } from "styled-components";
-
-import { Icon } from "@iconify/react";
+import { Bookmark, ChevronRight } from "lucide-react";
 
 export type KakaoPlace = {
   id: string;
@@ -111,9 +110,9 @@ const LaundryBottomSheet = ({
               <Title>{place.place_name}</Title>
 
               <BookmarkBtn $active={isFavorite} onClick={onToggleFavorite}>
-                <Icon
-                  icon={isFavorite ? "mdi:bookmark" : "mdi:bookmark-outline"}
-                  width="30"
+                <Bookmark
+                  size={30}
+                  fill={isFavorite ? "currentColor" : "none"}
                 />
               </BookmarkBtn>
             </TitleRow>
@@ -126,7 +125,7 @@ const LaundryBottomSheet = ({
               rel="noopener noreferrer"
             >
               카카오맵에서 자세히 보기
-              <Icon icon="mingcute:right-line" width={18} height={18} />
+              <ChevronRight size={18} />
             </PlaceLink>
           </SheetContent>
         </Sheet>

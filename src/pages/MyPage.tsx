@@ -3,9 +3,15 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
-
-import { Calendar, Mail, UserX } from "lucide-react";
+import {
+  Calendar,
+  ChartNoAxesColumnIncreasing,
+  LogOut,
+  Mail,
+  Shirt,
+  UserX,
+  WashingMachine,
+} from "lucide-react";
 import { HeaderWrapper } from "../components/mypage/HeaderWrapper";
 import { SectionWrapper } from "../components/mypage/SectionWrapper";
 import { InfoRow } from "../components/mypage/Row";
@@ -180,7 +186,7 @@ const MyPage: React.FC = () => {
       {/* 내 정보 */}
       <SectionWrapper title="내 정보">
         <InfoRow
-          icon={<Icon icon="bi:bar-chart" width="20" height="20" />}
+          icon={<ChartNoAxesColumnIncreasing size={20} />}
           label="닉네임"
           value={
             memberInfo?.nickname ? (
@@ -217,7 +223,7 @@ const MyPage: React.FC = () => {
       {/* 옷장 관리*/}
       <SectionWrapper title="옷장 관리">
         <InfoRow
-          icon={<Icon icon="mdi:hanger" width="20" height="20" />}
+          icon={<Shirt size={20} />}
           label="저장한 옷"
           hint="더보기"
           onClick={() => navigate("/my-closet")}
@@ -227,7 +233,7 @@ const MyPage: React.FC = () => {
       {/* 내 세탁소 관리 */}
       <SectionWrapper title="내 세탁소 관리">
         <InfoRow
-          icon={<Icon icon="mdi:washing-machine" width="22" height="20" />}
+          icon={<WashingMachine size={22} />}
           label="즐겨찾는 매장"
           hint="더보기"
           onClick={() => navigate("/favorite-stores")}
@@ -237,7 +243,7 @@ const MyPage: React.FC = () => {
       {/* 계정 관리 */}
       <SectionWrapper title="계정 관리">
         <InfoRow
-          icon={<Icon icon="bi:chat-dots" width="20" height="20" />}
+          icon={<LogOut size={20} />}
           label="로그아웃"
           onClick={handleLogout}
         />

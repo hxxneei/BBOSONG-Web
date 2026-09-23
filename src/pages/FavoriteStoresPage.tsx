@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { Bookmark, ChevronLeft, Store } from "lucide-react";
 import {
   getFavoriteStores,
   deleteFavoriteStore,
@@ -57,7 +57,7 @@ export default function FavoriteStoresPage() {
     <PageWrapper>
       <Header>
         <BackButton onClick={() => navigate(-1)}>
-          <Icon icon="mingcute:left-line" width={24} height={24} />
+          <ChevronLeft size={24} />
         </BackButton>
         <HeaderTitle>즐겨찾는 매장</HeaderTitle>
         <EmptySpace />
@@ -66,7 +66,7 @@ export default function FavoriteStoresPage() {
       <ContentZone>
         {favorites.length === 0 ? (
           <NoDataWrapper>
-            <Icon icon="mdi:store-marker-outline" width="64" color="#BFC5D2" />
+            <Store size={64} color="#BFC5D2" />
             <NoDataText>
               아직 즐겨찾기한 매장이 없습니다.
               <br />
@@ -88,7 +88,7 @@ export default function FavoriteStoresPage() {
                 </StoreInfo>
 
                 <BookmarkBtn onClick={(e) => handleDelete(store.storeId, e)}>
-                  <Icon icon="mdi:bookmark" width="28" />
+                  <Bookmark size={28} fill="currentColor" />
                 </BookmarkBtn>
               </StoreCard>
             ))}
