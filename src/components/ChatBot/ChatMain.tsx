@@ -19,7 +19,7 @@ interface Props {
   setInput: (val: string) => void;
   onSendMessage: (text: string, file: File | null) => void;
   onBack: () => void;
-  userName?: string; // 이름 전달용은 유지
+  userName?: string;
   isLoading: boolean;
 }
 
@@ -72,10 +72,8 @@ const ChatMain: React.FC<Props> = ({
     if (isLoading) return;
     if (!input.trim() && !selectedImageFile) return;
 
-    // 🚀 부모인 ChatPage의 handleSendMessage로 텍스트와 파일 객체를 유실 없이 정상 배달!
     onSendMessage(input, selectedImageFile);
 
-    // 전송 처리가 완전히 끝났으므로 내 임시 대기 장소 초기화
     setSelectedImageFile(null);
     setImagePreviewUrl(null);
     if (fileInputRef.current) {
@@ -109,12 +107,12 @@ const ChatMain: React.FC<Props> = ({
     <Container>
       <TopArea>
         <TopRow>
-          <BackBtn onClick={onBack}>
+          <BackBtn type="button" aria-label="뒤로가기" onClick={onBack}>
             <ChevronLeft size={32} color="#767676" />
           </BackBtn>
         </TopRow>
         <Header>
-          <ProfileImg src={BSProfile} alt="BSProfile" />
+          <ProfileImg src={BSProfile} alt="뽀송이 프로필" />
           <NameArea>
             <div className="name">뽀송이</div>
             <div className="desc">스마트 챗봇</div>
@@ -155,6 +153,7 @@ const ChatMain: React.FC<Props> = ({
         ref={fileInputRef}
         style={{ display: "none" }}
         accept="image/*"
+        aria-label="채팅 이미지 선택"
         onChange={handleFileChange}
       />
 
@@ -163,7 +162,11 @@ const ChatMain: React.FC<Props> = ({
           <ImagePreviewBar>
             <PreviewContainer>
               <img src={imagePreviewUrl} alt="업로드 대기 샘플" />
-              <CancelImageBtn onClick={handleCancelImage}>
+              <CancelImageBtn
+                type="button"
+                aria-label="첨부 이미지 제거"
+                onClick={handleCancelImage}
+              >
                 <X size={16} color="white" />
               </CancelImageBtn>
             </PreviewContainer>
@@ -173,14 +176,16 @@ const ChatMain: React.FC<Props> = ({
           <button
             className="icon-btn"
             type="button"
+            aria-label="이미지 첨부"
             onClick={handleCameraClick}
             disabled={isLoading}
           >
-            <img src={cameraBtn} alt="camera" />
+            <img src={cameraBtn} alt="" aria-hidden="true" />
           </button>
 
           <input
             type="text"
+            aria-label="챗봇 메시지"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -195,10 +200,11 @@ const ChatMain: React.FC<Props> = ({
           <button
             className="icon-btn"
             type="button"
+            aria-label="메시지 전송"
             onClick={handleFinalSubmit}
             disabled={isLoading}
           >
-            <img src={sendBtn} alt="send" />
+            <img src={sendBtn} alt="" aria-hidden="true" />
           </button>
         </InputBox>
       </InputSection>

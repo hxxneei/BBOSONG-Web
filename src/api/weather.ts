@@ -1,10 +1,7 @@
 import axiosInstance from "./axiosInstance";
+import type { ApiResponse } from "../types/api";
 
-export interface WeatherLaundryResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: {
+export type WeatherLaundryResponse = ApiResponse<{
     weatherSummary: {
       temperature: number;
       humidity: number;
@@ -17,13 +14,12 @@ export interface WeatherLaundryResponse {
       description: string;
       iconType: string;
     }[];
-  };
-}
+}>;
 
 export const getWeatherLaundry = async (
   latitude: number,
   longitude: number,
-) => {
+): Promise<WeatherLaundryResponse> => {
   const response = await axiosInstance.get<WeatherLaundryResponse>(
     "/weather/laundry",
     {

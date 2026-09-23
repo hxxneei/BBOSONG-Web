@@ -105,7 +105,7 @@ export const IndicatorContainer = styled.div`
   margin-bottom: 24px;
 `;
 
-export const Dot = styled.div<{ $active: boolean }>`
+export const Dot = styled.button<{ $active: boolean }>`
   width: ${({ $active }) => ($active ? "22px" : "8px")};
   height: 8px;
   background-color: ${({ $active }) => ($active ? "#4b80fc" : "#d0d0d0")};

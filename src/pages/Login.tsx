@@ -63,18 +63,26 @@ const Login: React.FC = () => {
   return (
     <LoginContainer>
       <Logo>
-        <img src={BbosongLogo} />
+        <img src={BbosongLogo} alt="뽀송이" />
       </Logo>
 
       <form onSubmit={handleLogin}>
         <InputGroup>
+          <VisuallyHiddenLabel htmlFor="login-id">아이디</VisuallyHiddenLabel>
           <input
+            id="login-id"
+            autoComplete="username"
             type="text"
             placeholder="아이디"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)} // 입력할 때마다 상태 업데이트
           />
+          <VisuallyHiddenLabel htmlFor="login-password">
+            비밀번호
+          </VisuallyHiddenLabel>
           <input
+            id="login-password"
+            autoComplete="current-password"
             type="password"
             placeholder="비밀번호"
             value={password}
@@ -92,18 +100,20 @@ const Login: React.FC = () => {
           <LoginBtn type="submit" disabled={isLoading}>
             {isLoading ? "로그인 중..." : "로그인"}
           </LoginBtn>
-          <SocialImg
-            src={KakaoLogin}
-            alt="kakao"
+          <SocialButton
+            type="button"
+            aria-label="카카오로 로그인"
             onClick={() => handleSocialLogin("kakao")}
-            style={{ cursor: "pointer" }}
-          />
-          <SocialImg
-            src={GoogleLogin}
-            alt="google"
+          >
+            <SocialImg src={KakaoLogin} alt="" aria-hidden="true" />
+          </SocialButton>
+          <SocialButton
+            type="button"
+            aria-label="Google로 로그인"
             onClick={() => handleSocialLogin("google")}
-            style={{ cursor: "pointer" }}
-          />
+          >
+            <SocialImg src={GoogleLogin} alt="" aria-hidden="true" />
+          </SocialButton>
         </ButtonGroup>
       </form>
     </LoginContainer>
@@ -128,9 +138,27 @@ const LoginContainer = styled.div`
 `;
 
 const SocialImg = styled.img`
-  cursor: pointer;
   width: 100%;
   max-width: 342px;
+`;
+
+const SocialButton = styled.button`
+  width: 100%;
+  max-width: 342px;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const VisuallyHiddenLabel = styled.label`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 `;
 
 const Logo = styled.div`

@@ -7,8 +7,8 @@ type Props = {
 
 const CategoryCard = ({ icon, label, onClick }: Props) => {
   return (
-    <Card onClick={onClick}>
-      <img src={icon} alt={label} />
+    <Card type="button" onClick={onClick} aria-label={`${label} 카테고리 열기`}>
+      <img src={icon} alt="" aria-hidden="true" />
       <span>{label}</span>
     </Card>
   );
@@ -16,7 +16,7 @@ const CategoryCard = ({ icon, label, onClick }: Props) => {
 
 export default CategoryCard;
 
-const Card = styled.div`
+const Card = styled.button`
   gap: 10px;
   display: flex;
   top: 5px;
@@ -35,6 +35,7 @@ const Card = styled.div`
   font-size: 11px;
   font-weight: 600;
   color: #000000ff;
+  font-family: inherit;
   transition: transform 0.15s ease;
 
   &:active {

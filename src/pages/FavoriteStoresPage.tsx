@@ -23,7 +23,7 @@ export default function FavoriteStoresPage() {
           setFavorites(res.result);
         }
       } catch (err) {
-        console.error("즐겨찾기 매장을 불러오지 못했습니다. 😭", err);
+        console.error("즐겨찾기 매장을 불러오지 못했습니다.", err);
       } finally {
         setIsLoading(false);
       }
@@ -31,9 +31,7 @@ export default function FavoriteStoresPage() {
     fetchFavorites();
   }, []);
 
-  const handleDelete = async (storeId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const handleDelete = async (storeId: number) => {
     const shouldDelete = await showConfirm(
       "즐겨찾는 매장에서 삭제하시겠습니까?",
     );
@@ -45,7 +43,7 @@ export default function FavoriteStoresPage() {
         setFavorites((prev) => prev.filter((item) => item.storeId !== storeId));
       }
     } catch (err) {
-      console.error("즐겨찾기 삭제 중 오류 발생 😭", err);
+      console.error("즐겨찾기 삭제 중 오류가 발생했습니다.", err);
     }
   };
 
@@ -56,7 +54,7 @@ export default function FavoriteStoresPage() {
   return (
     <PageWrapper>
       <Header>
-        <BackButton onClick={() => navigate(-1)}>
+        <BackButton type="button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
           <ChevronLeft size={24} />
         </BackButton>
         <HeaderTitle>즐겨찾는 매장</HeaderTitle>
@@ -74,21 +72,29 @@ export default function FavoriteStoresPage() {
             </NoDataText>
           </NoDataWrapper>
         ) : (
-          // 즐겨찾기 목록 리스트 구조
           <StoreList>
             {favorites.map((store) => (
-              <StoreCard
-                key={store.storeId}
-                onClick={() => window.open(store.placeUrl, "_blank")}
-              >
-                <StoreInfo>
-                  <StoreName>{store.name}</StoreName>
-                  <StoreAddress>{store.address}</StoreAddress>
-                  {store.phone && <StorePhone>☎ {store.phone}</StorePhone>}
-                </StoreInfo>
+              <StoreCard key={store.storeId}>
+                <StoreOpenButton
+                  type="button"
+                  aria-label={`${store.name} 카카오맵에서 보기`}
+                  onClick={() =>
+                    window.open(store.placeUrl, "_blank", "noopener,noreferrer")
+                  }
+                >
+                  <StoreInfo>
+                    <StoreName>{store.name}</StoreName>
+                    <StoreAddress>{store.address}</StoreAddress>
+                    {store.phone && <StorePhone>☎ {store.phone}</StorePhone>}
+                  </StoreInfo>
+                </StoreOpenButton>
 
-                <BookmarkBtn onClick={(e) => handleDelete(store.storeId, e)}>
-                  <Bookmark size={28} fill="currentColor" />
+                <BookmarkBtn
+                  type="button"
+                  aria-label={`${store.name} 즐겨찾기 삭제`}
+                  onClick={() => void handleDelete(store.storeId)}
+                >
+                  <Bookmark size={28} fill="currentColor" aria-hidden="true" />
                 </BookmarkBtn>
               </StoreCard>
             ))}
@@ -99,10 +105,9 @@ export default function FavoriteStoresPage() {
   );
 }
 
-// 🎨 떡볶이님 앱 특유의 뽀송한 UI 스펙 디자인 시스템 CSS
 const PageWrapper = styled.div`
   width: 100%;
-  max-width: 430px; // 당근/보송이 앱 디자인 컨테이너 국룰 규격
+  max-width: 430px;
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh;
@@ -161,12 +166,17 @@ const StoreCard = styled.div`
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
-  cursor: pointer;
   transition: transform 0.1s ease;
 
   &:active {
     transform: scale(0.98);
   }
+`;
+
+const StoreOpenButton = styled.button`
+  flex: 1;
+  min-width: 0;
+  text-align: left;
 `;
 
 const StoreInfo = styled.div`
@@ -186,7 +196,7 @@ const StoreName = styled.h2`
 
 const StoreAddress = styled.p`
   font-size: 13px;
-  color: #4b80fc; // 떡볶이님 시그니처 보송이 블루 칼라 반영
+  color: #4b80fc;
   font-weight: 500;
   margin: 0;
 `;
@@ -201,7 +211,7 @@ const BookmarkBtn = styled.button`
   border: none;
   cursor: pointer;
   padding: 4px;
-  color: #4b80fc; // 활성화 상태의 보송이 블루 반영
+  color: #4b80fc;
   display: flex;
   align-items: center;
   justify-content: center;

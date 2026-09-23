@@ -1,5 +1,6 @@
 import axiosInstance from "./axiosInstance";
 import { registerSessionResetter } from "../utils/authStorage";
+import type { ApiResponse } from "../types/api";
 
 const CHAT_MESSAGES_CACHE_TTL_MS = 2 * 60 * 1000;
 
@@ -24,24 +25,14 @@ export interface ChatMessage {
   createdAt: string;
 }
 
-export interface GetMessagesResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: ChatMessage[];
-}
+export type GetMessagesResponse = ApiResponse<ChatMessage[]>;
 
-export interface SendMessageResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: {
+export type SendMessageResponse = ApiResponse<{
     userMessage: ChatMessage;
     assistantMessage: ChatMessage;
-  };
-}
+}>;
 
-export const getChatMessages = async () => {
+export const getChatMessages = async (): Promise<GetMessagesResponse> => {
   if (chatMessagesCache && chatMessagesCache.expiresAt > Date.now()) {
     return chatMessagesCache.data;
   }
@@ -60,7 +51,7 @@ export const getChatMessages = async () => {
 export const sendChatMessage = async (
   content: string,
   imageFile: File | null,
-) => {
+): Promise<SendMessageResponse> => {
   const formData = new FormData();
 
   if (content.trim()) {

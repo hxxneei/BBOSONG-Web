@@ -10,13 +10,13 @@ import {
   getClothesByCategory,
   toggleClothesFavorite,
   getSearchClothes,
-  type ClosetItemData,
+  type ClothesListItem,
 } from "../api/clothes";
 import { isClothesCategory } from "../constants/clothesCategories";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
 import { getClothesImageUrl } from "../utils/clothesImage";
 
-export default function TopPage() {
+export default function CategoryPage() {
   const { categoryName } = useParams<{ categoryName: string }>();
   const navigate = useNavigate();
   const { showAlert } = useFeedbackModal();
@@ -31,11 +31,10 @@ export default function TopPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const formatClothesData = useCallback(
-    (data: ClosetItemData[]) =>
-      data.map((item: ClosetItemData) => ({
+    (data: ClothesListItem[]) =>
+      data.map((item) => ({
         id: item.clothesId,
         category: item.categoryName,
-        brand: "BBOSONG",
         name: item.name,
         image: getClothesImageUrl(item.imageUrl),
         isFavorite: item.isFavorite,

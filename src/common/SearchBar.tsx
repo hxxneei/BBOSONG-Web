@@ -18,6 +18,7 @@ export default function SearchBar({
     <CenterRow>
       <SearchBox role="search">
         <Input
+          aria-label="옷 검색어"
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}

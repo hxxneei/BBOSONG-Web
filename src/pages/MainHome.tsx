@@ -9,7 +9,7 @@ import {
   type HomeSummaryResponse,
 } from "../api/clothes";
 
-export default function LoadingPage() {
+export default function MainHome() {
   const [homeSummary, setHomeSummary] = useState<
     HomeSummaryResponse["result"] | null
   >(null);

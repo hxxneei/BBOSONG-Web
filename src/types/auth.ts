@@ -5,14 +5,6 @@ export interface SignupRequest {
   email: string;
 }
 
-// 서버 응답 공통 구조 (isSuccess, message 등)
-export interface ApiResponse<T> {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: T;
-}
-
 //회원가입 성공 시 서버가 돌려주는 결과 데이터
 export interface SignupResult {
   memberId: number;
@@ -46,12 +38,4 @@ export interface ReissueResult {
   accessTokenExpiresAt: string;
   refreshToken: string;
   refreshTokenExpiresAt: string;
-}
-
-/** 공통 API 응답 구조 (이미 있다면 유지!) */
-export interface ApiResponse<T> {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: T;
 }

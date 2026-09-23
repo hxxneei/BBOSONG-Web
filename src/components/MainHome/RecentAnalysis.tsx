@@ -1,13 +1,13 @@
 import React from "react";
 import styled from "styled-components";
-import type { HomeClothingItem } from "../../api/clothes";
+import type { ClothesListItem } from "../../api/clothes";
 import {
   getClothesImageUrl,
   handleClothesImageError,
 } from "../../utils/clothesImage";
 
 type RecentAnalysisProps = {
-  recentClothes: HomeClothingItem[];
+  recentClothes: ClothesListItem[];
   isLoading: boolean;
 };
 
@@ -17,7 +17,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "2026.05.25"; // 기본 예외처리
+    if (isNaN(date.getTime())) return "날짜 정보 없음";
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");

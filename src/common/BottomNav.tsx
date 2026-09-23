@@ -17,6 +17,8 @@ const BottomNav = () => {
   return (
     <Bar>
       <Item
+        type="button"
+        aria-current={isActive("/main-home") ? "page" : undefined}
         onClick={() => navigate("/main-home")}
         $active={isActive("/main-home")}
       >
@@ -24,18 +26,29 @@ const BottomNav = () => {
         <Label>홈 화면</Label>
       </Item>
 
-      <Item onClick={() => navigate("/mapview")} $active={isActive("/mapview")}>
+      <Item
+        type="button"
+        aria-current={isActive("/mapview") ? "page" : undefined}
+        onClick={() => navigate("/mapview")}
+        $active={isActive("/mapview")}
+      >
         <Icon src={map} alt="" $active={isActive("/mapview")} />
         <Label>지도</Label>
       </Item>
 
       <CenterWrap>
-        <CenterBtn type="button" onClick={() => navigate("/fabric-scanner")}>
-          <CenterIcon src={camera} alt="camera" />
+        <CenterBtn
+          type="button"
+          aria-label="옷 촬영 및 분석"
+          onClick={() => navigate("/fabric-scanner")}
+        >
+          <CenterIcon src={camera} alt="" aria-hidden="true" />
         </CenterBtn>
       </CenterWrap>
 
       <Item
+        type="button"
+        aria-current={isActive("/chatpage") ? "page" : undefined}
         onClick={() => navigate("/chatpage")}
         $active={isActive("/chatpage")}
       >
@@ -43,7 +56,12 @@ const BottomNav = () => {
         <Label>챗봇</Label>
       </Item>
 
-      <Item onClick={() => navigate("/mypage")} $active={isActive("/mypage")}>
+      <Item
+        type="button"
+        aria-current={isActive("/mypage") ? "page" : undefined}
+        onClick={() => navigate("/mypage")}
+        $active={isActive("/mypage")}
+      >
         <Icon src={mypage} alt="" $active={isActive("/mypage")} />
         <Label>마이 페이지</Label>
       </Item>

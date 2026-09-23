@@ -42,17 +42,7 @@ const transformServerData = (
   };
 };
 
-type Props = {
-  onBack?: () => void;
-  tags?: string[];
-  showButtons?: boolean;
-};
-
-export default function ResultPage({
-  onBack,
-  tags,
-  showButtons = true,
-}: Props) {
+export default function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { showAlert } = useFeedbackModal();
@@ -84,7 +74,7 @@ export default function ResultPage({
     return null;
   }
 
-  const handleBack = onBack ?? (() => window.history.back());
+  const handleBack = () => window.history.back();
 
   const handleRetryClick = () => {
     if (isSavingRef.current) return;
@@ -149,18 +139,16 @@ export default function ResultPage({
         />
 
         <ContentArea>
-          <ResultCard data={displayData} tags={tags} />
+          <ResultCard data={displayData} />
         </ContentArea>
 
-        {showButtons && (
-          <Bottom>
-            <ResultButtonGroup
-              onRetry={handleRetryClick}
-              onSave={handleSaveClick}
-              isSaving={isSaving}
-            />
-          </Bottom>
-        )}
+        <Bottom>
+          <ResultButtonGroup
+            onRetry={handleRetryClick}
+            onSave={handleSaveClick}
+            isSaving={isSaving}
+          />
+        </Bottom>
       </Phone>
     </Shell>
   );

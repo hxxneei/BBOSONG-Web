@@ -1,5 +1,6 @@
 import axiosInstance from "./axiosInstance";
 import { registerSessionResetter } from "../utils/authStorage";
+import type { ApiResponse } from "../types/api";
 
 const STORE_CACHE_TTL_MS = 2 * 60 * 1000;
 
@@ -25,17 +26,10 @@ export interface FavoriteStoreResponse {
   createdAt: string;
 }
 
-interface BaseResponse<T> {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: T;
-}
-
 let favoriteStoresCache:
   | {
       expiresAt: number;
-      data: BaseResponse<FavoriteStoreResponse[]>;
+      data: ApiResponse<FavoriteStoreResponse[]>;
     }
   | null = null;
 
@@ -47,13 +41,15 @@ registerSessionResetter(invalidateStoresCache);
 
 // 즐겨찾기 매장 목록 조회
 export const getFavoriteStores = async (): Promise<
-  BaseResponse<FavoriteStoreResponse[]>
+  ApiResponse<FavoriteStoreResponse[]>
 > => {
   if (favoriteStoresCache && favoriteStoresCache.expiresAt > Date.now()) {
     return favoriteStoresCache.data;
   }
 
-  const response = await axiosInstance.get("stores/favorites"); // 중복 api 제거 규칙 반영!
+  const response = await axiosInstance.get<
+    ApiResponse<FavoriteStoreResponse[]>
+  >("stores/favorites");
   if (response.data.isSuccess) {
     favoriteStoresCache = {
       data: response.data,
@@ -66,8 +62,10 @@ export const getFavoriteStores = async (): Promise<
 //  즐겨찾기 매장 저장
 export const addFavoriteStore = async (
   data: FavoriteStoreRequest,
-): Promise<BaseResponse<FavoriteStoreResponse>> => {
-  const response = await axiosInstance.post("stores/favorites", data);
+): Promise<ApiResponse<FavoriteStoreResponse>> => {
+  const response = await axiosInstance.post<
+    ApiResponse<FavoriteStoreResponse>
+  >("stores/favorites", data);
   if (response.data.isSuccess) {
     invalidateStoresCache();
   }
@@ -77,8 +75,10 @@ export const addFavoriteStore = async (
 // 즐겨찾기 매장 삭제
 export const deleteFavoriteStore = async (
   storeId: number,
-): Promise<BaseResponse<string>> => {
-  const response = await axiosInstance.delete(`stores/favorites/${storeId}`);
+): Promise<ApiResponse<string>> => {
+  const response = await axiosInstance.delete<ApiResponse<string>>(
+    `stores/favorites/${storeId}`,
+  );
   if (response.data.isSuccess) {
     invalidateStoresCache();
   }

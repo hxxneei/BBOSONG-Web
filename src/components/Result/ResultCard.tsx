@@ -12,7 +12,6 @@ export type ResultData = {
 
 type Props = {
   data: ResultData;
-  tags?: string[];
 };
 
 const Card = styled.section`
@@ -141,7 +140,7 @@ const Bullet = styled.li.withConfig({
   }
 `;
 
-export default function ResultCard({ data, tags }: Props) {
+export default function ResultCard({ data }: Props) {
   const d = data;
   return (
     <Card>
@@ -155,14 +154,6 @@ export default function ResultCard({ data, tags }: Props) {
       <ImageWrap>
         <ProductImg src={d.image} alt={d.name} />
       </ImageWrap>
-
-      {!!tags?.length && (
-        <Tags>
-          {tags.map((t) => (
-            <Tag key={t}>{t}</Tag>
-          ))}
-        </Tags>
-      )}
 
       <List>
         <Row>
@@ -204,21 +195,6 @@ export default function ResultCard({ data, tags }: Props) {
   );
 }
 
-const Tags = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 12px 2px 4px;
-`;
-const Tag = styled.span`
-  display: inline-flex;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #edf3ff;
-  color: #4b80fc;
-  font-size: 12.5px;
-  font-weight: 700;
-`;
 const TitleRow = styled.div`
   display: flex;
   align-items: center;

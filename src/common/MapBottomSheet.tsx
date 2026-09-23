@@ -35,14 +35,12 @@ const LaundryBottomSheet = ({
   useEffect(() => {
     if (isOpen && place) {
       setIsVisible(true);
-      setIsClosing(false); // 열릴 때는 닫힘 상태 해제
+      setIsClosing(false);
       setTranslateY(0);
       setDragStartY(null);
     } else if (!isOpen && isVisible) {
-      // ⭕ [핵심 로직] 바로 없애지 말고, 닫히는 애니메이션을 먼저 실행합니다.
       setIsClosing(true);
 
-      // 애니메이션 시간(0.2s)이 지난 후에 실제로 컴포넌트를 언마운트(삭제)합니다.
       const timer = setTimeout(() => {
         setIsVisible(false);
         setIsClosing(false);

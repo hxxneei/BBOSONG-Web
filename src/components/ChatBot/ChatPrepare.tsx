@@ -166,45 +166,20 @@ const BotBubble = styled.div`
   }
 `;
 
-// const BottomCardZone = styled.div`
-//   padding: 20px;
-//   background: transparent;
-// `;
-
 const BottomCardZone = styled.div`
   width: 100%;
   display: flex;
-  justify-content: center; // 가로 정중앙 정렬
-  padding-bottom: 30px; // 화면 맨 밑바닥과 카드 사이의 안전 마진
-  background: transparent; // 배경은 투명하게 해서 그라데이션이 다 보이도록!
+  justify-content: center;
+  padding-bottom: 30px;
+  background: transparent;
 `;
 
-// const SelectBox = styled.div`
-//   background: #ffffff;
-//   border-radius: 24px;
-//   padding: 28px 22px 24px;
-//   box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.08);
-//   display: flex;
-//   flex-direction: column;
-//   gap: 12px;
-
-//   .select-title {
-//     text-align: center;
-//     font-size: 16px;
-//     font-weight: 700;
-//     margin-bottom: 12px;
-//     color: #4b4b4b;
-//   }
-// `;
-
 const SelectBox = styled.div`
-  width: 332px; // figma 스펙
-  /* height: 245px; -> 🚨 고정 높이를 주면 닉네임이 길어질 때 글자가 터지므로 
-  최소 높이(min-height)로 잡거나 패딩에 맡기는 게 프론트엔드 정석입니다! */
+  width: 332px;
   min-height: 245px;
 
   background: #ffffff;
-  border-radius: 16px; // figma 스펙
+  border-radius: 16px;
 
   padding: 36px 38px;
 
@@ -214,7 +189,7 @@ const SelectBox = styled.div`
 
   box-shadow: 0px 4px 5px 0px rgba(75, 128, 252, 0.3);
 
-  box-sizing: border-box; // 패딩 때문에 가로가 332px보다 커지는 현상 원천 방어!
+  box-sizing: border-box;
   opacity: 1;
 
   .select-title {

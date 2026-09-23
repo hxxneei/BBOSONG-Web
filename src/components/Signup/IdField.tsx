@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import styled from "styled-components";
 import RequiredMark from "../../assets/SignupPage/RequiredMark.svg";
 import CheckIcon from "../../assets/SignupPage/CheckIcon.svg";
@@ -10,7 +10,6 @@ interface IdFieldProps {
   showCheckBtn?: boolean;
   errorText?: string;
   subText?: string;
-  defaultValue?: string;
   onCheck?: () => void;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -23,27 +22,31 @@ const IdField: React.FC<IdFieldProps> = ({
   showCheckBtn = false,
   errorText,
   subText,
-  defaultValue,
   value,
   onChange,
   onCheck,
 }) => {
+  const inputId = useId();
+  const messageId = `${inputId}-message`;
+
   return (
     <InputGroupContainer>
       {/* 라벨 영역 */}
       <LabelRow>
-        <Label>{label}</Label>
-        <RequiredImg src={RequiredMark} alt="필수" />
+        <Label htmlFor={inputId}>{label}</Label>
+        <RequiredImg src={RequiredMark} alt="필수 입력" />
       </LabelRow>
 
       {/* 입력 영역 (중복확인 버튼 포함 여부) */}
       <InputRow>
         <StyledInput
           type={type}
+          id={inputId}
           placeholder={placeholder}
-          defaultValue={defaultValue}
           value={value}
           onChange={onChange}
+          aria-describedby={errorText || subText ? messageId : undefined}
+          aria-invalid={Boolean(errorText)}
         />
         {showCheckBtn && (
           <CheckButton type="button" onClick={onCheck}>
@@ -54,14 +57,14 @@ const IdField: React.FC<IdFieldProps> = ({
 
       {/* 에러 텍스트 (아이콘 포함) */}
       {errorText && (
-        <MessageRow>
-          <img src={CheckIcon} alt="느낌표" style={{ width: "9px" }} />
+        <MessageRow id={messageId} role="alert">
+          <img src={CheckIcon} alt="" aria-hidden="true" style={{ width: "9px" }} />
           <ErrorText>{errorText}</ErrorText>
         </MessageRow>
       )}
 
       {/* 보조 안내 텍스트 */}
-      {subText && <SubText>{subText}</SubText>}
+      {subText && !errorText && <SubText id={messageId}>{subText}</SubText>}
     </InputGroupContainer>
   );
 };

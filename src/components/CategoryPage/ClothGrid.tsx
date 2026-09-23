@@ -22,7 +22,12 @@ function ClothGrid({ items, onItemClick }: ClothGridProps) {
   return (
     <Grid>
       {items.map((cloth) => (
-        <CardWrapper key={cloth.id} onClick={() => handleCardClick(cloth.id)}>
+        <CardWrapper key={cloth.id}>
+          <CardOpenButton
+            type="button"
+            aria-label={`${cloth.name} 상세 보기`}
+            onClick={() => handleCardClick(cloth.id)}
+          />
           <ClothCard item={cloth} onToggleFavorite={cloth.onToggleFavorite} />
         </CardWrapper>
       ))}
@@ -41,11 +46,19 @@ const Grid = styled.div`
 `;
 
 const CardWrapper = styled.div`
+  position: relative;
   min-width: 0;
-  cursor: pointer;
 
   &:active {
     transform: scale(0.98);
     transition: transform 0.1s;
   }
+`;
+
+const CardOpenButton = styled.button`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  border-radius: 15px;
 `;

@@ -24,7 +24,11 @@ const PolicySection: React.FC<PolicySectionProps> = ({
     <SectionWrapper>
       <PolicyRow>
         {/* 체크 아이콘 클릭 시 상태 변경 */}
-        <PolicyLabelGroup onClick={() => setIsServiceAgreed(!isServiceAgreed)}>
+        <PolicyLabelGroup
+          type="button"
+          aria-pressed={isServiceAgreed}
+          onClick={() => setIsServiceAgreed(!isServiceAgreed)}
+        >
           <PolicyText>서비스 약관 동의</PolicyText>
           <RequiredDot src={RequiredMark} alt="필수" />
           <CheckIcon src={TermsDetail} $isAgreed={isServiceAgreed} />
@@ -36,6 +40,8 @@ const PolicySection: React.FC<PolicySectionProps> = ({
 
       <PolicyRow>
         <PolicyLabelGroup
+          type="button"
+          aria-pressed={isMarketingAgreed}
           onClick={() => setIsMarketingAgreed(!isMarketingAgreed)}
         >
           <PolicyText>마케팅 수신 동의</PolicyText>
@@ -69,7 +75,7 @@ const PolicyRow = styled.div`
   }
 `;
 
-const PolicyLabelGroup = styled.div`
+const PolicyLabelGroup = styled.button`
   display: flex;
   align-items: center;
   gap: 8px;
