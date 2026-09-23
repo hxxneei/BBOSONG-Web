@@ -62,7 +62,7 @@ const ClosetPage = () => {
   return (
     <Page>
       <Header>
-        <BackButton onClick={() => window.history.back()}>
+        <BackButton aria-label="뒤로가기" onClick={() => window.history.back()}>
           <ChevronLeft size={32} color="#AEAEAE" />
         </BackButton>
       </Header>

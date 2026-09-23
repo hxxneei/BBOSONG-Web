@@ -5,7 +5,7 @@ import { ChevronLeft, Heart, HeartCrack, Search } from "lucide-react";
 import {
   getFavoriteClothes,
   toggleClothesFavorite,
-  type ClothesItem,
+  type ClothesListItem,
 } from "../api/clothes";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
 import {
@@ -16,7 +16,7 @@ import {
 export default function MyClosetPage() {
   const navigate = useNavigate();
   const { showConfirm } = useFeedbackModal();
-  const [clothes, setFavorites] = useState<ClothesItem[]>([]);
+  const [clothes, setFavorites] = useState<ClothesListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
 
@@ -36,9 +36,7 @@ export default function MyClosetPage() {
     fetchFavoriteClothes();
   }, []);
 
-  const handleHeartToggle = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const handleHeartToggle = async (id: number) => {
     const shouldRemove = await showConfirm("즐겨찾기를 해제하시겠습니까?");
     if (!shouldRemove) return;
 
@@ -67,7 +65,7 @@ export default function MyClosetPage() {
   return (
     <PageWrapper>
       <Header>
-        <BackButton onClick={() => navigate(-1)}>
+        <BackButton type="button" aria-label="뒤로가기" onClick={() => navigate(-1)}>
           <ChevronLeft size={24} />
         </BackButton>
         <HeaderTitle>저장한 옷</HeaderTitle>
@@ -78,6 +76,7 @@ export default function MyClosetPage() {
         <SearchInputWrapper>
           <SearchInput
             type="text"
+            aria-label="저장한 옷 검색"
             placeholder="검색어를 입력하세요."
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
@@ -100,10 +99,12 @@ export default function MyClosetPage() {
           <ClothesGrid>
             {filteredClothes.map((item) => {
               return (
-                <ClothesCard
-                  key={item.clothesId}
-                  onClick={() => navigate(`/my-closet/${item.clothesId}`)}
-                >
+                <ClothesCard key={item.clothesId}>
+                  <CardOpenButton
+                    type="button"
+                    aria-label={`${item.name} 상세 보기`}
+                    onClick={() => navigate(`/my-closet/${item.clothesId}`)}
+                  />
                   <ImageSection>
                     <ClothesImg
                       src={getClothesImageUrl(item.imageUrl)}
@@ -114,8 +115,10 @@ export default function MyClosetPage() {
                     />
 
                     <HeartBtn
+                      type="button"
+                      aria-label={`${item.name} 즐겨찾기 해제`}
                       $active={true}
-                      onClick={(e) => handleHeartToggle(item.clothesId, e)}
+                      onClick={() => void handleHeartToggle(item.clothesId)}
                     >
                       <Heart size={20} fill="currentColor" />
                     </HeartBtn>
@@ -214,6 +217,7 @@ const ClothesGrid = styled.div`
 `;
 
 const ClothesCard = styled.div`
+  position: relative;
   background: #ffffff;
   border-radius: 20px;
   overflow: hidden;
@@ -221,6 +225,14 @@ const ClothesCard = styled.div`
   flex-direction: column;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
   cursor: pointer;
+`;
+
+const CardOpenButton = styled.button`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  border-radius: 20px;
 `;
 
 const ImageSection = styled.div`
@@ -244,6 +256,7 @@ const HeartBtn = styled.button<{ $active: boolean }>`
   position: absolute;
   top: 12px;
   right: 12px;
+  z-index: 2;
   background: transparent;
   border: none;
   cursor: pointer;

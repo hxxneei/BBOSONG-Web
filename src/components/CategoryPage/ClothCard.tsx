@@ -10,7 +10,6 @@ export interface ClothCardItem {
   id: number;
   category?: string;
   categoryName?: string;
-  brand?: string;
   name: string;
   image?: string;
   imageUrl?: string;
@@ -34,7 +33,6 @@ function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
       />
       <Info>
         <Category>{item.category || item.categoryName}</Category>
-        <Brand>{item.brand || "BBOSONG"}</Brand>
         <Name>{item.name}</Name>
       </Info>
       <HeartWrapper>
@@ -80,13 +78,6 @@ const Category = styled.span`
   display: block;
 `;
 
-const Brand = styled.p`
-  font-weight: 600;
-  margin: 0;
-  font-size: 12px;
-  color: #767676;
-`;
-
 const Name = styled.p`
   font-size: 14px;
   font-weight: 600;
@@ -102,4 +93,5 @@ const HeartWrapper = styled.div`
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 2;
 `;

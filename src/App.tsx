@@ -14,7 +14,7 @@ import styled from "styled-components";
 import Firstpage from "./pages/Firstpage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import SignupComplete from "./pages/SignupCompelet";
+import SignupComplete from "./pages/SignupComplete";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import { hasAuthTokens } from "./utils/authStorage";
 import { subscribeToAuthExpired } from "./utils/authEvents";
@@ -26,7 +26,7 @@ const importMainHome = () => import("./pages/MainHome");
 const importMyPage = () => import("./pages/MyPage");
 const importMapView = () => import("./pages/MapView");
 const importClosetPage = () => import("./pages/ClosetPage");
-const importTopPage = () => import("./pages/CategoryPage");
+const importCategoryPage = () => import("./pages/CategoryPage");
 const importClosetDetailPage = () => import("./pages/ClosetDetailPage");
 const importOAuthCallbackPage = () => import("./pages/OAuthCallbackPage");
 const importFavoriteStoresPage = () => import("./pages/FavoriteStoresPage");
@@ -39,7 +39,7 @@ const MainHome = lazy(importMainHome);
 const MyPage = lazy(importMyPage);
 const MapView = lazy(importMapView);
 const ClosetPage = lazy(importClosetPage);
-const TopPage = lazy(importTopPage);
+const CategoryPage = lazy(importCategoryPage);
 const ClosetDetailPage = lazy(importClosetDetailPage);
 const OAuthCallbackPage = lazy(importOAuthCallbackPage);
 const FavoriteStoresPage = lazy(importFavoriteStoresPage);
@@ -80,8 +80,6 @@ const App = () => {
       }
     });
   }, [navigate]);
-
-  // const shouldHideNav = hideNavPaths.includes(location.pathname.toLowerCase());
 
   useEffect(() => {
     if (!hasAuthTokens() || location.pathname !== "/main-home") {
@@ -133,7 +131,7 @@ const App = () => {
           />
           <Route
             path="/closet/category/:categoryName"
-            element={withAuth(<TopPage />)}
+            element={withAuth(<CategoryPage />)}
           />
           <Route
             path="/my-closet/:id"

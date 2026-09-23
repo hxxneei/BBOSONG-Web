@@ -72,7 +72,7 @@ const RightWrap = styled.div`
   display: inline-flex;
   align-items: center;
 
-  gap: 8x;
+  gap: 8px;
   color: #767676;
 `;
 
@@ -90,7 +90,7 @@ const Label = styled.span`
 
 const Value = styled.span`
   font-size: 14px;
-  color: #2563eb; // blue like the mockup
+  color: #2563eb;
 `;
 
 const ValueHintWrap = styled.div`

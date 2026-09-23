@@ -1,4 +1,3 @@
-import { useViewportVH } from "../hooks/useViewportVH";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -35,8 +34,6 @@ const MyPage: React.FC = () => {
   const handleBack = () => window.history.back();
   const navigate = useNavigate();
   const { showAlert, showConfirm } = useFeedbackModal();
-  useViewportVH();
-
   // 내 정보 상태 관리
   const [memberInfo, setMemberInfo] = useState<MemberInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -257,13 +254,19 @@ const MyPage: React.FC = () => {
       {/* mypage 모달 창  */}
       {isModalOpen && (
         <ModalDimmed onClick={() => setIsModalOpen(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalTitle>
+          <ModalContent
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-edit-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ModalTitle id="profile-edit-title">
               {modalType === "nickname" ? "닉네임 변경" : "생년월일 변경"}
             </ModalTitle>
 
             <ModalInput
               type={modalType === "nickname" ? "text" : "date"}
+              aria-label={modalType === "nickname" ? "새 닉네임" : "새 생년월일"}
               placeholder={
                 modalType === "nickname"
                   ? "새로운 닉네임을 입력하세요"
@@ -275,8 +278,8 @@ const MyPage: React.FC = () => {
             />
 
             <ModalButtonGroup>
-              <CancelBtn onClick={() => setIsModalOpen(false)}>취소</CancelBtn>
-              <SaveBtn onClick={handleSaveInfo}>저장</SaveBtn>
+              <CancelBtn type="button" onClick={() => setIsModalOpen(false)}>취소</CancelBtn>
+              <SaveBtn type="button" onClick={handleSaveInfo}>저장</SaveBtn>
             </ModalButtonGroup>
           </ModalContent>
         </ModalDimmed>

@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { InternalAxiosRequestConfig } from "axios";
-import type { ApiResponse, ReissueResult } from "../types/auth";
+import type { ReissueResult } from "../types/auth";
+import type { ApiResponse } from "../types/api";
 import {
   getAccessToken,
   getAccessTokenExpiresAt,

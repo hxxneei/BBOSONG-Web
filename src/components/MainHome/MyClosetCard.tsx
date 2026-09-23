@@ -4,14 +4,14 @@ import HangerIcon from "../../assets/MainHome/HangerIcon.svg";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import type { HomeClothingItem } from "../../api/clothes";
+import type { ClothesListItem } from "../../api/clothes";
 import {
   getClothesImageUrl,
   handleClothesImageError,
 } from "../../utils/clothesImage";
 
 type MyClosetCardProps = {
-  favorites: HomeClothingItem[];
+  favorites: ClothesListItem[];
   isLoading: boolean;
 };
 
@@ -32,7 +32,7 @@ const MyClosetCard: React.FC<MyClosetCardProps> = ({
           <TitleText>님 맞춤 옷장</TitleText>
           <HangerImg src={HangerIcon} alt="옷걸이" />
         </TitleGroup>
-        <ShortcutBtn onClick={() => navigate("/closetpage")}>
+        <ShortcutBtn type="button" onClick={() => navigate("/closetpage")}>
           바로가기
           <ChevronRight size={14} color="#888888" />
         </ShortcutBtn>
@@ -41,6 +41,7 @@ const MyClosetCard: React.FC<MyClosetCardProps> = ({
       <ScrollWrapper>
         {visibleFavorites.map((item) => (
           <ClosetItem
+            type="button"
             key={item.clothesId}
             onClick={() => navigate(`/my-closet/${item.clothesId}`)}
           >
@@ -60,10 +61,12 @@ const MyClosetCard: React.FC<MyClosetCardProps> = ({
         {!isLoading &&
           Array.from({ length: emptyCount }).map((_, index) => (
             <EmptyItem
+              type="button"
+              aria-label="옷장에 옷 추가하기"
               key={`empty-${index}`}
               onClick={() => navigate("/closetpage")}
             >
-              <img src={PlusIcon} alt="추가하기" width={24} height={24} />
+              <img src={PlusIcon} alt="" aria-hidden="true" width={24} height={24} />
             </EmptyItem>
           ))}
       </ScrollWrapper>
@@ -133,8 +136,7 @@ const ScrollWrapper = styled.div`
   }
 `;
 
-const ClosetItem = styled.div`
-  /* 너비 고정: flex-grow(0), flex-shrink(0), width(110px) */
+const ClosetItem = styled.button`
   flex: 0 0 110px;
 
   height: 150px;
@@ -165,7 +167,7 @@ const ItemName = styled.p`
   word-break: keep-all;
 `;
 
-const EmptyItem = styled.div`
+const EmptyItem = styled.button`
   flex: 0 0 110px;
 
   height: 150px;

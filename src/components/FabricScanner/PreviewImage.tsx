@@ -8,7 +8,7 @@ type Props = {
 export default function CameraIllustration({ aspectRatio = 16 / 9 }: Props) {
   return (
     <Hero $ratio={aspectRatio}>
-      <img src={Camera} alt="fabric Camera" />
+      <img src={Camera} alt="의류 촬영 안내" />
     </Hero>
   );
 }

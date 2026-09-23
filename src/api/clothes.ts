@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosInstance";
-import type { ApiResponse } from "../types/auth";
+import type { ApiResponse } from "../types/api";
 import type { ClothesAnalysisResult } from "../types/clothes";
 import { registerSessionResetter } from "../utils/authStorage";
 
@@ -106,20 +106,15 @@ export const postSaveClothes = async (formData: FormData) => {
   return response.data;
 };
 
-export interface SaveClothesResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: {
+export type SaveClothesResponse = ApiResponse<{
     clothesId: number;
     categoryName: string;
     name: string;
     createdAt: string;
-  };
-}
+}>;
 
 // closet
-export interface ClosetItemData {
+export interface ClothesListItem {
   clothesId: number;
   categoryName: string;
   name: string;
@@ -129,12 +124,7 @@ export interface ClosetItemData {
   createdAt: string;
 }
 
-export interface GetClosetResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: ClosetItemData[];
-}
+export type GetClosetResponse = ApiResponse<ClothesListItem[]>;
 
 export const getClothesByCategory = async (category: string) => {
   const cacheKey = `clothes:category:${category}`;
@@ -207,25 +197,10 @@ export const deleteClothes = async (clothesId: number) => {
 };
 
 // 홈 요약
-export interface HomeClothingItem {
-  clothesId: number;
-  categoryName: string;
-  name: string;
-  color: string;
-  imageUrl: string;
-  isFavorite: boolean;
-  createdAt: string;
-}
-
-export interface HomeSummaryResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: {
-    recentClothes: HomeClothingItem[];
-    favoriteClothes: HomeClothingItem[];
-  };
-}
+export type HomeSummaryResponse = ApiResponse<{
+  recentClothes: ClothesListItem[];
+  favoriteClothes: ClothesListItem[];
+}>;
 
 let clothesCacheGeneration = 0;
 let homeSummaryRequest: Promise<HomeSummaryResponse> | null = null;
@@ -266,29 +241,12 @@ export const getHomeSummary = async (): Promise<HomeSummaryResponse> => {
     }
   }
 };
-export interface ClothesItem {
-  clothesId: number;
-  categoryName: string;
-  name: string;
-  color: string;
-  imageUrl: string;
-  isFavorite: boolean;
-  createdAt: string;
-}
-
-interface BaseResponse<T> {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: T;
-}
-
 // 옷장 목록 최신순 조회
 export const getClothesList = async (
   category?: string,
-): Promise<BaseResponse<ClothesItem[]>> => {
+): Promise<ApiResponse<ClothesListItem[]>> => {
   const cacheKey = `clothes:list:${category || "all"}`;
-  const cached = getCachedData<BaseResponse<ClothesItem[]>>(cacheKey);
+  const cached = getCachedData<ApiResponse<ClothesListItem[]>>(cacheKey);
 
   if (cached) {
     return cached;
@@ -297,7 +255,9 @@ export const getClothesList = async (
   const url = category
     ? `clothes?category=${encodeURIComponent(category)}`
     : "clothes";
-  const response = await axiosInstance.get(url);
+  const response = await axiosInstance.get<ApiResponse<ClothesListItem[]>>(
+    url,
+  );
   if (response.data.isSuccess) {
     setCachedData(cacheKey, response.data);
   }
@@ -305,16 +265,18 @@ export const getClothesList = async (
 };
 
 export const getFavoriteClothes = async (): Promise<
-  BaseResponse<ClothesItem[]>
+  ApiResponse<ClothesListItem[]>
 > => {
   const cacheKey = "clothes:favorites";
-  const cached = getCachedData<BaseResponse<ClothesItem[]>>(cacheKey);
+  const cached = getCachedData<ApiResponse<ClothesListItem[]>>(cacheKey);
 
   if (cached) {
     return cached;
   }
 
-  const response = await axiosInstance.get("clothes/favorites");
+  const response = await axiosInstance.get<ApiResponse<ClothesListItem[]>>(
+    "clothes/favorites",
+  );
   if (response.data.isSuccess) {
     setCachedData(cacheKey, response.data);
   }
@@ -325,8 +287,10 @@ export const getFavoriteClothes = async (): Promise<
 export const toggleClothesFavorite = async (
   clothesId: number,
   isFavorite: boolean,
-): Promise<BaseResponse<{ clothesId: number; isFavorite: boolean }>> => {
-  const response = await axiosInstance.patch(`clothes/${clothesId}/favorite`, {
+): Promise<ApiResponse<{ clothesId: number; isFavorite: boolean }>> => {
+  const response = await axiosInstance.patch<
+    ApiResponse<{ clothesId: number; isFavorite: boolean }>
+  >(`clothes/${clothesId}/favorite`, {
     favorite: isFavorite,
   });
   if (response.data.isSuccess) {
@@ -335,12 +299,7 @@ export const toggleClothesFavorite = async (
   return response.data;
 };
 
-export interface SearchClothesResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: ClosetItemData[];
-}
+export type SearchClothesResponse = ApiResponse<ClothesListItem[]>;
 
 // 의류 검색
 export const getSearchClothes = async (

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import IdField from "../components/Signup/IdField";
 import PolicySection from "../components/Signup/PolicySection";
 import BbosongLogoGaRo from "../assets/BbosongLogoGaRo.svg";
-import PolicyModal from "../modal/PolicyModal";
+import PolicyModal from "../components/Modal/PolicyModal";
 import { useAuth } from "../hooks/useAuth";
 import { checkLoginId } from "../api/auth";
 import { useNavigate } from "react-router-dom";

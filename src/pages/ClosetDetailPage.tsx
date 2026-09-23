@@ -14,11 +14,8 @@ import { useFeedbackModal } from "../hooks/useFeedbackModal";
 import { getClothesImageUrl } from "../utils/clothesImage";
 
 export default function ClosetDetailPage() {
-  //const location = useLocation();
   const navigate = useNavigate();
   const { showAlert, showConfirm } = useFeedbackModal();
-  // const clothesId = location.state?.clothesId;
-
   const { id } = useParams<{ id: string }>();
   const clothesId = id ? parseInt(id, 10) : null;
 
@@ -61,14 +58,15 @@ export default function ClosetDetailPage() {
           const formattedItem: ClothItem = {
             id: item.clothesId,
             category: item.categoryName,
-            brand: "BBOSONG",
             name: item.name,
             image: getClothesImageUrl(item.imageUrl),
             material: item.material || "정보 없음",
             color: item.color || "정보 없음",
             wash: washArray,
             caution: cautionArray,
-            tags: [`#${item.categoryName}`, "#의류", `#${item.color || "옷"}`],
+            tags: [item.categoryName, item.material, item.color]
+              .filter(Boolean)
+              .map((tag) => `#${tag}`),
 
             isFavorite: item.isFavorite || false,
           };

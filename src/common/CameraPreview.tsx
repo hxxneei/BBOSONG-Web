@@ -108,13 +108,13 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
       <Video ref={videoRef} playsInline muted />
 
       {onClose && (
-        <CloseButton onClick={onClose}>
-          <img src={closeBtn} alt="닫기" />
+        <CloseButton type="button" aria-label="카메라 닫기" onClick={onClose}>
+          <img src={closeBtn} alt="" aria-hidden="true" />
         </CloseButton>
       )}
 
-      <CaptureButton onClick={handleCapture}>
-        <img src={cameraBtn} alt="촬영" />
+      <CaptureButton type="button" aria-label="사진 촬영" onClick={handleCapture}>
+        <img src={cameraBtn} alt="" aria-hidden="true" />
       </CaptureButton>
     </Wrap>
   );

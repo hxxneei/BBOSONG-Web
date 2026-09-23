@@ -66,7 +66,7 @@ const FirstPage: React.FC = () => {
           <S.ImageGrid>
             <img
               src={preview}
-              alt="preview"
+              alt="세탁 고민 예시 화면"
               style={{ width: "95%", height: "auto" }}
             />
           </S.ImageGrid>
@@ -76,7 +76,7 @@ const FirstPage: React.FC = () => {
           <S.ImageGrid>
             <img
               src={cameraPreview}
-              alt="cameraPreview"
+              alt="의류 촬영 분석 화면"
               style={{ width: "290px", height: "auto" }}
             />
           </S.ImageGrid>
@@ -86,7 +86,7 @@ const FirstPage: React.FC = () => {
           <S.ImageGrid>
             <img
               src={bbosongFinal}
-              alt="final"
+              alt="뽀송이 캐릭터"
               style={{
                 width: "114px",
                 height: "auto",
@@ -101,7 +101,14 @@ const FirstPage: React.FC = () => {
       <S.BottomBtnWrap>
         <S.IndicatorContainer>
           {[0, 1, 2, 3].map((i) => (
-            <S.Dot key={i} $active={page === i} onClick={() => setPage(i)} />
+            <S.Dot
+              key={i}
+              type="button"
+              $active={page === i}
+              aria-label={`${i + 1}번째 안내 화면`}
+              aria-current={page === i ? "step" : undefined}
+              onClick={() => setPage(i)}
+            />
           ))}
         </S.IndicatorContainer>
 

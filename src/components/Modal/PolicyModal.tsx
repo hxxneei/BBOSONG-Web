@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useId } from "react";
 import styled from "styled-components";
 
 interface PolicyModalProps {
@@ -14,17 +14,37 @@ const PolicyModal: React.FC<PolicyModalProps> = ({
   title,
   content,
 }) => {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <ModalOverlay onClick={onClose}>
-      <ModalContainer onClick={(e) => e.stopPropagation()}>
+      <ModalContainer
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
         <ModalHeader>
-          <Title>{title}</Title>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
+          <Title id={titleId}>{title}</Title>
+          <CloseButton type="button" aria-label="약관 닫기" onClick={onClose}>
+            &times;
+          </CloseButton>
         </ModalHeader>
         <ModalBody>{content}</ModalBody>
-        <ConfirmButton onClick={onClose}>확인</ConfirmButton>
+        <ConfirmButton type="button" onClick={onClose}>확인</ConfirmButton>
       </ModalContainer>
     </ModalOverlay>
   );
@@ -32,7 +52,6 @@ const PolicyModal: React.FC<PolicyModalProps> = ({
 
 export default PolicyModal;
 
-/* --- Styled Components --- */
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;

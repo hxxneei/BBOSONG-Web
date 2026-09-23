@@ -7,7 +7,6 @@ import { handleClothesImageError } from "../../utils/clothesImage";
 export type ClothItem = {
   id: number;
   category: string;
-  brand: string;
   name: string;
   image: string;
   material?: string;
@@ -32,7 +31,7 @@ export default function ClothDetailView({
   onToggleFavorite,
 }: Props) {
   const nav = useNavigate();
-  const tags = item.tags ?? ["#니트", "#의류", "#상의", "#검정색"];
+  const tags = item.tags ?? [];
 
   return (
     <Page>
@@ -57,7 +56,7 @@ export default function ClothDetailView({
         <Card>
           <Row>
             <div>
-              <Brand>{item.brand}</Brand>
+              <CategoryLabel>{item.category}</CategoryLabel>
               <Name>{item.name}</Name>
             </div>
             <HeartSlot>
@@ -82,11 +81,13 @@ export default function ClothDetailView({
         </Card>
 
         {/* Tags */}
-        <Tags>
-          {tags.map((t) => (
-            <Tag key={t}>{t}</Tag>
-          ))}
-        </Tags>
+        {tags.length > 0 && (
+          <Tags>
+            {tags.map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
+          </Tags>
+        )}
 
         {/* Specs */}
         <SpecList>
@@ -232,7 +233,7 @@ const Row = styled.div`
   gap: 8px;
 `;
 
-const Brand = styled.p`
+const CategoryLabel = styled.p`
   margin: 0 0 2px 0;
   color: #9aa2ad;
   font-weight: 700;
