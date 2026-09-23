@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 
 interface ChatPrepareProps {
-  onGoChat: () => void;
+  onGoChat: (initialMessage?: string) => void;
 }
 
 const ChatPrepare: React.FC<ChatPrepareProps> = ({ onGoChat }) => {
@@ -49,11 +49,17 @@ const ChatPrepare: React.FC<ChatPrepareProps> = ({ onGoChat }) => {
         <SelectBox>
           <div className="select-title">뽀송이에게 뭐라고 말할까요?</div>
 
-          <SelectBtn $primary onClick={onGoChat}>
+          <SelectBtn
+            type="button"
+            $primary
+            onClick={() => onGoChat("뽀송아 안녕! 👋")}
+          >
             뽀송아 안녕! 👋
           </SelectBtn>
 
-          <SelectBtn onClick={onGoChat}>직접 채팅 입력하기</SelectBtn>
+          <SelectBtn type="button" onClick={() => onGoChat()}>
+            직접 채팅 입력하기
+          </SelectBtn>
         </SelectBox>
       </BottomCardZone>
     </PageWrapper>

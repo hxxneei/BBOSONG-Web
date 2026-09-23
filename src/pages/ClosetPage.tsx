@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import CategorySection from "../components/Closet/CategorySection";
-import BottomBtn from "../components/Closet/BottomBtn";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
@@ -85,11 +84,6 @@ const ClosetPage = () => {
         icon="mdi:clothes-hanger"
         items={accessories}
         onItemClick={handleCategoryClick}
-      />
-
-      <BottomBtn
-        size={42}
-        ariaLabel="장바구니 열기"
       />
     </Page>
   );
