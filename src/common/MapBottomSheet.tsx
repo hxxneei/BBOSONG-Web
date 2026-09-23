@@ -39,11 +39,9 @@ const LaundryBottomSheet = ({
       setIsClosing(false); // 열릴 때는 닫힘 상태 해제
       setTranslateY(0);
       setDragStartY(null);
-      document.body.style.overflow = "hidden";
     } else if (!isOpen && isVisible) {
       // ⭕ [핵심 로직] 바로 없애지 말고, 닫히는 애니메이션을 먼저 실행합니다.
       setIsClosing(true);
-      document.body.style.overflow = "visible";
 
       // 애니메이션 시간(0.2s)이 지난 후에 실제로 컴포넌트를 언마운트(삭제)합니다.
       const timer = setTimeout(() => {
@@ -54,6 +52,17 @@ const LaundryBottomSheet = ({
       return () => clearTimeout(timer);
     }
   }, [isOpen, place, isVisible]);
+
+  useEffect(() => {
+    if (!isOpen || !place) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen, place]);
 
   if (!isVisible || !place) return null;
 
