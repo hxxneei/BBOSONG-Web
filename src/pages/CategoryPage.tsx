@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import SearchBar from "../common/SearchBar";
 import styled from "styled-components";
 import ClothGrid, {
@@ -12,12 +12,15 @@ import {
   getSearchClothes,
   type ClosetItemData,
 } from "../api/clothes";
+import { isClothesCategory } from "../constants/clothesCategories";
 
 export default function TopPage() {
-  const location = useLocation();
+  const { categoryName } = useParams<{ categoryName: string }>();
   const navigate = useNavigate();
 
-  const currentCategory = location.state?.categoryName || "상의";
+  const currentCategory = isClothesCategory(categoryName)
+    ? categoryName
+    : null;
 
   const [clothesList, setClothesList] = useState<ClothGridItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,6 +43,10 @@ export default function TopPage() {
   );
 
   const fetchClothes = useCallback(async () => {
+    if (!currentCategory) {
+      return;
+    }
+
     try {
       setIsLoading(true);
       const res = await getClothesByCategory(currentCategory);
@@ -59,6 +66,10 @@ export default function TopPage() {
   }, [fetchClothes]);
 
   const handleSearchSubmit = async () => {
+    if (!currentCategory) {
+      return;
+    }
+
     if (!searchQuery.trim()) {
       fetchClothes();
       return;
@@ -124,6 +135,10 @@ export default function TopPage() {
 
     navigate("/closetpage");
   };
+
+  if (!currentCategory) {
+    return <Navigate to="/closetpage" replace />;
+  }
 
   return (
     <PageWrapper>

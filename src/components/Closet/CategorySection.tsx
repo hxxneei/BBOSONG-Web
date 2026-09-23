@@ -2,22 +2,23 @@ import styled from "styled-components";
 import { memo, useCallback } from "react";
 import CategoryCard from "./Card";
 import IconTitle from "./IconTitle";
+import type { ClothesCategory } from "../../constants/clothesCategories";
 
 type Item = {
   icon: string;
-  label: string;
+  label: ClothesCategory;
 };
 
 type Props = {
   title: string;
   icon: string;
   items: Item[];
-  onItemClick: (label: string) => void;
+  onItemClick: (label: ClothesCategory) => void;
 };
 
 const CategorySection = ({ title, icon, items, onItemClick }: Props) => {
   const handleItemClick = useCallback(
-    (label: string) => {
+    (label: ClothesCategory) => {
       onItemClick(label);
     },
     [onItemClick],
