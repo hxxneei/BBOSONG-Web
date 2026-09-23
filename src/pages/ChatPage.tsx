@@ -230,6 +230,7 @@ const ChatWrapper = styled.div`
   width: 100%;
   max-width: 430px;
   height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   background: white;
   overflow: hidden;

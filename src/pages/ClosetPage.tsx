@@ -86,6 +86,7 @@ const Page = styled.main`
   padding: 24px 20px;
   background: #f9fafb;
   min-height: 100vh;
+  min-height: 100dvh;
 `;
 
 const Header = styled.header`

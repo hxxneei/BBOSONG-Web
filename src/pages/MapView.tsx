@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
 
 import MapBottomSheet from "../common/MapBottomSheet";
 import type { KakaoPlace } from "../common/MapBottomSheet";
@@ -310,10 +311,7 @@ export default function MapView() {
 
   return (
     <>
-      <div
-        id="map"
-        style={{ width: "100%", height: "100vh", background: "#eee" }}
-      />
+      <MapContainer id="map" />
       <MapBottomSheet
         isOpen={isSheetOpen && !!selectedPlace}
         place={selectedPlace}
@@ -331,3 +329,10 @@ export default function MapView() {
     </>
   );
 }
+
+const MapContainer = styled.div`
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: #eee;
+`;

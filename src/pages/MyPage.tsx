@@ -367,6 +367,7 @@ const MyPage: React.FC = () => {
 export default MyPage;
 
 const Screen = styled.main`
+  min-height: 100vh;
   min-height: 100dvh;
   color: #111827;
   padding-bottom: env(safe-area-inset-bottom);
@@ -389,6 +390,7 @@ const LoadingText = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
+  height: 100dvh;
   color: #6b7280;
   font-size: 14px;
 `;

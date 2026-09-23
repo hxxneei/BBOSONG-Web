@@ -65,6 +65,7 @@ const PageWrapper = styled.div`
   max-width: 430px;
 
   margin: 0 auto;
+  min-height: 100vh;
   min-height: 100dvh;
   background: linear-gradient(180deg, #b3d3f9 0%, #b9d9ff 40%, #e2efff 100%);
 

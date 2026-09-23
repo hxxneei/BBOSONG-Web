@@ -140,6 +140,6 @@ export default App;
 
 const RouteFallback = styled.div`
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100dvh;
   background-color: white;
 `;

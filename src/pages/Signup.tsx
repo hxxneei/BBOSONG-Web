@@ -248,6 +248,7 @@ const SignupContainer = styled.div`
   align-items: center;
   padding: 24px;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: white;
 `;
 
