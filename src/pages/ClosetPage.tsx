@@ -4,6 +4,11 @@ import BottomBtn from "../components/Closet/BottomBtn";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
+import {
+  ACCESSORY_CATEGORIES,
+  CLOTHING_CATEGORIES,
+  type ClothesCategory,
+} from "../constants/clothesCategories";
 
 // PNG 아이콘 import
 import top from "../assets/closetIcon/CategoryCloset/top.png";
@@ -20,30 +25,40 @@ import onepiece from "../assets/closetIcon/CategoryCloset/onepiece.png";
 import gloves from "../assets/closetIcon/CategoryCloset/gloves.png";
 import scarf from "../assets/closetIcon/CategoryCloset/scarf.png";
 
-const clothing = [
-  { icon: top, label: "상의" },
-  { icon: outer, label: "아우터" },
-  { icon: pants, label: "하의" },
-  { icon: onepiece, label: "원피스/세트" },
-  { icon: innerwear, label: "이너웨어" },
-  { icon: training, label: "트레이닝" },
-];
+const categoryIcons: Record<ClothesCategory, string> = {
+  상의: top,
+  아우터: outer,
+  하의: pants,
+  "원피스/세트": onepiece,
+  이너웨어: innerwear,
+  트레이닝: training,
+  모자: hat,
+  "스카프/머플러": scarf,
+  양말: socks,
+  장갑: gloves,
+  가방: bag,
+  침구류: bedclothes,
+};
 
-const accessories = [
-  { icon: hat, label: "모자" },
-  { icon: scarf, label: "스카프/머플러" },
-  { icon: socks, label: "양말" },
-  { icon: gloves, label: "장갑" },
-  { icon: bag, label: "가방" },
-  { icon: bedclothes, label: "침구류" },
-];
+const clothing = CLOTHING_CATEGORIES.map((label) => ({
+  icon: categoryIcons[label],
+  label,
+}));
+
+const accessories = ACCESSORY_CATEGORIES.map((label) => ({
+  icon: categoryIcons[label],
+  label,
+}));
 
 const ClosetPage = () => {
   const navigate = useNavigate();
 
-  const handleCategoryClick = useCallback((label: string) => {
-    navigate("/category-card", { state: { categoryName: label } });
-  }, [navigate]);
+  const handleCategoryClick = useCallback(
+    (category: ClothesCategory) => {
+      navigate(`/closet/category/${encodeURIComponent(category)}`);
+    },
+    [navigate],
+  );
 
   return (
     <Page>

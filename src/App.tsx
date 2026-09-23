@@ -3,7 +3,13 @@ import BottomNav from "./common/BottomNav";
 
 import { lazy, Suspense, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import styled from "styled-components";
 import Firstpage from "./pages/Firstpage";
 import Login from "./pages/Login";
@@ -55,7 +61,10 @@ const App = () => {
     "/closetpage",
     "/result",
   ];
-  const isBaseHidePath = hideNavPaths.includes(location.pathname.toLowerCase());
+  const normalizedPath = location.pathname.toLowerCase();
+  const isCategoryPath = normalizedPath.startsWith("/closet/category/");
+  const isBaseHidePath =
+    hideNavPaths.includes(normalizedPath) || isCategoryPath;
   const isChatSubStep =
     location.pathname.toLowerCase() === "/chatpage" && chatStep !== 1;
   const isScannerCameraPath =
@@ -118,7 +127,14 @@ const App = () => {
           <Route path="/mypage" element={withAuth(<MyPage />)} />
           <Route path="/mapview" element={withAuth(<MapView />)} />
           <Route path="/closetpage" element={withAuth(<ClosetPage />)} />
-          <Route path="/category-card" element={withAuth(<TopPage />)} />
+          <Route
+            path="/category-card"
+            element={withAuth(<Navigate to="/closetpage" replace />)}
+          />
+          <Route
+            path="/closet/category/:categoryName"
+            element={withAuth(<TopPage />)}
+          />
           <Route
             path="/my-closet/:id"
             element={withAuth(<ClosetDetailPage />)}
