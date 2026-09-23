@@ -58,8 +58,13 @@ const Bar = styled.nav`
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
 
-  height: 80px;
+  height: calc(
+    var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)
+  );
   padding-bottom: env(safe-area-inset-bottom, 0px);
 
   background: #fff;
@@ -68,7 +73,7 @@ const Bar = styled.nav`
   align-items: center;
   box-shadow: 0 -4px 13px 6px rgba(57, 57, 57, 0.08);
 
-  z-index: 50;
+  z-index: var(--z-bottom-bar, 60);
 `;
 
 const Item = styled.button<{ $active?: boolean }>`
@@ -107,8 +112,8 @@ const CenterWrap = styled.div`
 `;
 
 const CenterBtn = styled.button`
-  width: var(--fab-size);
-  height: var(--fab-size);
+  width: var(--bottom-nav-fab-size);
+  height: var(--bottom-nav-fab-size);
   border: 0;
   border-radius: 50%;
 
@@ -119,7 +124,7 @@ const CenterBtn = styled.button`
 `;
 
 const CenterIcon = styled.img`
-  width: 71px;
-  height: 71px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 `;

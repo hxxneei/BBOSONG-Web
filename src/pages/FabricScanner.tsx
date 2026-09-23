@@ -167,7 +167,7 @@ export default function FabricScanner({
   };
 
   return (
-    <Page>
+    <Page $reserveBottomNav={!isCameraActive}>
       {isLoading ? (
         <LoadingView>
           <Loading />
@@ -213,9 +213,13 @@ export default function FabricScanner({
   );
 }
 
-const Page = styled.main`
+const Page = styled.main<{ $reserveBottomNav: boolean }>`
   min-height: 100%;
-  padding: 8px 24px 24px;
+  padding: 8px 24px
+    ${({ $reserveBottomNav }) =>
+      $reserveBottomNav
+        ? "calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px))"
+        : "24px"};
   background: #ffffff;
   display: flex;
   flex-direction: column;

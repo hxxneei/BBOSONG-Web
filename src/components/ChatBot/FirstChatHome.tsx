@@ -34,7 +34,10 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 20px;
+  padding: 20px 20px
+    calc(
+      var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)
+    );
 
   transform: translateY(-42px);
 `;

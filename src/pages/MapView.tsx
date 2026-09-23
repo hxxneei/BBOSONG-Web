@@ -332,7 +332,11 @@ export default function MapView() {
 
 const MapContainer = styled.div`
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  height: calc(
+    100vh - var(--bottom-nav-height) - env(safe-area-inset-bottom, 0px)
+  );
+  height: calc(
+    100dvh - var(--bottom-nav-height) - env(safe-area-inset-bottom, 0px)
+  );
   background: #eee;
 `;
