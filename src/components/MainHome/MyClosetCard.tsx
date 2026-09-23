@@ -1,32 +1,28 @@
 import styled from "styled-components";
 import PlusIcon from "../../assets/MainHome/PlusIcon.svg";
 import HangerIcon from "../../assets/MainHome/HangerIcon.svg";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { getFavoriteClothes, type ClothesItem } from "../../api/clothes";
-import { Icon } from "@iconify/react";
+import { ChevronRight } from "lucide-react";
+import type { HomeClothingItem } from "../../api/clothes";
+import {
+  getClothesImageUrl,
+  handleClothesImageError,
+} from "../../utils/clothesImage";
 
-const MyClosetCard: React.FC = () => {
+type MyClosetCardProps = {
+  favorites: HomeClothingItem[];
+  isLoading: boolean;
+};
+
+const MyClosetCard: React.FC<MyClosetCardProps> = ({
+  favorites,
+  isLoading,
+}) => {
   const navigate = useNavigate();
-  const [favorites, setFavorites] = useState<ClothesItem[]>([]);
   const userNickname = localStorage.getItem("nickname") || "보송이";
-
-  useEffect(() => {
-    const fetchHomeFavorites = async () => {
-      try {
-        const res = await getFavoriteClothes();
-        if (res.isSuccess) {
-          const top5 = res.result.slice(0, 5);
-          setFavorites(top5);
-        }
-      } catch (err) {
-        console.error("홈 맞춤 옷장 데이터를 불러오지 못했습니다. ", err);
-      }
-    };
-    fetchHomeFavorites();
-  }, []);
-
-  const emptyCount = 5 - favorites.length;
+  const visibleFavorites = favorites.slice(0, 5);
+  const emptyCount = Math.max(0, 5 - visibleFavorites.length);
 
   return (
     <CardContainer>
@@ -38,50 +34,38 @@ const MyClosetCard: React.FC = () => {
         </TitleGroup>
         <ShortcutBtn onClick={() => navigate("/closetpage")}>
           바로가기
-          <Icon
-            icon="mingcute:right-line"
-            width={14}
-            height={14}
-            color="#888888"
-          />
+          <ChevronRight size={14} color="#888888" />
         </ShortcutBtn>
       </Header>
 
       <ScrollWrapper>
-        {favorites.map((item) => {
-          const cleanImgUrl = item.imageUrl
-            ? item.imageUrl.replace(/^"|"$/g, "").trim()
-            : "";
-
-          return (
-            <ClosetItem
-              key={item.clothesId}
-              onClick={() => navigate(`/my-closet/${item.clothesId}`)}
-            >
-              {cleanImgUrl && !cleanImgUrl.includes("example.com") && (
-                <ItemImg
-                  src={cleanImgUrl}
-                  alt={item.name}
-                  loading="lazy"
-                  decoding="async"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              )}
-              <ItemName>{item.name}</ItemName>
-            </ClosetItem>
-          );
-        })}
-
-        {Array.from({ length: emptyCount }).map((_, index) => (
-          <EmptyItem
-            key={`empty-${index}`}
-            onClick={() => navigate("/closetpage")}
+        {visibleFavorites.map((item) => (
+          <ClosetItem
+            key={item.clothesId}
+            onClick={() => navigate(`/my-closet/${item.clothesId}`)}
           >
-            <img src={PlusIcon} alt="추가하기" style={{ width: "24px" }} />
-          </EmptyItem>
+            <ItemImg
+              src={getClothesImageUrl(item.imageUrl)}
+              alt={item.name}
+              width={64}
+              height={64}
+              loading="lazy"
+              decoding="async"
+              onError={handleClothesImageError}
+            />
+            <ItemName>{item.name}</ItemName>
+          </ClosetItem>
         ))}
+
+        {!isLoading &&
+          Array.from({ length: emptyCount }).map((_, index) => (
+            <EmptyItem
+              key={`empty-${index}`}
+              onClick={() => navigate("/closetpage")}
+            >
+              <img src={PlusIcon} alt="추가하기" width={24} height={24} />
+            </EmptyItem>
+          ))}
       </ScrollWrapper>
     </CardContainer>
   );

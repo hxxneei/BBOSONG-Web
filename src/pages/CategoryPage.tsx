@@ -14,6 +14,7 @@ import {
 } from "../api/clothes";
 import { isClothesCategory } from "../constants/clothesCategories";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
+import { getClothesImageUrl } from "../utils/clothesImage";
 
 export default function TopPage() {
   const { categoryName } = useParams<{ categoryName: string }>();
@@ -36,9 +37,7 @@ export default function TopPage() {
         category: item.categoryName,
         brand: "BBOSONG",
         name: item.name,
-        image:
-          item.imageUrl ||
-          "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500",
+        image: getClothesImageUrl(item.imageUrl),
         isFavorite: item.isFavorite,
       })),
     [],

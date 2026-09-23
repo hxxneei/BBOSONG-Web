@@ -79,7 +79,10 @@ export default function FabricScanner({
     onCameraActiveChange?.(false);
   };
 
-  const handleCapture = async (imageFile: File) => {
+  const handleCapture = async (
+    imageFile: File,
+    imageAlreadyOptimized = false,
+  ) => {
     analysisControllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -90,9 +93,11 @@ export default function FabricScanner({
     setIsLoading(true);
 
     try {
-      const optimizedImageFile = await optimizeImageFile(imageFile, {
-        fileName: "cloth_analysis.jpg",
-      });
+      const optimizedImageFile = imageAlreadyOptimized
+        ? imageFile
+        : await optimizeImageFile(imageFile, {
+            fileName: "cloth_analysis.jpg",
+          });
 
       if (signal.aborted) return;
 
@@ -179,7 +184,9 @@ export default function FabricScanner({
       ) : isCameraActive ? (
         <CameraOnlyWrap>
           <CameraPreview
-            onCapture={(file) => void handleCapture(file)}
+            onCapture={(file, isOptimized) =>
+              void handleCapture(file, isOptimized)
+            }
             onClose={closeCamera}
           />
         </CameraOnlyWrap>

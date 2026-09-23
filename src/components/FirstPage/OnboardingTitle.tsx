@@ -20,7 +20,8 @@ export const Container = styled.div`
   padding: 32px 24px;
   box-sizing: border-box;
   overflow: hidden;
-  font-family: "Pretendard", sans-serif;
+  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 `;
 
 export const PageWrapper = styled.div`

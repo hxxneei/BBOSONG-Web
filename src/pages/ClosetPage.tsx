@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import CategorySection from "../components/Closet/CategorySection";
-import { Icon } from "@iconify/react";
+import { ChevronLeft, Shirt, Tags } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
 import {
@@ -63,25 +63,20 @@ const ClosetPage = () => {
     <Page>
       <Header>
         <BackButton onClick={() => window.history.back()}>
-          <Icon
-            icon="mdi:chevron-left"
-            width="32"
-            height="32"
-            color="#AEAEAE"
-          />
+          <ChevronLeft size={32} color="#AEAEAE" />
         </BackButton>
       </Header>
 
       <CategorySection
         title="의류"
-        icon="mdi:tshirt-crew-outline"
+        icon={Shirt}
         items={clothing}
         onItemClick={handleCategoryClick}
       />
 
       <CategorySection
         title="잡화"
-        icon="mdi:clothes-hanger"
+        icon={Tags}
         items={accessories}
         onItemClick={handleCategoryClick}
       />

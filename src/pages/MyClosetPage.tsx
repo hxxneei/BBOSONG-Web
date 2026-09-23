@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { ChevronLeft, Heart, HeartCrack, Search } from "lucide-react";
 import {
   getFavoriteClothes,
   toggleClothesFavorite,
   type ClothesItem,
 } from "../api/clothes";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
+import {
+  getClothesImageUrl,
+  handleClothesImageError,
+} from "../utils/clothesImage";
 
 export default function MyClosetPage() {
   const navigate = useNavigate();
@@ -64,7 +68,7 @@ export default function MyClosetPage() {
     <PageWrapper>
       <Header>
         <BackButton onClick={() => navigate(-1)}>
-          <Icon icon="mingcute:left-line" width={24} height={24} />
+          <ChevronLeft size={24} />
         </BackButton>
         <HeaderTitle>저장한 옷</HeaderTitle>
         <EmptySpace />
@@ -78,19 +82,14 @@ export default function MyClosetPage() {
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
-          <Icon
-            icon="mingcute:search-line"
-            width={20}
-            height={20}
-            color="#4B80FC"
-          />
+          <Search size={20} color="#4B80FC" />
         </SearchInputWrapper>
       </SearchContainer>
 
       <ContentZone>
         {filteredClothes.length === 0 ? (
           <NoDataWrapper>
-            <Icon icon="mdi:heart-broken" width="64" color="#BFC5D2" />
+            <HeartCrack size={64} color="#BFC5D2" />
             <NoDataText>
               즐겨찾기한 옷이 없거나 검색 결과가 없습니다.
               <br />
@@ -100,11 +99,6 @@ export default function MyClosetPage() {
         ) : (
           <ClothesGrid>
             {filteredClothes.map((item) => {
-              const cleanImgUrl =
-                item.imageUrl && !item.imageUrl.includes("example.com")
-                  ? item.imageUrl.trim()
-                  : "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500";
-
               return (
                 <ClothesCard
                   key={item.clothesId}
@@ -112,22 +106,18 @@ export default function MyClosetPage() {
                 >
                   <ImageSection>
                     <ClothesImg
-                      src={cleanImgUrl}
+                      src={getClothesImageUrl(item.imageUrl)}
                       alt={item.name}
                       loading="lazy"
                       decoding="async"
-                      onError={(e) => {
-                        // 이미지 로딩 실패 시 더미 이미지 교체
-                        (e.target as HTMLImageElement).src =
-                          "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500";
-                      }}
+                      onError={handleClothesImageError}
                     />
 
                     <HeartBtn
                       $active={true}
                       onClick={(e) => handleHeartToggle(item.clothesId, e)}
                     >
-                      <Icon icon="mdi:heart" width="20" />
+                      <Heart size={20} fill="currentColor" />
                     </HeartBtn>
                   </ImageSection>
 
@@ -235,7 +225,7 @@ const ClothesCard = styled.div`
 
 const ImageSection = styled.div`
   width: 100%;
-  height: 170px;
+  aspect-ratio: 1 / 1;
   background: #f8fafc;
   position: relative;
   display: flex;
@@ -245,8 +235,8 @@ const ImageSection = styled.div`
 `;
 
 const ClothesImg = styled.img`
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 `;
 

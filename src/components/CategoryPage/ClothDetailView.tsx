@@ -1,7 +1,8 @@
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { ChevronLeft, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import HeartBtn from "../../common/HeartBtn";
+import { handleClothesImageError } from "../../utils/clothesImage";
 
 export type ClothItem = {
   id: number;
@@ -20,7 +21,6 @@ export type ClothItem = {
 type Props = {
   title: string;
   item: ClothItem;
-  rightIcon?: string;
   onRightIconClick?: () => void;
   onToggleFavorite?: () => void;
 };
@@ -28,7 +28,6 @@ type Props = {
 export default function ClothDetailView({
   title,
   item,
-  rightIcon,
   onRightIconClick,
   onToggleFavorite,
 }: Props) {
@@ -40,19 +39,14 @@ export default function ClothDetailView({
       {/* Header */}
       <Header>
         <LeftIconBtn aria-label="뒤로가기" onClick={() => nav(-1)}>
-          <Icon
-            icon="mingcute:left-line"
-            width={24}
-            height={24}
-            color="#9ca3af"
-          />
+          <ChevronLeft size={24} color="#9ca3af" />
         </LeftIconBtn>
 
         <TitleContainer>
           <HeaderTitle>{title}</HeaderTitle>
-          {rightIcon && (
+          {onRightIconClick && (
             <InlineTrashBtn aria-label="삭제" onClick={onRightIconClick}>
-              <Icon icon={rightIcon} width={20} height={20} color="#6b7280" />
+              <Trash2 size={20} color="#6b7280" />
             </InlineTrashBtn>
           )}
         </TitleContainer>
@@ -82,6 +76,7 @@ export default function ClothDetailView({
               alt={item.name}
               loading="lazy"
               decoding="async"
+              onError={handleClothesImageError}
             />
           </ImgWrap>
         </Card>
@@ -263,6 +258,7 @@ const ImgWrap = styled.div`
   border-radius: 12px;
   background: #f3f5f7;
   margin-top: 12px;
+  aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
   padding: 16px;
@@ -272,7 +268,8 @@ const ImgWrap = styled.div`
 const ProductImg = styled.img`
   width: 100%;
   max-width: 240px;
-  height: auto;
+  max-height: 240px;
+  height: 100%;
   display: block;
   object-fit: contain;
 `;

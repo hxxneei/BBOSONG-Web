@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { ShoppingBag } from "lucide-react";
 
 // 아이콘이 안뜸h
 
@@ -18,7 +18,7 @@ const BottomBtn = ({
 }: Props) => {
   return (
     <Fab type="button" onClick={onClick} aria-label={ariaLabel}>
-      <Icon icon="mdi:bag-outline" width={size} height={size} color="#4B80FC" />
+      <ShoppingBag size={size} color="#4B80FC" />
     </Fab>
   );
 };

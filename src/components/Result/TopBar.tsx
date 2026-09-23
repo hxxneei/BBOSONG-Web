@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Icon } from "@iconify/react";
+import { Bookmark, ChevronLeft } from "lucide-react";
 
 const Bar = styled.header`
   display: grid;
@@ -40,9 +40,6 @@ type Props = {
   onBack?: () => void;
   bookmarked?: boolean;
   onToggleBookmark?: () => void;
-  rightIcon?: string;
-  onRightIconClick?: () => void;
-
   showBookmark?: boolean;
 };
 
@@ -51,14 +48,12 @@ export default function TopBar({
   onBack,
   bookmarked = false,
   onToggleBookmark,
-  rightIcon,
-  onRightIconClick,
   showBookmark = true,
 }: Props) {
   return (
     <Bar>
       <IconBtn aria-label="뒤로 가기" onClick={onBack}>
-        <Icon icon="solar:alt-arrow-left-linear" width="32" color="#AEAEAE" />
+        <ChevronLeft size={32} color="#AEAEAE" />
       </IconBtn>
 
       <Title>{title}</Title>
@@ -70,17 +65,11 @@ export default function TopBar({
             $active={bookmarked}
             onClick={onToggleBookmark}
           >
-            <Icon
-              icon={bookmarked ? "ic:baseline-bookmark" : "ic:outline-bookmark"}
-              width="31"
+            <Bookmark
+              size={31}
+              fill={bookmarked ? "currentColor" : "none"}
             />
           </BookmarkBtn>
-        )}
-
-        {rightIcon && (
-          <IconBtn aria-label="오른쪽 아이콘" onClick={onRightIconClick}>
-            <Icon icon={rightIcon} width="26" color="#6B7280" />
-          </IconBtn>
         )}
       </RightBox>
     </Bar>

@@ -32,6 +32,8 @@ const setCachedData = <T>(key: string, data: T) => {
 
 export const invalidateClothesCache = () => {
   clothesCache.clear();
+  clothesCacheGeneration += 1;
+  homeSummaryRequest = null;
 };
 
 registerSessionResetter(invalidateClothesCache);
@@ -225,6 +227,9 @@ export interface HomeSummaryResponse {
   };
 }
 
+let clothesCacheGeneration = 0;
+let homeSummaryRequest: Promise<HomeSummaryResponse> | null = null;
+
 // 홈 옷장 요약 조회
 export const getHomeSummary = async (): Promise<HomeSummaryResponse> => {
   const cacheKey = "clothes:home-summary";
@@ -234,11 +239,32 @@ export const getHomeSummary = async (): Promise<HomeSummaryResponse> => {
     return cached;
   }
 
-  const response = await axiosInstance.get("/clothes/home");
-  if (response.data.isSuccess) {
-    setCachedData(cacheKey, response.data);
+  if (homeSummaryRequest) {
+    return homeSummaryRequest;
   }
-  return response.data;
+
+  const requestGeneration = clothesCacheGeneration;
+  const request = axiosInstance
+    .get<HomeSummaryResponse>("/clothes/home")
+    .then((response) => {
+      if (
+        response.data.isSuccess &&
+        requestGeneration === clothesCacheGeneration
+      ) {
+        setCachedData(cacheKey, response.data);
+      }
+      return response.data;
+    });
+
+  homeSummaryRequest = request;
+
+  try {
+    return await request;
+  } finally {
+    if (homeSummaryRequest === request) {
+      homeSummaryRequest = null;
+    }
+  }
 };
 export interface ClothesItem {
   clothesId: number;
