@@ -4,8 +4,6 @@ import styled from "styled-components";
 import MapBottomSheet from "../common/MapBottomSheet";
 import type { KakaoPlace } from "../common/MapBottomSheet";
 
-import ConfirmModal from "../components/Modal/ConfirmModal";
-
 import {
   getFavoriteStores,
   addFavoriteStore,
@@ -15,6 +13,7 @@ import {
 
 import LaundryMarker from "../assets/markers/LaundryMarker.webp";
 import MyLocationMarker from "../assets/markers/MyLocationMarker.svg";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 declare global {
   interface Window {
@@ -93,6 +92,7 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
 };
 
 export default function MapView() {
+  const { showAlert } = useFeedbackModal();
   const [selectedPlace, setSelectedPlace] = useState<
     | (KakaoPlace & {
         x?: string;
@@ -108,19 +108,6 @@ export default function MapView() {
   const [myFavorites, setMyFavorites] = useState<FavoriteStoreResponse[]>([]);
   const favoritesRef = useRef<FavoriteStoreResponse[]>([]);
 
-  // 모달
-  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
-  const [alertModalTitle, setAlertModalTitle] = useState("");
-
-  const showAlertModal = (message: string) => {
-    setAlertModalTitle(message);
-    setIsAlertModalOpen(true);
-
-    setTimeout(() => {
-      setIsAlertModalOpen(false);
-    }, 1200);
-  };
-
   useEffect(() => {
     favoritesRef.current = myFavorites;
   }, [myFavorites]);
@@ -135,11 +122,11 @@ export default function MapView() {
         }
       } catch (err) {
         console.error("즐겨찾기 매장 목록을 가져오지 못했습니다. ", err);
-        showAlertModal("즐겨찾기 목록을\n불러오지 못했습니다. ");
+        void showAlert("즐겨찾기 목록을\n불러오지 못했습니다. ");
       }
     };
     fetchFavorites();
-  }, []);
+  }, [showAlert]);
 
   useEffect(() => {
     let isMounted = true;
@@ -322,7 +309,7 @@ export default function MapView() {
           setSelectedPlace((prev) =>
             prev ? { ...prev, isFavorite: false, storeId: undefined } : null,
           );
-          showAlertModal("즐겨찾기가 해제되었습니다. ");
+          void showAlert("즐겨찾기가 해제되었습니다. ");
         }
       } else {
         // 북마크 등록 -> 저장 API 호출
@@ -343,7 +330,7 @@ export default function MapView() {
               ? { ...prev, isFavorite: true, storeId: res.result.storeId }
               : null,
           );
-          showAlertModal("즐겨찾기 매장으로\n등록되었습니다! ");
+          void showAlert("즐겨찾기 매장으로\n등록되었습니다! ");
         }
       }
     } catch (err) {
@@ -360,13 +347,6 @@ export default function MapView() {
         onClose={() => setIsSheetOpen(false)}
         isFavorite={selectedPlace?.isFavorite || false}
         onToggleFavorite={handleToggleFavorite}
-      />
-      <ConfirmModal
-        open={isAlertModalOpen}
-        title={alertModalTitle}
-        confirmText="확인"
-        cancelText=""
-        onConfirm={() => setIsAlertModalOpen(false)}
       />
     </>
   );

@@ -13,10 +13,12 @@ import {
   type ClosetItemData,
 } from "../api/clothes";
 import { isClothesCategory } from "../constants/clothesCategories";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 export default function TopPage() {
   const { categoryName } = useParams<{ categoryName: string }>();
   const navigate = useNavigate();
+  const { showAlert } = useFeedbackModal();
 
   const currentCategory = isClothesCategory(categoryName)
     ? categoryName
@@ -106,12 +108,13 @@ export default function TopPage() {
           ),
         );
       } else {
-        alert("즐겨찾기 변경 실패");
+        void showAlert("즐겨찾기 변경에 실패했습니다.");
       }
     } catch (error) {
       console.error("목록 즐겨찾기 토글 중 오류 발생:", error);
+      void showAlert("즐겨찾기 변경에 실패했습니다.");
     }
-  }, []);
+  }, [showAlert]);
 
   const clothesGridItems = useMemo(
     () =>

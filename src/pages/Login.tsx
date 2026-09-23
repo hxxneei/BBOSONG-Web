@@ -6,30 +6,19 @@ import KakaoLogin from "../assets/LoginPage/KakaoLogin.svg";
 import GoogleLogin from "../assets/LoginPage/GoogleLogin.svg";
 import BbosongLogo from "../assets/BbosongLogo.svg";
 import { postLoginLocal } from "../api/auth";
-import ConfirmModal from "../components/Modal/ConfirmModal";
 import { saveAuthTokens, saveNickname } from "../utils/authStorage";
 import { API_ORIGIN } from "../api/apiConfig";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { showAlert } = useFeedbackModal();
 
   // 입력값 저장 상태 함수
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
 
-  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
-  const [alertModalTitle, setAlertModalTitle] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
-
-  const showAlertModal = (message: string) => {
-    setAlertModalTitle(message);
-    setIsAlertModalOpen(true);
-
-    setTimeout(() => {
-      setIsAlertModalOpen(false);
-    }, 1200);
-  };
 
   const handleSocialLogin = (provider: "kakao" | "google") => {
     window.location.href = `${API_ORIGIN}/oauth2/authorization/${provider}`;
@@ -40,7 +29,7 @@ const Login: React.FC = () => {
     e.preventDefault(); // 새로고침 방지
 
     if (!loginId || !password) {
-      showAlertModal("아이디와 비밀번호를\n모두 입력해주세요!");
+      void showAlert("아이디와 비밀번호를\n모두 입력해주세요!");
       return;
     }
 
@@ -58,14 +47,14 @@ const Login: React.FC = () => {
         return;
       }
 
-      showAlertModal(res.message || "로그인 정보가 올바르지 않습니다.");
+      void showAlert(res.message || "로그인 정보가 올바르지 않습니다.");
     } catch (error: unknown) {
       console.error("로그인 실패:", error);
       const errorMsg =
         axios.isAxiosError<{ message?: string }>(error)
           ? error.response?.data?.message
           : undefined;
-      showAlertModal(errorMsg || "로그인 정보가 올바르지 않습니다.");
+      void showAlert(errorMsg || "로그인 정보가 올바르지 않습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -117,13 +106,6 @@ const Login: React.FC = () => {
           />
         </ButtonGroup>
       </form>
-      <ConfirmModal
-        open={isAlertModalOpen}
-        title={alertModalTitle}
-        confirmText="확인"
-        cancelText=""
-        onConfirm={() => setIsAlertModalOpen(false)}
-      />
     </LoginContainer>
   );
 };

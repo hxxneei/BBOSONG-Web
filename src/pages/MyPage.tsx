@@ -11,13 +11,13 @@ import { SectionWrapper } from "../components/mypage/SectionWrapper";
 import { InfoRow } from "../components/mypage/Row";
 import { deleteMemberMe, getMemberMe, postLogout } from "../api/member";
 import { updateNickname, updateBirthDate } from "../api/auth";
-import ConfirmModal from "../components/Modal/ConfirmModal";
 import { resetSession, saveNickname } from "../utils/authStorage";
 import {
   getCachedMember,
   setCachedMember,
   updateCachedMember,
 } from "../utils/memberCache";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 interface MemberInfo {
   email: string;
@@ -28,6 +28,7 @@ interface MemberInfo {
 const MyPage: React.FC = () => {
   const handleBack = () => window.history.back();
   const navigate = useNavigate();
+  const { showAlert, showConfirm } = useFeedbackModal();
   useViewportVH();
 
   // 내 정보 상태 관리
@@ -38,23 +39,6 @@ const MyPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"nickname" | "birth">("nickname");
   const [editValue, setEditValue] = useState("");
-
-  // 모달
-
-  const [confirmModalConfig, setConfirmModalConfig] = useState<{
-    open: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-    onClose?: () => void;
-    cancelText?: string;
-  }>({
-    open: false,
-    title: "",
-    message: "",
-    onConfirm: () => {},
-    cancelText: "취소",
-  });
 
   //내 정보 불러오기
   useEffect(() => {
@@ -86,91 +70,55 @@ const MyPage: React.FC = () => {
     fetchMemberData();
   }, []);
 
-  const closeConfirmModal = () => {
-    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
-  };
-
   // 로그아웃
-  const handleLogout = () => {
-    setConfirmModalConfig({
-      open: true,
-      title: "로그아웃",
-      message: "정말 로그아웃 하시겠습니까?",
-      onConfirm: async () => {
-        closeConfirmModal();
-        try {
-          await postLogout();
-        } catch (error) {
-          console.error("로그아웃 API 호출 실패:", error);
-        } finally {
-          resetSession();
-          setConfirmModalConfig({
-            open: true,
-            title: "알림",
-            message: "로그아웃 되었습니다.",
-            onConfirm: () => {
-              closeConfirmModal();
-              navigate("/login", { replace: true });
-            },
-          });
-        }
-      },
-      onClose: closeConfirmModal,
-    });
+  const handleLogout = async () => {
+    const shouldLogout = await showConfirm("정말 로그아웃 하시겠습니까?");
+    if (!shouldLogout) return;
+
+    try {
+      await postLogout();
+    } catch (error) {
+      console.error("로그아웃 API 호출 실패:", error);
+    } finally {
+      resetSession();
+      await showAlert("로그아웃 되었습니다.");
+      navigate("/login", { replace: true });
+    }
   };
 
   // 회원 탈퇴 처리
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     if (isWithdrawing) return;
 
-    setConfirmModalConfig({
-      open: true,
-      title: "회원 탈퇴",
-      message:
-        "회원 탈퇴 시 계정, 채팅, 의류, 즐겨찾기 데이터가 모두 삭제됩니다.\n정말 탈퇴하시겠습니까?",
-      onConfirm: async () => {
-        closeConfirmModal();
-        setIsWithdrawing(true);
-        try {
-          const res = await deleteMemberMe();
-          if (res.isSuccess) {
-            resetSession();
+    const shouldWithdraw = await showConfirm(
+      "회원 탈퇴 시 계정, 채팅, 의류, 즐겨찾기 데이터가 모두 삭제됩니다.\n정말 탈퇴하시겠습니까?",
+    );
+    if (!shouldWithdraw) return;
 
-            setConfirmModalConfig({
-              open: true,
-              title: "탈퇴 완료",
-              message: "회원 탈퇴가 완료되었습니다.",
-              onConfirm: () => {
-                closeConfirmModal();
-                navigate("/login", { replace: true });
-              },
-            });
-          } else {
-            setConfirmModalConfig({
-              open: true,
-              title: "알림",
-              message: res.message || "회원 탈퇴 처리 중 오류가 발생했습니다.",
-              onConfirm: closeConfirmModal,
-            });
-          }
-        } catch (error: unknown) {
-          console.error("회원 탈퇴 실패:", error);
-          const errorMessage = axios.isAxiosError<{ message?: string }>(error)
-            ? error.response?.data?.message
-            : undefined;
-          setConfirmModalConfig({
-            open: true,
-            title: "탈퇴 실패",
-            message:
-              errorMessage || "회원 탈퇴 처리 중 오류가 발생했습니다.",
-            onConfirm: closeConfirmModal,
-          });
-        } finally {
-          setIsWithdrawing(false);
-        }
-      },
-      onClose: closeConfirmModal,
-    });
+    setIsWithdrawing(true);
+    try {
+      const res = await deleteMemberMe();
+      if (res.isSuccess) {
+        resetSession();
+        await showAlert("회원 탈퇴가 완료되었습니다.");
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      await showAlert(
+        res.message || "회원 탈퇴 처리 중 오류가 발생했습니다.",
+      );
+    } catch (error: unknown) {
+      console.error("회원 탈퇴 실패:", error);
+      const errorMessage = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      await showAlert(
+        errorMessage || "회원 탈퇴 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsWithdrawing(false);
+    }
   };
 
   const handleOpenEditModal = (
@@ -184,12 +132,7 @@ const MyPage: React.FC = () => {
 
   const handleSaveInfo = async () => {
     if (!editValue.trim()) {
-      setConfirmModalConfig({
-        open: true,
-        title: "경고",
-        message: "값을 입력해 주세요.",
-        onConfirm: closeConfirmModal,
-      });
+      void showAlert("값을 입력해 주세요.");
       return;
     }
 
@@ -198,48 +141,27 @@ const MyPage: React.FC = () => {
         const res = await updateNickname(editValue);
         if (res.isSuccess) {
           setIsModalOpen(false);
-          setConfirmModalConfig({
-            open: true,
-            title: "변경 성공",
-            message: "닉네임이 변경되었습니다. ",
-            cancelText: "",
-            onConfirm: () => {
-              closeConfirmModal();
-              setMemberInfo((prev) =>
-                prev ? { ...prev, nickname: res.result.nickname } : null,
-              );
-              updateCachedMember({ nickname: res.result.nickname });
-              saveNickname(res.result.nickname);
-            },
-          });
+          await showAlert("닉네임이 변경되었습니다.");
+          setMemberInfo((prev) =>
+            prev ? { ...prev, nickname: res.result.nickname } : null,
+          );
+          updateCachedMember({ nickname: res.result.nickname });
+          saveNickname(res.result.nickname);
         }
       } else {
         const res = await updateBirthDate(editValue);
         if (res.isSuccess) {
           setIsModalOpen(false);
-          setConfirmModalConfig({
-            open: true,
-            title: "변경 성공",
-            message: "생년월일이 변경되었습니다.",
-            cancelText: "",
-            onConfirm: () => {
-              closeConfirmModal();
-              setMemberInfo((prev) =>
-                prev ? { ...prev, birth: res.result.birth } : null,
-              );
-              updateCachedMember({ birth: res.result.birth });
-            },
-          });
+          await showAlert("생년월일이 변경되었습니다.");
+          setMemberInfo((prev) =>
+            prev ? { ...prev, birth: res.result.birth } : null,
+          );
+          updateCachedMember({ birth: res.result.birth });
         }
       }
     } catch (error) {
       console.error("정보 수정 실패:", error);
-      setConfirmModalConfig({
-        open: true,
-        title: "오류",
-        message: "정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.",
-        onConfirm: closeConfirmModal,
-      });
+      void showAlert("정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
     }
   };
 
@@ -353,13 +275,6 @@ const MyPage: React.FC = () => {
           </ModalContent>
         </ModalDimmed>
       )}
-      <ConfirmModal
-        open={confirmModalConfig.open}
-        title={confirmModalConfig.message}
-        onConfirm={confirmModalConfig.onConfirm}
-        onCancel={confirmModalConfig.onClose}
-        cancelText={confirmModalConfig.cancelText}
-      />
     </Screen>
   );
 };

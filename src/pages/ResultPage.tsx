@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import type { ClothesAnalysisResult } from "../types/clothes";
 import ResultButtonGroup from "../components/Result/ResultBtnGroup";
 import { postSaveClothes } from "../api/clothes";
-import ConfirmModal from "../components/Modal/ConfirmModal";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 interface ResultPageLocationState {
   serverData?: ClothesAnalysisResult;
@@ -55,6 +55,7 @@ export default function ResultPage({
 }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showAlert } = useFeedbackModal();
   const { serverData, imageUrl, imageFile } =
     (location.state as ResultPageLocationState | null) || {};
   const hasValidResult = Boolean(
@@ -64,16 +65,6 @@ export default function ResultPage({
     serverData && imageUrl ? transformServerData(serverData, imageUrl) : null;
   const [isSaving, setIsSaving] = useState(false);
   const isSavingRef = useRef(false);
-
-  const [confirmModalConfig, setConfirmModalConfig] = useState<{
-    open: boolean;
-    title: string;
-    onConfirm: () => void;
-  }>({
-    open: false,
-    title: "",
-    onConfirm: () => {},
-  });
 
   useEffect(() => {
     if (!hasValidResult) {
@@ -92,24 +83,6 @@ export default function ResultPage({
   if (!hasValidResult || !serverData || !imageFile || !displayData) {
     return null;
   }
-
-  const closeConfirmModal = () => {
-    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
-  };
-
-  const showAlertModal = (
-    message: string,
-    customConfirmAction?: () => void,
-  ) => {
-    setConfirmModalConfig({
-      open: true,
-      title: message,
-      onConfirm: () => {
-        closeConfirmModal();
-        if (customConfirmAction) customConfirmAction();
-      },
-    });
-  };
 
   const handleBack = onBack ?? (() => window.history.back());
 
@@ -147,16 +120,17 @@ export default function ResultPage({
 
       if (res.isSuccess) {
         saveSucceeded = true;
-        showAlertModal("내 옷장에 저장되었습니다! 🧺", () => {
-          navigate("/closetpage", { replace: true });
-        });
+        await showAlert("내 옷장에 저장되었습니다! 🧺");
+        navigate("/closetpage", { replace: true });
         return;
       }
 
-      showAlertModal(res.message || "저장 처리에 실패했습니다.\n다시 시도해 주세요.");
+      void showAlert(
+        res.message || "저장 처리에 실패했습니다.\n다시 시도해 주세요.",
+      );
     } catch (err) {
       console.error("의류 저장 통신 중 프론트엔드 예외 발생:", err);
-      showAlertModal("저장 처리에 실패했습니다.\n다시 시도해 주세요.");
+      void showAlert("저장 처리에 실패했습니다.\n다시 시도해 주세요.");
     } finally {
       if (!saveSucceeded) {
         isSavingRef.current = false;
@@ -188,15 +162,6 @@ export default function ResultPage({
           </Bottom>
         )}
       </Phone>
-
-      <ConfirmModal
-        open={confirmModalConfig.open}
-        title={confirmModalConfig.title}
-        confirmText="확인"
-        cancelText=""
-        onConfirm={confirmModalConfig.onConfirm}
-        onCancel={confirmModalConfig.onConfirm}
-      />
     </Shell>
   );
 }

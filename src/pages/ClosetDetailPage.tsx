@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ClothDetailView, {
   type ClothItem,
@@ -10,12 +10,12 @@ import {
   deleteClothes,
   toggleClothesFavorite,
 } from "../api/clothes";
-import DeleteModal from "./DeleteModal";
-import ConfirmModal from "../components/Modal/ConfirmModal";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 export default function ClosetDetailPage() {
   //const location = useLocation();
   const navigate = useNavigate();
+  const { showAlert, showConfirm } = useFeedbackModal();
   // const clothesId = location.state?.clothesId;
 
   const { id } = useParams<{ id: string }>();
@@ -23,27 +23,15 @@ export default function ClosetDetailPage() {
 
   const [clothItem, setClothItem] = useState<ClothItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isDeletedSuccess, setIsDeletedSuccess] = useState<boolean>(false);
-
-  const [confirmModalConfig, setConfirmModalConfig] = useState<{
-    open: boolean;
-    title: string;
-    onConfirm: () => void;
-    onCancel?: () => void;
-    cancelText?: string;
-  }>({
-    open: false,
-    title: "",
-    onConfirm: () => {},
-    cancelText: "취소",
-  });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const hasHandledInvalidIdRef = useRef(false);
 
   useEffect(() => {
     if (!clothesId || isNaN(clothesId)) {
-      alert("올바르지 않은 접근입니다.");
-      navigate(-1);
+      if (hasHandledInvalidIdRef.current) return;
+
+      hasHandledInvalidIdRef.current = true;
+      void showAlert("올바르지 않은 접근입니다.").then(() => navigate(-1));
       return;
     }
 
@@ -96,31 +84,22 @@ export default function ClosetDetailPage() {
     };
 
     fetchDetail();
-  }, [clothesId, navigate]);
+  }, [clothesId, navigate, showAlert]);
 
-  const closeConfirmModal = () => {
-    setConfirmModalConfig((prev) => ({ ...prev, open: false }));
-  };
-
-  const handleToggleFavoriteAPI = () => {
+  const handleToggleFavoriteAPI = async () => {
     if (!clothItem || !clothesId) return;
 
     const nextFavoriteState = !clothItem.isFavorite;
 
     if (clothItem.isFavorite) {
-      setConfirmModalConfig({
-        open: true,
-        title: "즐겨찾기를 해제하시겠습니까?",
-        cancelText: "취소",
-        onCancel: closeConfirmModal,
-        onConfirm: async () => {
-          closeConfirmModal();
-          await executeToggleAPI(nextFavoriteState, "해제");
-        },
-      });
-    } else {
-      executeToggleAPI(nextFavoriteState, "추가");
+      const shouldRemove = await showConfirm("즐겨찾기를 해제하시겠습니까?");
+      if (!shouldRemove) return;
     }
+
+    await executeToggleAPI(
+      nextFavoriteState,
+      clothItem.isFavorite ? "해제" : "추가",
+    );
   };
 
   const executeToggleAPI = async (
@@ -135,47 +114,41 @@ export default function ClosetDetailPage() {
           prev ? { ...prev, isFavorite: nextState } : null,
         );
 
-        setConfirmModalConfig({
-          open: true,
-          title:
-            mode === "추가"
-              ? "즐겨찾기에 추가되었습니다! "
-              : "즐겨찾기가 취소되었습니다. ",
-          cancelText: "",
-          onConfirm: closeConfirmModal,
-        });
+        await showAlert(
+          mode === "추가"
+            ? "즐겨찾기에 추가되었습니다!"
+            : "즐겨찾기가 취소되었습니다.",
+        );
       } else {
-        alert("즐겨찾기 상태 변경에 실패했습니다.");
+        await showAlert("즐겨찾기 상태 변경에 실패했습니다.");
       }
     } catch (error) {
       console.error("즐겨찾기 통신 중 오류 발생:", error);
+      await showAlert("즐겨찾기 상태 변경에 실패했습니다.");
     }
   };
 
-  const handleOpenDeleteModal = () => {
-    setIsModalOpen(true);
-  };
+  const handleDelete = async () => {
+    if (!clothesId || isDeleting) return;
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    if (isDeletedSuccess) {
-      navigate(-1);
-    }
-  };
+    const shouldDelete = await showConfirm("정말 삭제하시겠습니까?");
+    if (!shouldDelete) return;
 
-  const handleRealDeleteAPI = async (): Promise<boolean> => {
-    if (!clothesId) return false;
+    setIsDeleting(true);
     try {
       const res = await deleteClothes(clothesId);
       if (res.isSuccess) {
-        setIsDeletedSuccess(true);
-        return true;
+        await showAlert("삭제가 완료되었습니다.");
+        navigate(-1);
+        return;
       }
-      return false;
+
+      await showAlert(res.message || "삭제에 실패했습니다.");
     } catch (error) {
       console.error("진짜 삭제 실패:", error);
-      alert("삭제 중 서버 에러가 발생했습니다.");
-      return false;
+      await showAlert("삭제 중 서버 오류가 발생했습니다.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -194,22 +167,8 @@ export default function ClosetDetailPage() {
         title="상세 보기"
         item={clothItem}
         rightIcon="mdi:trash-can-outline"
-        onRightIconClick={handleOpenDeleteModal}
+        onRightIconClick={() => void handleDelete()}
         onToggleFavorite={handleToggleFavoriteAPI}
-      />
-
-      {isModalOpen && (
-        <DeleteModal
-          onClose={handleCloseModal}
-          onConfirm={handleRealDeleteAPI}
-        />
-      )}
-      <ConfirmModal
-        open={confirmModalConfig.open}
-        title={confirmModalConfig.title}
-        onConfirm={confirmModalConfig.onConfirm}
-        onCancel={confirmModalConfig.onCancel}
-        cancelText={confirmModalConfig.cancelText}
       />
     </ViewWrapper>
   );

@@ -3,10 +3,12 @@ import { useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { saveAuthTokens } from "../utils/authStorage";
 import { postOAuthExchange } from "../api/auth";
+import { useFeedbackModal } from "../hooks/useFeedbackModal";
 
 export default function OAuthCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { showAlert } = useFeedbackModal();
   const hasExchangedCode = useRef(false);
 
   const code = searchParams.get("code");
@@ -17,13 +19,13 @@ export default function OAuthCallbackPage() {
         return;
       }
 
+      hasExchangedCode.current = true;
+
       if (!code) {
-        alert("로그인 인증 코드가 올바르지 않습니다.");
+        await showAlert("로그인 인증 코드가 올바르지 않습니다.");
         navigate("/login", { replace: true });
         return;
       }
-
-      hasExchangedCode.current = true;
 
       try {
         const res = await postOAuthExchange(code);
@@ -33,18 +35,18 @@ export default function OAuthCallbackPage() {
 
           navigate("/main-home", { replace: true });
         } else {
-          alert(`로그인 실패: ${res.message}`);
+          await showAlert(`로그인 실패: ${res.message}`);
           navigate("/login", { replace: true });
         }
       } catch (err) {
         console.error("OAuth 토큰 교환 중 서버 오류:", err);
-        alert("로그인 처리 중 서버 오류가 발생했습니다.");
+        await showAlert("로그인 처리 중 서버 오류가 발생했습니다.");
         navigate("/login", { replace: true });
       }
     };
 
     exchangeCodeForToken();
-  }, [code, navigate]);
+  }, [code, navigate, showAlert]);
 
   return (
     <LoadingWrapper>
