@@ -16,6 +16,8 @@ const GlobalStyle = createGlobalStyle`
     --z-sticky-top: 50;      /* 상단 고정 바(필터) */
     --z-content: 0;
     --z-bottom-bar: 60;      /* 하단 네비바 */
+    --bottom-nav-height: 80px;
+    --bottom-nav-fab-size: 71px;
     --vh: 1vh;               /* iOS 폴백용 사용자 정의 vh  <-- 근데 꼭 필연적인걸까? */
   }
 
@@ -71,7 +73,9 @@ const GlobalStyle = createGlobalStyle`
 
   /* 하단 네비 영역 바닥 여백 (콘텐츠가 바에 가리는 것 방지) */
   .bottom-gap {
-    height: calc(64px + 12px + env(safe-area-inset-bottom)); /* 바 높이 + 내부 패딩 추정치 */
+    height: calc(
+      var(--bottom-nav-height) + 12px + env(safe-area-inset-bottom, 0px)
+    );
   }
 `;
 

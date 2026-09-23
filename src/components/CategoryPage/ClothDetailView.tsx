@@ -214,7 +214,10 @@ const LeftIconBtn = styled.button`
 `;
 
 const Content = styled.div`
-  padding: 16px 16px calc(100px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 16px
+    calc(
+      var(--bottom-nav-height) + 20px + env(safe-area-inset-bottom, 0px)
+    );
   width: 100%;
   box-sizing: border-box;
 `;

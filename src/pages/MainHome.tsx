@@ -57,5 +57,8 @@ const ContentContainer = styled.div`
   z-index: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 10px;
+  padding: 10px 0
+    calc(
+      var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px)
+    );
 `;

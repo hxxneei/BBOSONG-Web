@@ -136,7 +136,10 @@ const EmptySpace = styled.div`
 
 const ContentZone = styled.div`
   flex: 1;
-  padding: 20px;
+  padding: 20px 20px
+    calc(
+      var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px)
+    );
 `;
 
 const StoreList = styled.div`
@@ -208,6 +211,9 @@ const CenterMessage = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-bottom: calc(
+    var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)
+  );
   font-size: 15px;
   color: #64748b;
 `;

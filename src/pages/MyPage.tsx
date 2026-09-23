@@ -370,7 +370,9 @@ const Screen = styled.main`
   min-height: 100vh;
   min-height: 100dvh;
   color: #111827;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: calc(
+    var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom, 0px)
+  );
   background-color: white;
 `;
 
@@ -389,8 +391,12 @@ const LoadingText = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  height: 100dvh;
+  height: calc(
+    100vh - var(--bottom-nav-height) - env(safe-area-inset-bottom, 0px)
+  );
+  height: calc(
+    100dvh - var(--bottom-nav-height) - env(safe-area-inset-bottom, 0px)
+  );
   color: #6b7280;
   font-size: 14px;
 `;
