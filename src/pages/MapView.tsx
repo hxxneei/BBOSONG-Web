@@ -84,6 +84,13 @@ interface KakaoSdk {
 
 const KAKAO_APP_KEY = (import.meta.env.VITE_KAKAO_APP_KEY ||
   import.meta.env.VITE_KAKAO_MAP_API_KEY) as string | undefined;
+const SEOUL_LAT = 37.5665;
+const SEOUL_LON = 126.978;
+const GEOLOCATION_OPTIONS: PositionOptions = {
+  timeout: 5000,
+  maximumAge: 600000,
+  enableHighAccuracy: false,
+};
 
 export default function MapView() {
   const [selectedPlace, setSelectedPlace] = useState<
@@ -135,134 +142,169 @@ export default function MapView() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    let script: HTMLScriptElement | null = null;
+    let usesLoadEventListener = false;
+
+    const handleScriptLoad = () => {
+      if (!isMounted) return;
+      window.kakao.maps.load(initMap);
+    };
+
     if (!KAKAO_APP_KEY) {
       console.error("Kakao map app key is missing.");
-      return;
+      return () => {
+        isMounted = false;
+      };
     }
 
     if (window.kakao && window.kakao.maps) {
       window.kakao.maps.load(initMap);
-      return;
-    }
-
-    let script = document.querySelector(
-      'script[data-kakao-sdk="true"]',
-    ) as HTMLScriptElement | null;
-
-    if (!script) {
-      script = document.createElement("script");
-      script.dataset.kakaoSdk = "true";
-      script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
-
-      script.onload = () => {
-        window.kakao.maps.load(initMap);
-      };
-
-      script.onerror = (e) => {
-        console.error("카카오 SDK 로드 실패", e);
-      };
-
-      document.head.appendChild(script);
     } else {
-      script.addEventListener("load", () => {
-        window.kakao.maps.load(initMap);
-      });
+      script = document.querySelector(
+        'script[data-kakao-sdk="true"]',
+      ) as HTMLScriptElement | null;
+
+      if (!script) {
+        script = document.createElement("script");
+        script.dataset.kakaoSdk = "true";
+        script.async = true;
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+        script.onload = handleScriptLoad;
+        script.onerror = (event) => {
+          if (isMounted) {
+            console.error("카카오 SDK 로드 실패", event);
+          }
+        };
+        document.head.appendChild(script);
+      } else {
+        usesLoadEventListener = true;
+        script.addEventListener("load", handleScriptLoad);
+      }
     }
 
     function initMap() {
+      if (!isMounted) return;
+
       const { kakao } = window;
       const container = document.getElementById("map");
       if (!container) return;
 
-      const options = {
-        center: new kakao.maps.LatLng(37.5665, 126.978),
+      const defaultLocation = new kakao.maps.LatLng(SEOUL_LAT, SEOUL_LON);
+      const map = new kakao.maps.Map(container, {
+        center: defaultLocation,
         level: 4,
+      });
+
+      const searchNearbyLaundries = (
+        latitude: number,
+        longitude: number,
+        showCurrentLocation: boolean,
+      ) => {
+        if (!isMounted) return;
+
+        const location = new kakao.maps.LatLng(latitude, longitude);
+        map.setCenter(location);
+
+        if (showCurrentLocation) {
+          const markerImage = new kakao.maps.MarkerImage(
+            MyLocationMarker,
+            new kakao.maps.Size(57, 73),
+            { offset: new kakao.maps.Point(24, 48) },
+          );
+
+          new kakao.maps.Marker({
+            map,
+            position: location,
+            image: markerImage,
+          });
+        }
+
+        const places = new kakao.maps.services.Places();
+
+        places.keywordSearch(
+          "세탁소",
+          (data: KakaoPlaceSearchResult[], status: string) => {
+            if (!isMounted || status !== kakao.maps.services.Status.OK) return;
+
+            const laundryMarkerImage = new kakao.maps.MarkerImage(
+              LaundryMarker,
+              new kakao.maps.Size(57, 73),
+              { offset: new kakao.maps.Point(23, 46) },
+            );
+
+            data.forEach((place) => {
+              const position = new kakao.maps.LatLng(place.y, place.x);
+              const marker = new kakao.maps.Marker({
+                map,
+                position,
+                image: laundryMarkerImage,
+              });
+
+              kakao.maps.event.addListener(marker, "click", () => {
+                if (!isMounted) return;
+
+                const matchedFavorite = favoritesRef.current.find(
+                  (favorite) => favorite.kakaoPlaceId === place.id,
+                );
+
+                setSelectedPlace({
+                  id: place.id,
+                  place_name: place.place_name,
+                  road_address_name:
+                    place.road_address_name || place.address_name,
+                  address_name: place.address_name,
+                  phone: place.phone,
+                  place_url: place.place_url,
+                  x: place.x,
+                  y: place.y,
+                  storeId: matchedFavorite?.storeId,
+                  isFavorite: Boolean(matchedFavorite),
+                });
+
+                setIsSheetOpen(true);
+                map.panTo(position);
+              });
+            });
+          },
+          { location, radius: 2000 },
+        );
       };
 
-      const map = new kakao.maps.Map(container, options);
+      const searchDefaultLocation = () => {
+        searchNearbyLaundries(SEOUL_LAT, SEOUL_LON, false);
+      };
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            const loc = new kakao.maps.LatLng(lat, lon);
-
-            map.setCenter(loc);
-
-            const imageSrc = MyLocationMarker;
-            const imageSize = new kakao.maps.Size(57, 73);
-            const imageOption = { offset: new kakao.maps.Point(24, 48) };
-            const markerImage = new kakao.maps.MarkerImage(
-              imageSrc,
-              imageSize,
-              imageOption,
-            );
-
-            new kakao.maps.Marker({ map, position: loc, image: markerImage });
-
-            const ps = new kakao.maps.services.Places();
-
-            ps.keywordSearch(
-              "세탁소",
-              (data: KakaoPlaceSearchResult[], status: string) => {
-                if (status === kakao.maps.services.Status.OK) {
-                  const laundryImageSize = new kakao.maps.Size(57, 73);
-                  const laundryImageOption = {
-                    offset: new kakao.maps.Point(23, 46),
-                  };
-                  const laundryMarkerImage = new kakao.maps.MarkerImage(
-                    LaundryMarker,
-                    laundryImageSize,
-                    laundryImageOption,
-                  );
-
-                  data.forEach((place) => {
-                    const position = new kakao.maps.LatLng(place.y, place.x);
-
-                    const marker = new kakao.maps.Marker({
-                      map,
-                      position,
-                      image: laundryMarkerImage,
-                    });
-
-                    kakao.maps.event.addListener(marker, "click", () => {
-                      const matchedFavorite = favoritesRef.current.find(
-                        (fav) => fav.kakaoPlaceId === place.id,
-                      );
-
-                      setSelectedPlace({
-                        id: place.id,
-                        place_name: place.place_name,
-                        road_address_name:
-                          place.road_address_name || place.address_name,
-                        address_name: place.address_name,
-                        phone: place.phone,
-                        place_url: place.place_url,
-                        x: place.x,
-                        y: place.y,
-                        storeId: matchedFavorite
-                          ? matchedFavorite.storeId
-                          : undefined,
-                        isFavorite: !!matchedFavorite,
-                      });
-
-                      setIsSheetOpen(true);
-                      map.panTo(position);
-                    });
-                  });
-                }
-              },
-              { location: loc, radius: 2000 },
-            );
-          },
-          (err) => {
-            console.error("위치 정보 획득 실패", err);
-          },
-        );
+      if (!navigator.geolocation) {
+        searchDefaultLocation();
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          searchNearbyLaundries(
+            position.coords.latitude,
+            position.coords.longitude,
+            true,
+          );
+        },
+        (error) => {
+          console.error("위치 정보 획득 실패", error);
+          searchDefaultLocation();
+        },
+        GEOLOCATION_OPTIONS,
+      );
     }
+
+    return () => {
+      isMounted = false;
+
+      if (script && usesLoadEventListener) {
+        script.removeEventListener("load", handleScriptLoad);
+      } else if (script?.onload === handleScriptLoad) {
+        script.onload = null;
+      }
+    };
   }, []);
 
   // 북마크 토글 이벤트 핸들러

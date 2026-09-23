@@ -5,6 +5,11 @@ import { getWeatherLaundry } from "../../api/weather";
 const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
 const SEOUL_LAT = 37.5665;
 const SEOUL_LON = 126.978;
+const GEOLOCATION_OPTIONS: PositionOptions = {
+  timeout: 5000,
+  maximumAge: 600000,
+  enableHighAccuracy: false,
+};
 
 const emojiMap: Record<string, string> = {
   SUN: "☀️",
@@ -158,6 +163,7 @@ const LaundryRecommend = () => {
           console.error("GPS 위치 권한 거부 또는 획득 실패:", error);
           updateRecommendations(SEOUL_LAT, SEOUL_LON);
         },
+        GEOLOCATION_OPTIONS,
       );
     } else {
       updateRecommendations(SEOUL_LAT, SEOUL_LON);
