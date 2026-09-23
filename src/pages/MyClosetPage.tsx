@@ -176,6 +176,7 @@ const PageWrapper = styled.div`
   max-width: 430px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   background: #ffffff;
   display: flex;
   flex-direction: column;
@@ -320,6 +321,7 @@ const CenterMessage = styled.div`
   max-width: 430px;
   margin: 0 auto;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

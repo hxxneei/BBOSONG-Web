@@ -46,10 +46,9 @@ const GlobalStyle = createGlobalStyle`
 
   /* 앱 셸 레이아웃 유틸 (원하는 페이지에서 그대로 사용) */
   .app {
-    /* 최신 브라우저: dvh(주소창 제외 실제 높이) */
+    /* 구형 브라우저 폴백 뒤에 동적 뷰포트 높이를 선언 */
+    min-height: 100vh;
     min-height: 100dvh;
-    /* 폴백: 구형 브라우저는 JS로 계산한 --vh 사용 */
-    min-height: calc(var(--vh) * 100);
 
     display: flex;
     flex-direction: column;

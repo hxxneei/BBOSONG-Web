@@ -100,6 +100,7 @@ const PageWrapper = styled.div`
   max-width: 430px; // 당근/보송이 앱 디자인 컨테이너 국룰 규격
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   background: #f8fafc;
   display: flex;
   flex-direction: column;
@@ -203,6 +204,7 @@ const CenterMessage = styled.div`
   max-width: 430px;
   margin: 0 auto;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -137,6 +137,7 @@ export default function ClothDetailView({
 
 const Page = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background: #fff;
   width: 100%;
   max-width: 380px;

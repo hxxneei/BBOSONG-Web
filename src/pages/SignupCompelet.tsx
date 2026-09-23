@@ -31,7 +31,7 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100dvh;
   padding: 0 24px;
   background-color: white;
   box-sizing: border-box;
