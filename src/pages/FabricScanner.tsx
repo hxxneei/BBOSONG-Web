@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Title from "../components/FabricScanner/Title";
 import PreviewImage from "../components/FabricScanner/PreviewImage";
 import ImageDescription from "../components/FabricScanner/ImageDescription";
@@ -74,10 +74,15 @@ export default function FabricScanner({
     };
   }, []);
 
-  const closeCamera = () => {
+  const closeCamera = useCallback(() => {
     setIsCameraActive(false);
-    onCameraActiveChange?.(false);
-  };
+    onCameraActiveChangeRef.current?.(false);
+  }, []);
+
+  const openCamera = useCallback(() => {
+    setIsCameraActive(true);
+    onCameraActiveChangeRef.current?.(true);
+  }, []);
 
   const handleCapture = async (
     imageFile: File,
@@ -210,10 +215,7 @@ export default function FabricScanner({
             }}
           />
           <Actions
-            onStartCamera={() => {
-              setIsCameraActive(true);
-              onCameraActiveChange?.(true);
-            }}
+            onStartCamera={openCamera}
             onPickGallery={() =>
               document.getElementById("gallery-input")?.click()
             }

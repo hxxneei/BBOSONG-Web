@@ -13,10 +13,12 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
   const { showAlert } = useFeedbackModal();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     let isMounted = true;
-    let localStream: MediaStream | null = null;
 
     const startCamera = async () => {
       try {
@@ -30,7 +32,6 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
           return;
         }
 
-        localStream = stream;
         streamRef.current = stream;
 
         if (videoRef.current) {
@@ -47,27 +48,28 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
             "카메라를 사용할 수 없습니다. 권한을 허용했는지 확인해주세요.",
           ).then(() => {
             if (isMounted) {
-              onClose?.();
+              onCloseRef.current?.();
             }
           });
         }
       }
     };
 
-    startCamera();
+    void startCamera();
 
     return () => {
       isMounted = false;
 
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
+      const stream = streamRef.current;
+      streamRef.current = null;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
       }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
+
+      stream?.getTracks().forEach((track) => track.stop());
     };
-  }, [onClose, showAlert]);
+  }, [showAlert]);
 
   const handleCapture = () => {
     const video = videoRef.current;
@@ -122,7 +124,6 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
 
 export default CameraPreview;
 
-/* ------------------- 스타일 컴포넌트 (기존 유지) ------------------- */
 const Wrap = styled.div`
   position: relative;
   width: 100vw;
