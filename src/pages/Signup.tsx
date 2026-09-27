@@ -55,7 +55,7 @@ const SignupPage: React.FC = () => {
         void showAlert("잘못된 요청입니다.\n아이디 형식을 확인해 주세요.");
       } else if (axios.isAxiosError(error) && error.response?.status === 401) {
         void showAlert(
-          "아이디 중복 확인 API가 인증 필요 상태입니다.\n서버 설정을 확인해 주세요.",
+          "아이디 중복 확인에 실패했습니다.\n잠시 후 다시 시도해 주세요.",
         );
       } else {
         void showAlert("중복 확인 중 오류가 발생했습니다.");
