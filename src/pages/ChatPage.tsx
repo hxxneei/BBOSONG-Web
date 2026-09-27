@@ -4,12 +4,17 @@ import FirstChatHome from "../components/ChatBot/FirstChatHome";
 import ChatPrepare from "../components/ChatBot/ChatPrepare";
 import ChatMain from "../components/ChatBot/ChatMain";
 import { sendChatMessage, getChatMessages } from "../api/chat";
+import type { ChatMessage } from "../api/chat";
 import { optimizeImageFile } from "../utils/imageOptimizer";
 
 export interface MessageStructure {
   from: "user" | "bot";
   text: string;
   imageUrl?: string | null;
+  chatMessageId?: number;
+  clientMessageId: string;
+  messagePart: "image" | "text";
+  isPending?: boolean;
 }
 
 interface ChatPageProps {
@@ -18,13 +23,134 @@ interface ChatPageProps {
 
 const CHAT_MESSAGES_STORAGE_KEY = "bbosong_chat_messages";
 const CHAT_STEP_STORAGE_KEY = "bbosong_chat_step";
-const CHAT_LOADING_STORAGE_KEY = "bbosong_chat_isLoading";
 const MAX_STORED_MESSAGES = 80;
 
-const getStoredMessages = () => {
+let localMessageSequence = 0;
+
+const createClientMessageId = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  `local-${Date.now()}-${localMessageSequence++}`;
+
+const createGreetingMessage = (userName: string): MessageStructure => ({
+  from: "bot",
+  text: `${userName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
+  clientMessageId: createClientMessageId(),
+  messagePart: "text",
+});
+
+const mapServerMessage = (message: ChatMessage): MessageStructure[] => {
+  const from = message.senderType === "USER" ? "user" : "bot";
+  const mappedMessages: MessageStructure[] = [];
+
+  if (message.imageUrl) {
+    mappedMessages.push({
+      from,
+      text: "[이미지 첨부]",
+      imageUrl: message.imageUrl,
+      chatMessageId: message.chatMessageId,
+      clientMessageId: `server-${message.chatMessageId}-image`,
+      messagePart: "image",
+    });
+  }
+
+  if (message.content && message.content !== "[이미지 첨부]") {
+    mappedMessages.push({
+      from,
+      text: message.content,
+      imageUrl: null,
+      chatMessageId: message.chatMessageId,
+      clientMessageId: `server-${message.chatMessageId}-text`,
+      messagePart: "text",
+    });
+  }
+
+  if (mappedMessages.length === 0) {
+    mappedMessages.push({
+      from,
+      text: "",
+      imageUrl: null,
+      chatMessageId: message.chatMessageId,
+      clientMessageId: `server-${message.chatMessageId}-text`,
+      messagePart: "text",
+    });
+  }
+
+  return mappedMessages;
+};
+
+const getMessageIdentity = (message: MessageStructure) =>
+  message.chatMessageId !== undefined
+    ? `server-${message.chatMessageId}-${message.messagePart}`
+    : message.clientMessageId;
+
+const mergeMessages = (
+  primaryMessages: MessageStructure[],
+  additionalMessages: MessageStructure[],
+) => {
+  const identities = new Set(primaryMessages.map(getMessageIdentity));
+  const mergedMessages = [...primaryMessages];
+
+  additionalMessages.forEach((message) => {
+    const identity = getMessageIdentity(message);
+
+    if (!identities.has(identity)) {
+      identities.add(identity);
+      mergedMessages.push(message);
+    }
+  });
+
+  return mergedMessages;
+};
+
+const getStoredMessages = (): MessageStructure[] => {
   try {
     const savedMessages = sessionStorage.getItem(CHAT_MESSAGES_STORAGE_KEY);
-    return savedMessages ? JSON.parse(savedMessages) : [];
+    if (!savedMessages) return [];
+
+    const parsedMessages: unknown = JSON.parse(savedMessages);
+    if (!Array.isArray(parsedMessages)) {
+      throw new Error("Invalid cached chat messages");
+    }
+
+    return parsedMessages.flatMap((message): MessageStructure[] => {
+      if (!message || typeof message !== "object") return [];
+
+      const cachedMessage = message as Partial<MessageStructure>;
+      if (
+        (cachedMessage.from !== "user" && cachedMessage.from !== "bot") ||
+        typeof cachedMessage.text !== "string"
+      ) {
+        return [];
+      }
+
+      return [
+        {
+          from: cachedMessage.from,
+          text: cachedMessage.text,
+          imageUrl:
+            typeof cachedMessage.imageUrl === "string" ||
+            cachedMessage.imageUrl === null
+              ? cachedMessage.imageUrl
+              : undefined,
+          chatMessageId:
+            typeof cachedMessage.chatMessageId === "number"
+              ? cachedMessage.chatMessageId
+              : undefined,
+          clientMessageId:
+            typeof cachedMessage.clientMessageId === "string"
+              ? cachedMessage.clientMessageId
+              : createClientMessageId(),
+          messagePart:
+            cachedMessage.messagePart === "image" ||
+            cachedMessage.messagePart === "text"
+              ? cachedMessage.messagePart
+              : cachedMessage.imageUrl
+                ? "image"
+                : "text",
+          isPending: false,
+        },
+      ];
+    });
   } catch {
     sessionStorage.removeItem(CHAT_MESSAGES_STORAGE_KEY);
     return [];
@@ -32,9 +158,7 @@ const getStoredMessages = () => {
 };
 
 const ChatPage = ({ onStepChange }: ChatPageProps) => {
-  const shouldRefreshHistoryRef = useRef(
-    sessionStorage.getItem(CHAT_LOADING_STORAGE_KEY) === "true",
-  );
+  const messageMutationVersionRef = useRef(0);
 
   const [step, setStep] = useState<number>(() => {
     const savedStep = sessionStorage.getItem(CHAT_STEP_STORAGE_KEY);
@@ -67,49 +191,56 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
   }, [messages]);
 
   useEffect(() => {
-    sessionStorage.setItem(CHAT_LOADING_STORAGE_KEY, String(isLoading));
-  }, [isLoading]);
+    if (step !== 3) return;
 
-  useEffect(() => {
+    let isCancelled = false;
+    const mutationVersionAtRequest = messageMutationVersionRef.current;
+
     const loadChatHistory = async () => {
-      if (messages.length > 0 && !shouldRefreshHistoryRef.current) return;
-
       try {
-        const res = await getChatMessages();
-        if (res.isSuccess && res.result.length > 0) {
-          const history = res.result.map((msg) => ({
-            from:
-              msg.senderType === "USER" ? ("user" as const) : ("bot" as const),
-            text: msg.content || "",
-            imageUrl: msg.imageUrl,
-          }));
-          setMessages(history);
-          shouldRefreshHistoryRef.current = false;
-        } else {
-          setMessages([
-            {
-              from: "bot",
-              text: `${userName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
-            },
-          ]);
-          shouldRefreshHistoryRef.current = false;
+        const res = await getChatMessages(true);
+        if (isCancelled) return;
+
+        if (!res.isSuccess) {
+          throw new Error(res.message || "Failed to load chat history");
         }
+
+        const serverMessages = res.result.flatMap(mapServerMessage);
+        const nextMessages =
+          serverMessages.length > 0
+            ? serverMessages
+            : [createGreetingMessage(userName)];
+
+        setMessages((currentMessages) => {
+          const hasMessagesCreatedDuringSync =
+            mutationVersionAtRequest !== messageMutationVersionRef.current;
+          const messagesToPreserve = currentMessages.filter(
+            (message) =>
+              message.isPending ||
+              (hasMessagesCreatedDuringSync &&
+                message.chatMessageId !== undefined),
+          );
+
+          return mergeMessages(nextMessages, messagesToPreserve);
+        });
       } catch (error) {
+        if (isCancelled) return;
+
         console.error("채팅 내역 조회 실패:", error);
-        setMessages([
-          {
-            from: "bot",
-            text: `${userName}님 안녕하세요! 무엇을 도와드릴까요? 😊`,
-          },
-        ]);
-        shouldRefreshHistoryRef.current = false;
+        setMessages((currentMessages) =>
+          currentMessages.length > 0
+            ? currentMessages
+            : [createGreetingMessage(userName)],
+        );
       }
     };
 
-    if (step === 3) {
-      loadChatHistory();
-    }
-  }, [messages.length, step, userName]);
+    void loadChatHistory();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [step, userName]);
 
   const handleSendMessage = useCallback(async (
     textToSend: string,
@@ -118,6 +249,7 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
     if (isLoading) return;
     if (!textToSend.trim() && !imageFile) return;
 
+    messageMutationVersionRef.current += 1;
     setInput("");
 
     const uploadImageFile = imageFile
@@ -128,28 +260,38 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
         })
       : null;
 
-    const newNewMessages: MessageStructure[] = [];
     const previewImageUrl = uploadImageFile
       ? URL.createObjectURL(uploadImageFile)
       : null;
+    const pendingMessages: MessageStructure[] = [];
 
     if (previewImageUrl) {
-      newNewMessages.push({
+      pendingMessages.push({
         from: "user",
         text: "[이미지 첨부]",
         imageUrl: previewImageUrl,
+        clientMessageId: createClientMessageId(),
+        messagePart: "image",
+        isPending: true,
       });
     }
 
     if (textToSend.trim()) {
-      newNewMessages.push({
+      pendingMessages.push({
         from: "user",
         text: textToSend.trim(),
         imageUrl: null,
+        clientMessageId: createClientMessageId(),
+        messagePart: "text",
+        isPending: true,
       });
     }
 
-    setMessages((prev) => [...prev, ...newNewMessages]);
+    const pendingMessageIds = new Set(
+      pendingMessages.map((message) => message.clientMessageId),
+    );
+
+    setMessages((prev) => [...prev, ...pendingMessages]);
     setIsLoading(true);
 
     try {
@@ -160,44 +302,47 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
       }
 
       if (res.isSuccess) {
-        const responseMessages: MessageStructure[] = [];
+        messageMutationVersionRef.current += 1;
+        const responseMessages = [
+          ...mapServerMessage(res.result.userMessage),
+          ...mapServerMessage(res.result.assistantMessage),
+        ];
 
-        if (res.result.userMessage.imageUrl) {
-          responseMessages.push({
-            from: "user",
-            text: "[이미지 첨부]",
-            imageUrl: res.result.userMessage.imageUrl,
-          });
-        }
-        if (res.result.userMessage.content) {
-          responseMessages.push({
-            from: "user",
-            text: res.result.userMessage.content,
-            imageUrl: null,
-          });
-        }
-
-        responseMessages.push({
-          from: "bot",
-          text: res.result.assistantMessage.content || "",
-          imageUrl: res.result.assistantMessage.imageUrl,
-        });
-
-        setMessages((prev) => [
-          ...prev.slice(0, -newNewMessages.length),
-          ...responseMessages,
-        ]);
+        setMessages((prev) =>
+          mergeMessages(
+            prev.filter(
+              (message) => !pendingMessageIds.has(message.clientMessageId),
+            ),
+            responseMessages,
+          ),
+        );
+      } else {
+        messageMutationVersionRef.current += 1;
+        setMessages((prev) =>
+          prev.map((message) =>
+            pendingMessageIds.has(message.clientMessageId)
+              ? { ...message, isPending: false }
+              : message,
+          ),
+        );
       }
     } catch (error) {
       if (previewImageUrl) {
         URL.revokeObjectURL(previewImageUrl);
       }
       console.error("채팅 전송 실패:", error);
+      messageMutationVersionRef.current += 1;
       setMessages((prev) => [
-        ...prev,
+        ...prev.map((message) =>
+          pendingMessageIds.has(message.clientMessageId)
+            ? { ...message, isPending: false }
+            : message,
+        ),
         {
           from: "bot",
           text: "서버와 연결이 불안정해요. 다시 시도해 주세요. 😥",
+          clientMessageId: createClientMessageId(),
+          messagePart: "text",
         },
       ]);
     } finally {

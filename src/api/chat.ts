@@ -32,8 +32,14 @@ export type SendMessageResponse = ApiResponse<{
     assistantMessage: ChatMessage;
 }>;
 
-export const getChatMessages = async (): Promise<GetMessagesResponse> => {
-  if (chatMessagesCache && chatMessagesCache.expiresAt > Date.now()) {
+export const getChatMessages = async (
+  forceRefresh = false,
+): Promise<GetMessagesResponse> => {
+  if (
+    !forceRefresh &&
+    chatMessagesCache &&
+    chatMessagesCache.expiresAt > Date.now()
+  ) {
     return chatMessagesCache.data;
   }
 
