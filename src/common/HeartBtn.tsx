@@ -40,7 +40,6 @@ const Button = styled.button`
   transition: transform 0.15s ease;
 
   &:active {
-    transform: transform 0.15s ease;
     transform: scale(0.9);
   }
 `;

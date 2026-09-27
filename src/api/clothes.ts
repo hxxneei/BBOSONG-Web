@@ -241,29 +241,6 @@ export const getHomeSummary = async (): Promise<HomeSummaryResponse> => {
     }
   }
 };
-// 옷장 목록 최신순 조회
-export const getClothesList = async (
-  category?: string,
-): Promise<ApiResponse<ClothesListItem[]>> => {
-  const cacheKey = `clothes:list:${category || "all"}`;
-  const cached = getCachedData<ApiResponse<ClothesListItem[]>>(cacheKey);
-
-  if (cached) {
-    return cached;
-  }
-
-  const url = category
-    ? `clothes?category=${encodeURIComponent(category)}`
-    : "clothes";
-  const response = await axiosInstance.get<ApiResponse<ClothesListItem[]>>(
-    url,
-  );
-  if (response.data.isSuccess) {
-    setCachedData(cacheKey, response.data);
-  }
-  return response.data;
-};
-
 export const getFavoriteClothes = async (): Promise<
   ApiResponse<ClothesListItem[]>
 > => {

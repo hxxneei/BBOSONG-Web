@@ -28,14 +28,3 @@ export interface LoginResult {
   refreshTokenExpiresAt: string;
   nickname?: string;
 }
-
-// 토큰 재발급 결과 데이터 (Result)
-// 로그인 결과와 구조가 같으므로 LoginResult를 같이 써도 되지만,
-// 명확히 구분하고 싶다면 아래처럼 정의하세요.
-export interface ReissueResult {
-  grantType: string;
-  accessToken: string;
-  accessTokenExpiresAt: string;
-  refreshToken: string;
-  refreshTokenExpiresAt: string;
-}

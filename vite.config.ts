@@ -2,10 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   esbuild: {
-    drop: ["console", "debugger"],
+    drop: mode === "production" ? ["console", "debugger"] : [],
   },
   build: {
     rollupOptions: {
@@ -22,4 +22,4 @@ export default defineConfig({
     host: true,
     port: 3000,
   },
-});
+}));

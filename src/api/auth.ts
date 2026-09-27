@@ -4,7 +4,6 @@ import type {
   LoginRequest,
   SignupRequest,
   LoginResult,
-  ReissueResult,
   SignupResult,
 } from "../types/auth";
 import type { ApiResponse } from "../types/api";
@@ -37,19 +36,6 @@ export const postLoginLocal = async (
     "/auth/login/local",
     data,
   );
-  return response.data;
-};
-
-// 토큰 재발급
-
-export const postReissue = async (
-  refreshToken: string,
-): Promise<ApiResponse<ReissueResult>> => {
-  const response = await publicAxios.post<ApiResponse<ReissueResult>>(
-    "/auth/reissue",
-    { refreshToken },
-  );
-
   return response.data;
 };
 
