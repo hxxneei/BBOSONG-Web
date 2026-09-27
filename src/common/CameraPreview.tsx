@@ -18,6 +18,7 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
   onCloseRef.current = onClose;
 
   useEffect(() => {
+    const videoElement = videoRef.current;
     let isMounted = true;
 
     const startCamera = async () => {
@@ -34,10 +35,10 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
 
         streamRef.current = stream;
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        if (videoElement) {
+          videoElement.srcObject = stream;
 
-          await videoRef.current.play().catch((playErr) => {
+          await videoElement.play().catch((playErr) => {
             console.warn("비디오 재생 인터럽트 예외 방어:", playErr);
           });
         }
@@ -63,8 +64,8 @@ const CameraPreview = ({ onCapture, onClose }: Props) => {
       const stream = streamRef.current;
       streamRef.current = null;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
+      if (videoElement) {
+        videoElement.srcObject = null;
       }
 
       stream?.getTracks().forEach((track) => track.stop());
