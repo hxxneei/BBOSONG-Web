@@ -1,10 +1,11 @@
 import styled from "styled-components";
 
-export const BaseBtn = styled.input`
+export const BaseBtn = styled.button`
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   min-height: 1vh;
   border: 0.8px solid #000;
   background-color: #fff;
@@ -13,15 +14,17 @@ export const BaseBtn = styled.input`
   padding: 14px 16px;
   font-size: 14px;
   font-weight: 600;
+  font-family: inherit;
   outline: none;
   box-sizing: border-box;
+  cursor: pointer;
 
-  &::placeholder {
-    color: #767676;
-    font-weight: 400;
+  &:focus-visible {
+    border: 1px solid #767676;
   }
 
-  &:focus {
-    border: 1px solid #767676;
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 `;

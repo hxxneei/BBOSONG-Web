@@ -199,32 +199,24 @@ const SheetContent = styled.div`
   max-height: 90vh;
   padding: 8px 22px 32px;
 
-  /* ⭕ 핵심 1: 모바일 터치 시 폰 앱처럼 관성 스크롤(샤라락) 적용 */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 
-  /* ⭕ 핵심 2: 스크롤 움직임을 더 부드럽게 만들어주는 스무스 효과 */
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
 
-  /* ⭕ 핵심 3: 기본 스크롤바의 딱딱함을 없애고 투명하고 얇게 다듬기 */
   &::-webkit-scrollbar {
-    width: 5px; /* 스크롤바 폭을 슬림하게 */
+    width: 5px;
   }
   &::-webkit-scrollbar-track {
-    background: transparent; /* 배경은 투명하게 */
+    background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(147, 147, 147, 0.3); /* 은은한 회색 바 */
+    background: rgba(147, 147, 147, 0.3);
     border-radius: 99px;
   }
   &::-webkit-scrollbar-thumb:hover {
-    background: rgba(
-      75,
-      128,
-      252,
-      0.5
-    ); /* 마우스 올리면 브랜드 포인트 컬러로 살짝 피드백 */
+    background: rgba(75, 128, 252, 0.5);
   }
 `;
 

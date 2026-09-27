@@ -17,16 +17,18 @@ const ResultButtonGroup: React.FC<ResultButtonGroupProps> = ({
     <ButtonGroup>
       <RetryBtn
         type="button"
-        value="다시 검색하기"
         onClick={onRetry}
         disabled={isSaving}
-      />
+      >
+        다시 검색하기
+      </RetryBtn>
       <SaveBtn
         type="button"
-        value={isSaving ? "저장 중..." : "결과 저장하기"}
         onClick={onSave}
         disabled={isSaving}
-      />
+      >
+        {isSaving ? "저장 중..." : "결과 저장하기"}
+      </SaveBtn>
     </ButtonGroup>
   );
 };
@@ -40,7 +42,7 @@ const RetryBtn = styled(BaseBtn)`
   color: #9ca3af;
   text-align: center;
   cursor: pointer;
-  &:hover {
+  &:not(:disabled):hover {
     background-color: #e5e7eb;
   }
 
@@ -58,7 +60,7 @@ const SaveBtn = styled(BaseBtn)`
   text-align: center;
   cursor: pointer;
   box-shadow: 0px 4px 14px rgba(75, 128, 252, 0.3);
-  &:hover {
+  &:not(:disabled):hover {
     background-color: #3b71f3;
   }
 
@@ -77,7 +79,7 @@ const ButtonGroup = styled.div`
   margin: 10px auto 0 auto;
   padding: 0 10px;
   box-sizing: border-box;
-  input {
+  button {
     border-radius: 16px !important;
     height: 54px;
   }

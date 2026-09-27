@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { InternalAxiosRequestConfig } from "axios";
-import type { ReissueResult } from "../types/auth";
+import type { LoginResult } from "../types/auth";
 import type { ApiResponse } from "../types/api";
 import {
   getAccessToken,
@@ -49,7 +49,7 @@ const requestTokenReissue = async () => {
 
   if (!refreshRequest) {
     refreshRequest = publicAxios
-      .post<ApiResponse<ReissueResult>>("/auth/reissue", { refreshToken })
+      .post<ApiResponse<LoginResult>>("/auth/reissue", { refreshToken })
       .then((response) => {
         if (!response.data.isSuccess) {
           expireSession();
