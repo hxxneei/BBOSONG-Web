@@ -105,6 +105,80 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: false,
 };
 
+const KAKAO_SDK_SELECTOR = 'script[data-kakao-sdk="true"]';
+
+let kakaoSdkPromise: Promise<void> | null = null;
+
+const loadKakaoSdk = (): Promise<void> => {
+  if (kakaoSdkPromise) {
+    return kakaoSdkPromise;
+  }
+
+  if (window.kakao?.maps) {
+    kakaoSdkPromise = new Promise((resolve) => {
+      window.kakao.maps.load(resolve);
+    });
+    return kakaoSdkPromise;
+  }
+
+  if (!KAKAO_APP_KEY) {
+    return Promise.reject(new Error("Kakao map app key is missing."));
+  }
+
+  const sdkPromise = new Promise<void>((resolve, reject) => {
+    let script = document.querySelector<HTMLScriptElement>(KAKAO_SDK_SELECTOR);
+
+    const removeListeners = () => {
+      script?.removeEventListener("load", handleLoad);
+      script?.removeEventListener("error", handleError);
+    };
+
+    const handleLoad = () => {
+      removeListeners();
+
+      if (!window.kakao?.maps) {
+        reject(new Error("Kakao map SDK is unavailable after loading."));
+        return;
+      }
+
+      window.kakao.maps.load(resolve);
+    };
+
+    const handleError = () => {
+      removeListeners();
+      script?.remove();
+      reject(new Error("Failed to load Kakao map SDK."));
+    };
+
+    const isNewScript = !script;
+
+    if (!script) {
+      script = document.createElement("script");
+      script.dataset.kakaoSdk = "true";
+      script.async = true;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
+    }
+
+    script.addEventListener("load", handleLoad, { once: true });
+    script.addEventListener("error", handleError, { once: true });
+
+    if (isNewScript) {
+      document.head.appendChild(script);
+    }
+
+    if (window.kakao?.maps) {
+      handleLoad();
+    }
+  });
+
+  kakaoSdkPromise = sdkPromise.catch((error: unknown) => {
+    kakaoSdkPromise = null;
+    throw error;
+  });
+
+  return kakaoSdkPromise;
+};
+
 export default function MapView() {
   const { showAlert } = useFeedbackModal();
   const [selectedPlace, setSelectedPlace] = useState<
@@ -147,48 +221,27 @@ export default function MapView() {
 
   useEffect(() => {
     let isMounted = true;
-    let script: HTMLScriptElement | null = null;
-    let usesLoadEventListener = false;
     let currentLocationMarker: KakaoMarkerInstance | null = null;
     let laundryMarkers: KakaoMarkerInstance[] = [];
     let latestSearchRequestId = 0;
 
-    const handleScriptLoad = () => {
-      if (!isMounted) return;
-      window.kakao.maps.load(initMap);
+    const initializeMap = async () => {
+      try {
+        await loadKakaoSdk();
+        if (isMounted) {
+          initMap();
+        }
+      } catch (error) {
+        if (!isMounted) return;
+
+        console.error("카카오 SDK 로드 실패", error);
+        void showAlert(
+          "지도를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        );
+      }
     };
 
-    if (!KAKAO_APP_KEY) {
-      console.error("Kakao map app key is missing.");
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    if (window.kakao && window.kakao.maps) {
-      window.kakao.maps.load(initMap);
-    } else {
-      script = document.querySelector(
-        'script[data-kakao-sdk="true"]',
-      ) as HTMLScriptElement | null;
-
-      if (!script) {
-        script = document.createElement("script");
-        script.dataset.kakaoSdk = "true";
-        script.async = true;
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
-        script.onload = handleScriptLoad;
-        script.onerror = (event) => {
-          if (isMounted) {
-            console.error("카카오 SDK 로드 실패", event);
-          }
-        };
-        document.head.appendChild(script);
-      } else {
-        usesLoadEventListener = true;
-        script.addEventListener("load", handleScriptLoad);
-      }
-    }
+    void initializeMap();
 
     function initMap() {
       if (!isMounted) return;
@@ -353,14 +406,8 @@ export default function MapView() {
       laundryMarkers.forEach((marker) => marker.setMap(null));
       laundryMarkers = [];
       currentLocationMarker?.setMap(null);
-
-      if (script && usesLoadEventListener) {
-        script.removeEventListener("load", handleScriptLoad);
-      } else if (script?.onload === handleScriptLoad) {
-        script.onload = null;
-      }
     };
-  }, []);
+  }, [showAlert]);
 
   const handleResearchCurrentArea = () => {
     setIsSheetOpen(false);
