@@ -14,7 +14,14 @@ import { ChevronLeft, X } from "lucide-react";
 import ChatLoading from "./ChatLoading";
 
 interface Props {
-  messages: { from: string; text: string; imageUrl?: string | null }[];
+  messages: {
+    from: string;
+    text: string;
+    imageUrl?: string | null;
+    chatMessageId?: number;
+    clientMessageId: string;
+    messagePart: "image" | "text";
+  }[];
   input: string;
   setInput: (val: string) => void;
   onSendMessage: (text: string, file: File | null) => void;
@@ -126,9 +133,13 @@ const ChatMain: React.FC<Props> = ({
           &nbsp;&nbsp; ───────
         </EntryText>
 
-        {messages.map((msg, i) => (
+        {messages.map((msg) => (
           <Bubble
-            key={`${msg.from}-${i}-${msg.text}`}
+            key={
+              msg.chatMessageId !== undefined
+                ? `server-${msg.chatMessageId}-${msg.messagePart}`
+                : msg.clientMessageId
+            }
             $isUser={msg.from === "user"}
             $hasImage={Boolean(msg.imageUrl)}
           >
