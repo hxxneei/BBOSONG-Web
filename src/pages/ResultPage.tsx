@@ -8,6 +8,10 @@ import type { ClothesAnalysisResult } from "../types/clothes";
 import ResultButtonGroup from "../components/Result/ResultBtnGroup";
 import { postSaveClothes } from "../api/clothes";
 import { useFeedbackModal } from "../hooks/useFeedbackModal";
+import {
+  ACCESSORY_CATEGORIES,
+  CLOTHING_CATEGORIES,
+} from "../constants/clothesCategories";
 
 interface ResultPageLocationState {
   serverData?: ClothesAnalysisResult;
@@ -15,12 +19,30 @@ interface ResultPageLocationState {
   imageFile?: File;
 }
 
+const getCategoryPath = (categoryName: string) => {
+  const normalizedCategory = categoryName.trim();
+
+  if (
+    CLOTHING_CATEGORIES.some((category) => category === normalizedCategory)
+  ) {
+    return `의류 / ${normalizedCategory}`;
+  }
+
+  if (
+    ACCESSORY_CATEGORIES.some((category) => category === normalizedCategory)
+  ) {
+    return `잡화 / ${normalizedCategory}`;
+  }
+
+  return normalizedCategory || "카테고리 정보 없음";
+};
+
 const transformServerData = (
   serverData: ClothesAnalysisResult,
   imageUrl: string,
 ): ResultData => {
   return {
-    categoryPath: `의류 / ${serverData.categoryName}`,
+    categoryPath: getCategoryPath(serverData.categoryName),
     name: serverData.name || "분석된 의류",
     image: imageUrl,
     material: serverData.material,
