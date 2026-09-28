@@ -19,8 +19,33 @@ interface ResultPageLocationState {
   imageFile?: File;
 }
 
-const getCategoryPath = (categoryName: string) => {
-  const normalizedCategory = categoryName.trim();
+const getTextOrFallback = (value: unknown, fallback: string) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return fallback;
+  }
+
+  return value.trim();
+};
+
+const getSentenceItems = (value: unknown, fallback: string) => {
+  if (typeof value !== "string") {
+    return [fallback];
+  }
+
+  const items = value
+    .split(".")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => `${item}.`);
+
+  return items.length > 0 ? items : [fallback];
+};
+
+const getCategoryPath = (categoryName: unknown) => {
+  const normalizedCategory = getTextOrFallback(
+    categoryName,
+    "카테고리 정보 없음",
+  );
 
   if (
     CLOTHING_CATEGORIES.some((category) => category === normalizedCategory)
@@ -43,23 +68,20 @@ const transformServerData = (
 ): ResultData => {
   return {
     categoryPath: getCategoryPath(serverData.categoryName),
-    name: serverData.name || "분석된 의류",
+    name: getTextOrFallback(serverData.name, "분석된 의류"),
     image: imageUrl,
-    material: serverData.material,
-    color: serverData.color,
+    material: getTextOrFallback(serverData.material, "정보 없음"),
+    color: getTextOrFallback(serverData.color, "정보 없음"),
     wash: {
       title: "세탁 방법",
-      items: serverData.washingMethod
-        .split(".")
-        .filter((item) => item.trim() !== "")
-        .map((item) => item.trim() + "."),
+      items: getSentenceItems(
+        serverData.washingMethod,
+        "세탁 정보가 없어요.",
+      ),
     },
     caution: {
       title: "주의사항",
-      items: serverData.caution
-        .split(".")
-        .filter((item) => item.trim() !== "")
-        .map((item) => item.trim() + "."),
+      items: getSentenceItems(serverData.caution, "주의사항 정보가 없어요."),
     },
   };
 };
@@ -112,7 +134,7 @@ export default function ResultPage() {
 
     try {
       const clothData = {
-        categoryName: serverData.categoryName.trim(),
+        categoryName: getTextOrFallback(serverData.categoryName, "기타"),
         name: displayData.name,
         material: displayData.material || "정보 없음",
         color: displayData.color || "정보 없음",
