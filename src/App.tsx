@@ -143,6 +143,7 @@ const App = () => {
             element={withAuth(<FavoriteStoresPage />)}
           />
           <Route path="/my-closet" element={withAuth(<MyClosetPage />)} />
+          <Route path="*" element={<Navigate to="/main-home" replace />} />
         </Routes>
       </Suspense>
       {!shouldHideNav && <BottomNav />}
