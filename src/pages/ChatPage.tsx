@@ -198,7 +198,7 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
 
     const loadChatHistory = async () => {
       try {
-        const res = await getChatMessages(true);
+        const res = await getChatMessages();
         if (isCancelled) return;
 
         if (!res.isSuccess) {

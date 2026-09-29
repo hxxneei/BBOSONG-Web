@@ -1,21 +1,5 @@
 import axiosInstance from "./axiosInstance";
-import { registerSessionResetter } from "../utils/authStorage";
 import type { ApiResponse } from "../types/api";
-
-const CHAT_MESSAGES_CACHE_TTL_MS = 2 * 60 * 1000;
-
-let chatMessagesCache:
-  | {
-      expiresAt: number;
-      data: GetMessagesResponse;
-    }
-  | null = null;
-
-export const clearChatMessagesCache = () => {
-  chatMessagesCache = null;
-};
-
-registerSessionResetter(clearChatMessagesCache);
 
 export interface ChatMessage {
   chatMessageId: number;
@@ -28,29 +12,13 @@ export interface ChatMessage {
 export type GetMessagesResponse = ApiResponse<ChatMessage[]>;
 
 export type SendMessageResponse = ApiResponse<{
-    userMessage: ChatMessage;
-    assistantMessage: ChatMessage;
+  userMessage: ChatMessage;
+  assistantMessage: ChatMessage;
 }>;
 
-export const getChatMessages = async (
-  forceRefresh = false,
-): Promise<GetMessagesResponse> => {
-  if (
-    !forceRefresh &&
-    chatMessagesCache &&
-    chatMessagesCache.expiresAt > Date.now()
-  ) {
-    return chatMessagesCache.data;
-  }
-
+export const getChatMessages = async (): Promise<GetMessagesResponse> => {
   const response =
     await axiosInstance.get<GetMessagesResponse>("/chat/messages");
-  if (response.data.isSuccess) {
-    chatMessagesCache = {
-      data: response.data,
-      expiresAt: Date.now() + CHAT_MESSAGES_CACHE_TTL_MS,
-    };
-  }
   return response.data;
 };
 
@@ -76,8 +44,5 @@ export const sendChatMessage = async (
       },
     },
   );
-  if (response.data.isSuccess) {
-    clearChatMessagesCache();
-  }
   return response.data;
 };
