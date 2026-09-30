@@ -27,6 +27,28 @@ const MAX_STORED_MESSAGES = 80;
 
 let localMessageSequence = 0;
 
+const isBlobImageUrl = (imageUrl: unknown): imageUrl is string =>
+  typeof imageUrl === "string" && imageUrl.startsWith("blob:");
+
+const isStorableMessage = (message: MessageStructure) =>
+  !message.isPending && !isBlobImageUrl(message.imageUrl);
+
+const settleFailedPendingMessages = (
+  messages: MessageStructure[],
+  pendingMessageIds: ReadonlySet<string>,
+) =>
+  messages.flatMap((message): MessageStructure[] => {
+    if (!pendingMessageIds.has(message.clientMessageId)) {
+      return [message];
+    }
+
+    if (isBlobImageUrl(message.imageUrl)) {
+      return [];
+    }
+
+    return [{ ...message, isPending: false }];
+  });
+
 const createClientMessageId = () =>
   globalThis.crypto?.randomUUID?.() ??
   `local-${Date.now()}-${localMessageSequence++}`;
@@ -118,7 +140,9 @@ const getStoredMessages = (): MessageStructure[] => {
       const cachedMessage = message as Partial<MessageStructure>;
       if (
         (cachedMessage.from !== "user" && cachedMessage.from !== "bot") ||
-        typeof cachedMessage.text !== "string"
+        typeof cachedMessage.text !== "string" ||
+        cachedMessage.isPending === true ||
+        isBlobImageUrl(cachedMessage.imageUrl)
       ) {
         return [];
       }
@@ -183,7 +207,9 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
     const timer = window.setTimeout(() => {
       sessionStorage.setItem(
         CHAT_MESSAGES_STORAGE_KEY,
-        JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)),
+        JSON.stringify(
+          messages.filter(isStorableMessage).slice(-MAX_STORED_MESSAGES),
+        ),
       );
     }, 150);
 
@@ -319,11 +345,7 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
       } else {
         messageMutationVersionRef.current += 1;
         setMessages((prev) =>
-          prev.map((message) =>
-            pendingMessageIds.has(message.clientMessageId)
-              ? { ...message, isPending: false }
-              : message,
-          ),
+          settleFailedPendingMessages(prev, pendingMessageIds),
         );
       }
     } catch (error) {
@@ -333,11 +355,7 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
       console.error("채팅 전송 실패:", error);
       messageMutationVersionRef.current += 1;
       setMessages((prev) => [
-        ...prev.map((message) =>
-          pendingMessageIds.has(message.clientMessageId)
-            ? { ...message, isPending: false }
-            : message,
-        ),
+        ...settleFailedPendingMessages(prev, pendingMessageIds),
         {
           from: "bot",
           text: "서버와 연결이 불안정해요. 다시 시도해 주세요. 😥",
