@@ -4,11 +4,13 @@ import { Heart } from "lucide-react";
 interface HeartButtonProps {
   active?: boolean;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  ariaLabel?: string;
 }
 
 export default function HeartButton({
   active = false,
   onClick,
+  ariaLabel,
 }: HeartButtonProps) {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function HeartButton({
     <Button
       type="button"
       onClick={handleClick}
-      aria-label={active ? "찜 해제" : "찜하기"}
+      aria-label={ariaLabel ?? (active ? "찜 해제" : "찜하기")}
     >
       <Heart
         size={22}
