@@ -13,6 +13,7 @@ export interface ClothCardItem {
   name: string;
   image?: string;
   imageUrl?: string;
+  color?: string;
   isFavorite?: boolean;
 }
 
@@ -33,12 +34,14 @@ function ClothCard({ item, onToggleFavorite }: ClothCardProps) {
       />
       <Info>
         <Category>{item.category || item.categoryName}</Category>
+        {item.color && <Color>{item.color}</Color>}
         <Name>{item.name}</Name>
       </Info>
       <HeartWrapper>
         <HeartBtn
           active={item.isFavorite || false}
           onClick={onToggleFavorite}
+          ariaLabel={`${item.name} ${item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}`}
         />
       </HeartWrapper>
     </Card>
@@ -75,6 +78,13 @@ const Category = styled.span`
   font-size: 12px;
   margin-bottom: 2px;
   display: block;
+`;
+
+const Color = styled.span`
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
 `;
 
 const Name = styled.p`

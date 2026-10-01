@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { memo, useCallback } from "react";
+import { memo, useCallback, type ReactNode } from "react";
 import ClothCard, { type ClothCardItem } from "./ClothCard";
 
 export type ClothGridItem = ClothCardItem & {
@@ -9,15 +9,20 @@ export type ClothGridItem = ClothCardItem & {
 interface ClothGridProps {
   items: ClothGridItem[];
   onItemClick: (clothesId: number) => void;
+  emptyState?: ReactNode;
 }
 
-function ClothGrid({ items, onItemClick }: ClothGridProps) {
+function ClothGrid({ items, onItemClick, emptyState = null }: ClothGridProps) {
   const handleCardClick = useCallback(
     (clothesId: number) => {
       onItemClick(clothesId);
     },
     [onItemClick],
   );
+
+  if (items.length === 0) {
+    return emptyState;
+  }
 
   return (
     <Grid>
