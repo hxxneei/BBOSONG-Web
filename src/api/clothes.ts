@@ -159,12 +159,7 @@ export interface ClothesDetailData {
   createdAt: string;
 }
 
-export interface GetClothesDetailResponse {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: ClothesDetailData;
-}
+export type GetClothesDetailResponse = ApiResponse<ClothesDetailData>;
 
 // 상세 조회
 export const getClothesDetail = async (clothesId: number) => {
@@ -185,11 +180,14 @@ export const getClothesDetail = async (clothesId: number) => {
 };
 
 // 삭제
-export const deleteClothes = async (clothesId: number) => {
-  const response = await axiosInstance.delete<{
-    isSuccess: boolean;
-    message: string;
-  }>(`/clothes/${clothesId}`);
+export type DeleteClothesResponse = ApiResponse<null>;
+
+export const deleteClothes = async (
+  clothesId: number,
+): Promise<DeleteClothesResponse> => {
+  const response = await axiosInstance.delete<DeleteClothesResponse>(
+    `/clothes/${clothesId}`,
+  );
   if (response.data.isSuccess) {
     invalidateClothesCache();
   }
