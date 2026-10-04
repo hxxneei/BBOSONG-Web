@@ -18,6 +18,7 @@ import SignupComplete from "./pages/SignupComplete";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import { hasAuthTokens } from "./utils/authStorage";
 import { subscribeToAuthExpired } from "./utils/authEvents";
+import { getChatStepFromSearch } from "./utils/chatStep";
 
 const importFabricScanner = () => import("./pages/FabricScanner");
 const importResultPage = () => import("./pages/ResultPage");
@@ -48,7 +49,6 @@ const MyClosetPage = lazy(importMyClosetPage);
 const withAuth = (element: ReactNode) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 const App = () => {
-  const [chatStep, setChatStep] = useState(1);
   const [isScannerCameraActive, setIsScannerCameraActive] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -66,7 +66,8 @@ const App = () => {
   const isBaseHidePath =
     hideNavPaths.includes(normalizedPath) || isCategoryPath;
   const isChatSubStep =
-    location.pathname.toLowerCase() === "/chatpage" && chatStep !== 1;
+    normalizedPath === "/chatpage" &&
+    getChatStepFromSearch(location.search) !== 1;
   const isScannerCameraPath =
     location.pathname.toLowerCase() === "/fabric-scanner" &&
     isScannerCameraActive;
@@ -109,9 +110,7 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route
             path="/chatpage"
-            element={withAuth(
-              <ChatPage onStepChange={(step) => setChatStep(step)} />,
-            )}
+            element={withAuth(<ChatPage />)}
           />
           <Route
             path="/fabric-scanner"

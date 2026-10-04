@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import FirstChatHome from "../components/ChatBot/FirstChatHome";
 import ChatPrepare from "../components/ChatBot/ChatPrepare";
@@ -6,6 +7,7 @@ import ChatMain from "../components/ChatBot/ChatMain";
 import { sendChatMessage, getChatMessages } from "../api/chat";
 import type { ChatMessage } from "../api/chat";
 import { optimizeImageFile } from "../utils/imageOptimizer";
+import { getChatStepFromSearch, type ChatStep } from "../utils/chatStep";
 
 export interface MessageStructure {
   from: "user" | "bot";
@@ -17,12 +19,7 @@ export interface MessageStructure {
   isPending?: boolean;
 }
 
-interface ChatPageProps {
-  onStepChange?: (step: number) => void;
-}
-
 const CHAT_MESSAGES_STORAGE_KEY = "bbosong_chat_messages";
-const CHAT_STEP_STORAGE_KEY = "bbosong_chat_step";
 const MAX_STORED_MESSAGES = 80;
 
 let localMessageSequence = 0;
@@ -181,13 +178,11 @@ const getStoredMessages = (): MessageStructure[] => {
   }
 };
 
-const ChatPage = ({ onStepChange }: ChatPageProps) => {
+const ChatPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const messageMutationVersionRef = useRef(0);
-
-  const [step, setStep] = useState<number>(() => {
-    const savedStep = sessionStorage.getItem(CHAT_STEP_STORAGE_KEY);
-    return savedStep ? Number(savedStep) : 1;
-  });
+  const step = getChatStepFromSearch(location.search);
 
   const [input, setInput] = useState("");
   const userName = localStorage.getItem("nickname") || "회원";
@@ -196,12 +191,38 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    sessionStorage.setItem(CHAT_STEP_STORAGE_KEY, String(step));
-    if (onStepChange) {
-      onStepChange(step);
+  const goToStep = useCallback(
+    (nextStep: ChatStep, replace = false) => {
+      const searchParams = new URLSearchParams(location.search);
+      if (nextStep === 1) {
+        searchParams.delete("step");
+      } else {
+        searchParams.set("step", String(nextStep));
+      }
+
+      navigate(
+        {
+          pathname: location.pathname,
+          search: searchParams.toString(),
+        },
+        {
+          replace,
+          state: replace ? null : { chatStepFrom: step },
+        },
+      );
+    },
+    [location.pathname, location.search, navigate, step],
+  );
+
+  const handleBack = useCallback(() => {
+    const previousStep: ChatStep = step === 3 ? 2 : 1;
+    if (location.state?.chatStepFrom === previousStep) {
+      navigate(-1);
+      return;
     }
-  }, [step, onStepChange]);
+
+    goToStep(previousStep, true);
+  }, [goToStep, location.state, navigate, step]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -370,26 +391,28 @@ const ChatPage = ({ onStepChange }: ChatPageProps) => {
 
   const handleGoChat = useCallback(
     (initialMessage?: string) => {
-      setStep(3);
+      goToStep(3);
 
       if (initialMessage) {
         void handleSendMessage(initialMessage);
       }
     },
-    [handleSendMessage],
+    [goToStep, handleSendMessage],
   );
 
   return (
     <ChatWrapper>
-      {step === 1 && <FirstChatHome onStart={() => setStep(2)} />}
-      {step === 2 && <ChatPrepare onGoChat={handleGoChat} />}
+      {step === 1 && <FirstChatHome onStart={() => goToStep(2)} />}
+      {step === 2 && (
+        <ChatPrepare onGoChat={handleGoChat} onBack={handleBack} />
+      )}
       {step === 3 && (
         <ChatMain
           messages={messages}
           input={input}
           setInput={setInput}
           onSendMessage={(text, file) => handleSendMessage(text, file)}
-          onBack={() => setStep(1)}
+          onBack={handleBack}
           userName={userName}
           isLoading={isLoading}
         />

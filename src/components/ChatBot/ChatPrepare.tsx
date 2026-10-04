@@ -1,20 +1,19 @@
 import React from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import BSProfile from "../../assets/ChatPage/BSProfile.webp";
 
 interface ChatPrepareProps {
   onGoChat: (initialMessage?: string) => void;
+  onBack: () => void;
 }
 
-const ChatPrepare: React.FC<ChatPrepareProps> = ({ onGoChat }) => {
-  const navigate = useNavigate();
+const ChatPrepare: React.FC<ChatPrepareProps> = ({ onGoChat, onBack }) => {
   const userNickname = localStorage.getItem("nickname") || "보송이";
   return (
     <PageWrapper>
       <TopAppBar>
-        <BackButton onClick={() => navigate(-1)}>
+        <BackButton type="button" onClick={onBack}>
           <ChevronLeft size={24} color="#777777" />
         </BackButton>
         <HeaderProfile>
