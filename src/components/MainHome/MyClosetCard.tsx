@@ -161,7 +161,7 @@ const ItemImg = styled.img`
 
 const ItemName = styled.p`
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
   line-height: 1.4;
   word-break: keep-all;

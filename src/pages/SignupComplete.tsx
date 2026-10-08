@@ -75,7 +75,7 @@ const LoginBtn = styled.button`
   background-color: #4b80fc;
   color: white;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
   transition:

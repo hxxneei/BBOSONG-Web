@@ -270,7 +270,7 @@ const Address = styled.p`
   font-size: 14px;
   color: #4b80fc;
   margin: 8px 0 6px;
-  font-weight: 600;
+  font-weight: 700;
 `;
 
 const Phone = styled.a`
@@ -294,6 +294,6 @@ const PlaceLink = styled.a`
   background: #4b80fc;
   color: #ffffff;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
 `;

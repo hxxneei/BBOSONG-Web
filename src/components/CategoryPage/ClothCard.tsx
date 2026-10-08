@@ -89,7 +89,7 @@ const Color = styled.span`
 
 const Name = styled.p`
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: #000000ff;
   margin: 2px 0 0 0;
 

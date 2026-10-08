@@ -171,7 +171,7 @@ const TitleContainer = styled.div`
 const HeaderTitle = styled.h1`
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: #111827;
 `;
 

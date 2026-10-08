@@ -301,7 +301,7 @@ const Screen = styled.main`
 `;
 
 const Strong = styled.strong`
-  font-weight: 600;
+  font-weight: 700;
   color: #2563eb;
   font-size: 14px;
 `;
@@ -383,7 +383,7 @@ const BaseModalBtn = styled.button`
   height: 44px;
   border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;

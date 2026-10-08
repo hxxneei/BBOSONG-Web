@@ -327,7 +327,7 @@ const CardDesc = styled.p`
   font-size: 10px;
   color: #888;
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
   white-space: pre-line;
 `;
