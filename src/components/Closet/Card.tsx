@@ -33,7 +33,7 @@ const Card = styled.button`
   border-radius: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: #000000ff;
   font-family: inherit;
   transition: transform 0.15s ease;

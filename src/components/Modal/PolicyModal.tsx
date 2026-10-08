@@ -119,6 +119,6 @@ const ConfirmButton = styled.button`
   color: white;
   border: none;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 `;

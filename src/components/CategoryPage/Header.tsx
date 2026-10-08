@@ -37,6 +37,6 @@ const BackButton = styled.button`
 
 const Title = styled.h1`
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: #000;
 `;

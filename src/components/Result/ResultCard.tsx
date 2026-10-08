@@ -30,7 +30,7 @@ const Head = styled.div`
 
 const Path = styled.p`
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #4b80fc;
 `;
 
@@ -88,14 +88,14 @@ const Row = styled.div`
 const Dt = styled.dt`
   margin: 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #4b80fc;
 `;
 
 // (소재 + 색상_right)
 const Dd = styled.dd`
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   margin-left: 0px;
 
   ul {
@@ -116,7 +116,7 @@ const Bullet = styled.li.withConfig({
   padding-left: 14px;
 
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: ${({ highlight }) => (highlight ? "#4B80FC" : "#111827")};
   line-height: 1.5;
 

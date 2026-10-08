@@ -34,7 +34,7 @@ const P = styled.p`
   margin: 4px 0;
   color: #111111;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 14px;
 
   &:first-child {

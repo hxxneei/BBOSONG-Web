@@ -145,7 +145,7 @@ const BaseBtn = styled.button`
   height: 42px;
   border: 0;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   cursor: pointer;
 `;

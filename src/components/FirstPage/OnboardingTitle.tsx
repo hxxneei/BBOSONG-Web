@@ -128,7 +128,7 @@ export const StyledButton = styled.button<{ $isStart?: boolean }>`
   border: none;
   border-radius: 16px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.15s;
 

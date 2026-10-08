@@ -13,7 +13,7 @@ export const BaseBtn = styled.button`
   border-radius: 15px;
   padding: 14px 16px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   outline: none;
   box-sizing: border-box;

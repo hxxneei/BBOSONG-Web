@@ -78,7 +78,7 @@ const StartBtn = styled.button`
   color: white;
   border-radius: 12px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(75, 128, 252, 0.2);
 
