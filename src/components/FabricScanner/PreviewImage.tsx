@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-import Camera from "../../assets/camera.png";
+import Camera from "../../assets/camera.webp";
 type Props = {
   aspectRatio?: number;
 };
