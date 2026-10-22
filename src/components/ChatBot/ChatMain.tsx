@@ -22,8 +22,8 @@ interface Props {
     clientMessageId: string;
     messagePart: "image" | "text";
   }[];
-  input: string;
-  setInput: (val: string) => void;
+  initialInput: string;
+  onDraftChange: (value: string) => void;
   onSendMessage: (text: string, file: File | null) => void;
   onBack: () => void;
   userName?: string;
@@ -32,8 +32,8 @@ interface Props {
 
 const ChatMain: React.FC<Props> = ({
   messages,
-  input,
-  setInput,
+  initialInput,
+  onDraftChange,
   onSendMessage,
   onBack,
   userName,
@@ -75,18 +75,13 @@ const ChatMain: React.FC<Props> = ({
     }
   }, [imagePreviewUrl]);
 
-  const handleFinalSubmit = useCallback(() => {
-    if (isLoading) return;
-    if (!input.trim() && !selectedImageFile) return;
-
-    onSendMessage(input, selectedImageFile);
-
+  const handleSubmitted = useCallback(() => {
     setSelectedImageFile(null);
     setImagePreviewUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }, [input, isLoading, onSendMessage, selectedImageFile]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -183,47 +178,100 @@ const ChatMain: React.FC<Props> = ({
             </PreviewContainer>
           </ImagePreviewBar>
         )}
-        <InputBox>
-          <button
-            className="icon-btn"
-            type="button"
-            aria-label="이미지 첨부"
-            onClick={handleCameraClick}
-            disabled={isLoading}
-          >
-            <img src={cameraBtn} alt="" aria-hidden="true" />
-          </button>
-
-          <input
-            type="text"
-            aria-label="챗봇 메시지"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
-
-              e.preventDefault();
-              handleFinalSubmit();
-            }}
-            disabled={isLoading}
-            placeholder="뽀송이에게 무엇이든 물어보세요!"
-          />
-          <button
-            className="icon-btn"
-            type="button"
-            aria-label="메시지 전송"
-            onClick={handleFinalSubmit}
-            disabled={isLoading}
-          >
-            <img src={sendBtn} alt="" aria-hidden="true" />
-          </button>
-        </InputBox>
+        <ChatInput
+          initialInput={initialInput}
+          onDraftChange={onDraftChange}
+          selectedImageFile={selectedImageFile}
+          onOpenCamera={handleCameraClick}
+          onSendMessage={onSendMessage}
+          onSubmitted={handleSubmitted}
+          isLoading={isLoading}
+        />
       </InputSection>
     </Container>
   );
 };
 
 export default memo(ChatMain);
+
+interface ChatInputProps {
+  initialInput: string;
+  onDraftChange: (value: string) => void;
+  selectedImageFile: File | null;
+  onOpenCamera: () => void;
+  onSendMessage: Props["onSendMessage"];
+  onSubmitted: () => void;
+  isLoading: boolean;
+}
+
+const ChatInput = memo(function ChatInput({
+  initialInput,
+  onDraftChange,
+  selectedImageFile,
+  onOpenCamera,
+  onSendMessage,
+  onSubmitted,
+  isLoading,
+}: ChatInputProps) {
+  const [input, setInput] = useState(initialInput);
+
+  const handleFinalSubmit = useCallback(() => {
+    if (isLoading || (!input.trim() && !selectedImageFile)) return;
+
+    onSendMessage(input, selectedImageFile);
+    setInput("");
+    onDraftChange("");
+    onSubmitted();
+  }, [
+    input,
+    isLoading,
+    onDraftChange,
+    onSendMessage,
+    onSubmitted,
+    selectedImageFile,
+  ]);
+
+  return (
+    <InputBox>
+      <button
+        className="icon-btn"
+        type="button"
+        aria-label="이미지 첨부"
+        onClick={onOpenCamera}
+        disabled={isLoading}
+      >
+        <img src={cameraBtn} alt="" aria-hidden="true" />
+      </button>
+
+      <input
+        type="text"
+        aria-label="챗봇 메시지"
+        value={input}
+        onChange={(event) => {
+          setInput(event.target.value);
+          onDraftChange(event.target.value);
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+
+          event.preventDefault();
+          handleFinalSubmit();
+        }}
+        disabled={isLoading}
+        placeholder="뽀송이에게 무엇이든 물어보세요!"
+      />
+      <button
+        className="icon-btn"
+        type="button"
+        aria-label="메시지 전송"
+        onClick={handleFinalSubmit}
+        disabled={isLoading}
+      >
+        <img src={sendBtn} alt="" aria-hidden="true" />
+      </button>
+    </InputBox>
+  );
+});
 
 const Container = styled.div`
   display: flex;

@@ -182,14 +182,18 @@ const ChatPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const messageMutationVersionRef = useRef(0);
+  const inputDraftRef = useRef("");
   const step = getChatStepFromSearch(location.search);
 
-  const [input, setInput] = useState("");
   const userName = localStorage.getItem("nickname") || "회원";
 
   const [messages, setMessages] = useState<MessageStructure[]>(getStoredMessages);
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleDraftChange = useCallback((value: string) => {
+    inputDraftRef.current = value;
+  }, []);
 
   const goToStep = useCallback(
     (nextStep: ChatStep, replace = false) => {
@@ -297,7 +301,7 @@ const ChatPage = () => {
     if (!textToSend.trim() && !imageFile) return;
 
     messageMutationVersionRef.current += 1;
-    setInput("");
+    inputDraftRef.current = "";
 
     const uploadImageFile = imageFile
       ? await optimizeImageFile(imageFile, {
@@ -409,9 +413,9 @@ const ChatPage = () => {
       {step === 3 && (
         <ChatMain
           messages={messages}
-          input={input}
-          setInput={setInput}
-          onSendMessage={(text, file) => handleSendMessage(text, file)}
+          initialInput={inputDraftRef.current}
+          onDraftChange={handleDraftChange}
+          onSendMessage={handleSendMessage}
           onBack={handleBack}
           userName={userName}
           isLoading={isLoading}
