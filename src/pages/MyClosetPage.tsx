@@ -5,7 +5,6 @@ import styled from "styled-components";
 import {
   getFavoriteClothes,
   toggleClothesFavorite,
-  type ClothesListItem,
 } from "../api/clothes";
 import SearchBar from "../common/SearchBar";
 import ClothGrid, {
@@ -17,7 +16,7 @@ import { useFeedbackModal } from "../hooks/useFeedbackModal";
 export default function MyClosetPage() {
   const navigate = useNavigate();
   const { showConfirm } = useFeedbackModal();
-  const [clothes, setFavorites] = useState<ClothesListItem[]>([]);
+  const [clothes, setFavorites] = useState<ClothGridItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
 
@@ -26,7 +25,16 @@ export default function MyClosetPage() {
       try {
         const res = await getFavoriteClothes();
         if (res.isSuccess) {
-          setFavorites(res.result);
+          setFavorites(
+            res.result.map((item) => ({
+              id: item.clothesId,
+              category: item.categoryName,
+              name: item.name,
+              color: item.color || "색상 정보 없음",
+              imageUrl: item.imageUrl,
+              isFavorite: true,
+            })),
+          );
         }
       } catch (error) {
         console.error("즐겨찾기 옷 목록을 가져오지 못했습니다.", error);
@@ -46,7 +54,7 @@ export default function MyClosetPage() {
       const res = await toggleClothesFavorite(clothesId, false);
       if (res.isSuccess) {
         setFavorites((currentClothes) =>
-          currentClothes.filter((item) => item.clothesId !== clothesId),
+          currentClothes.filter((item) => item.id !== clothesId),
         );
       }
     } catch (error) {
@@ -54,23 +62,13 @@ export default function MyClosetPage() {
     }
   }, [showConfirm]);
 
-  const clothesGridItems = useMemo<ClothGridItem[]>(() => {
+  const clothesGridItems = useMemo(() => {
     const normalizedKeyword = searchKeyword.trim().toLowerCase();
 
-    return clothes
-      .filter((item) =>
-        item.name.toLowerCase().includes(normalizedKeyword),
-      )
-      .map((item) => ({
-        id: item.clothesId,
-        category: item.categoryName,
-        name: item.name,
-        color: item.color || "색상 정보 없음",
-        imageUrl: item.imageUrl,
-        isFavorite: true,
-        onToggleFavorite: () => void handleHeartToggle(item.clothesId),
-      }));
-  }, [clothes, handleHeartToggle, searchKeyword]);
+    return clothes.filter((item) =>
+      item.name.toLowerCase().includes(normalizedKeyword),
+    );
+  }, [clothes, searchKeyword]);
 
   const handleClothClick = useCallback((clothesId: number) => {
     navigate(`/my-closet/${clothesId}`);
@@ -93,6 +91,7 @@ export default function MyClosetPage() {
         <ClothGrid
           items={clothesGridItems}
           onItemClick={handleClothClick}
+          onToggleFavorite={handleHeartToggle}
           emptyState={
             <NoDataWrapper>
               <HeartCrack size={64} color="#BFC5D2" />

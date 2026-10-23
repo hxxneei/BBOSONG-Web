@@ -2,24 +2,21 @@ import styled from "styled-components";
 import { memo, useCallback, type ReactNode } from "react";
 import ClothCard, { type ClothCardItem } from "./ClothCard";
 
-export type ClothGridItem = ClothCardItem & {
-  onToggleFavorite?: () => void;
-};
+export type ClothGridItem = ClothCardItem;
 
 interface ClothGridProps {
   items: ClothGridItem[];
   onItemClick: (clothesId: number) => void;
+  onToggleFavorite?: (clothesId: number, currentFavorite: boolean) => void;
   emptyState?: ReactNode;
 }
 
-function ClothGrid({ items, onItemClick, emptyState = null }: ClothGridProps) {
-  const handleCardClick = useCallback(
-    (clothesId: number) => {
-      onItemClick(clothesId);
-    },
-    [onItemClick],
-  );
-
+function ClothGrid({
+  items,
+  onItemClick,
+  onToggleFavorite,
+  emptyState = null,
+}: ClothGridProps) {
   if (items.length === 0) {
     return emptyState;
   }
@@ -27,20 +24,53 @@ function ClothGrid({ items, onItemClick, emptyState = null }: ClothGridProps) {
   return (
     <Grid>
       {items.map((cloth) => (
-        <CardWrapper key={cloth.id}>
-          <CardOpenButton
-            type="button"
-            aria-label={`${cloth.name} 상세 보기`}
-            onClick={() => handleCardClick(cloth.id)}
-          />
-          <ClothCard item={cloth} onToggleFavorite={cloth.onToggleFavorite} />
-        </CardWrapper>
+        <ClothGridCard
+          key={cloth.id}
+          cloth={cloth}
+          onItemClick={onItemClick}
+          onToggleFavorite={onToggleFavorite}
+        />
       ))}
     </Grid>
   );
 }
 
 export default memo(ClothGrid);
+
+interface ClothGridCardProps {
+  cloth: ClothGridItem;
+  onItemClick: ClothGridProps["onItemClick"];
+  onToggleFavorite: ClothGridProps["onToggleFavorite"];
+}
+
+const ClothGridCard = memo(function ClothGridCard({
+  cloth,
+  onItemClick,
+  onToggleFavorite,
+}: ClothGridCardProps) {
+  const handleCardClick = useCallback(() => {
+    onItemClick(cloth.id);
+  }, [cloth.id, onItemClick]);
+
+  const handleToggleFavorite = useCallback(() => {
+    onToggleFavorite?.(cloth.id, Boolean(cloth.isFavorite));
+  }, [cloth.id, cloth.isFavorite, onToggleFavorite]);
+
+  return (
+    <CardWrapper>
+      <CardOpenButton
+        type="button"
+        aria-label={`${cloth.name} 상세 보기`}
+        onClick={handleCardClick}
+      />
+      <ClothCard
+        item={cloth}
+        onToggleFavorite={onToggleFavorite ? handleToggleFavorite : undefined}
+      />
+    </CardWrapper>
+  );
+});
+
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 162px));
