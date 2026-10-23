@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import SearchBar from "../common/SearchBar";
 import styled from "styled-components";
@@ -114,16 +114,6 @@ export default function CategoryPage() {
     }
   }, [showAlert]);
 
-  const clothesGridItems = useMemo(
-    () =>
-      clothesList.map((cloth) => ({
-        ...cloth,
-        onToggleFavorite: () =>
-          handleToggleFavoriteAPI(cloth.id, Boolean(cloth.isFavorite)),
-      })),
-    [clothesList, handleToggleFavoriteAPI],
-  );
-
   const handleClothClick = useCallback((clothesId: number) => {
     navigate(`/my-closet/${clothesId}`);
   }, [navigate]);
@@ -157,8 +147,9 @@ export default function CategoryPage() {
         </div>
       ) : (
         <ClothGrid
-          items={clothesGridItems}
+          items={clothesList}
           onItemClick={handleClothClick}
+          onToggleFavorite={handleToggleFavoriteAPI}
         />
       )}
     </PageWrapper>
