@@ -4,6 +4,8 @@ import { getWeatherLaundry } from "../../api/weather";
 
 const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
 const WEATHER_CACHE_COORDINATE_PRECISION = 2;
+const SAVED_LOCATION_KEY = "weather:last-location";
+const SAVED_LOCATION_TTL_MS = 6 * 60 * 60 * 1000;
 const SEOUL_LAT = 37.5665;
 const SEOUL_LON = 126.978;
 const GEOLOCATION_OPTIONS: PositionOptions = {
@@ -35,6 +37,62 @@ interface WeatherCache {
   expiresAt: number;
   recommendations: RecommendationData[];
 }
+
+interface SavedLocation {
+  latitude: number;
+  longitude: number;
+  savedAt: number;
+}
+
+const readSavedLocation = (): SavedLocation | null => {
+  try {
+    const raw = localStorage.getItem(SAVED_LOCATION_KEY);
+    if (!raw) return null;
+
+    const location: SavedLocation = JSON.parse(raw);
+    const now = Date.now();
+    const isValid =
+      location !== null &&
+      Number.isFinite(location.latitude) &&
+      Math.abs(location.latitude) <= 90 &&
+      Number.isFinite(location.longitude) &&
+      Math.abs(location.longitude) <= 180 &&
+      Number.isFinite(location.savedAt) &&
+      location.savedAt <= now &&
+      now - location.savedAt < SAVED_LOCATION_TTL_MS;
+
+    if (isValid) return location;
+
+    localStorage.removeItem(SAVED_LOCATION_KEY);
+  } catch {
+    // Storage access may be blocked; weather can still use the current GPS position.
+  }
+
+  return null;
+};
+
+const saveLocation = (latitude: number, longitude: number) => {
+  try {
+    localStorage.setItem(
+      SAVED_LOCATION_KEY,
+      JSON.stringify({
+        latitude: Number(latitude.toFixed(WEATHER_CACHE_COORDINATE_PRECISION)),
+        longitude: Number(longitude.toFixed(WEATHER_CACHE_COORDINATE_PRECISION)),
+        savedAt: Date.now(),
+      } satisfies SavedLocation),
+    );
+  } catch {
+    // A disabled or full storage must not prevent weather recommendations.
+  }
+};
+
+const clearSavedLocation = () => {
+  try {
+    localStorage.removeItem(SAVED_LOCATION_KEY);
+  } catch {
+    // Ignore unavailable storage.
+  }
+};
 
 const weatherCache = new Map<string, WeatherCache>();
 const weatherRequests = new Map<string, Promise<RecommendationData[]>>();
@@ -136,26 +194,27 @@ const LaundryRecommend = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let latestRequestId = 0;
 
     const updateRecommendations = async (
       latitude: number,
       longitude: number,
     ) => {
+      const requestId = ++latestRequestId;
+
       try {
         const nextRecommendations = await getWeatherRecommendations(
           latitude,
           longitude,
         );
 
-        if (isMounted) {
+        if (isMounted && requestId === latestRequestId) {
           setRecommendations(nextRecommendations);
         }
       } catch (error) {
-        console.error("날씨 세탁 추천 데이터 호출 실패:", error);
+        if (!isMounted || requestId !== latestRequestId) return;
 
-        if (!isMounted) {
-          return;
-        }
+        console.error("날씨 세탁 추천 데이터 호출 실패:", error);
 
         try {
           const defaultRecommendations = await getWeatherRecommendations(
@@ -163,18 +222,23 @@ const LaundryRecommend = () => {
             SEOUL_LON,
           );
 
-          if (isMounted) {
+          if (isMounted && requestId === latestRequestId) {
             setRecommendations(defaultRecommendations);
           }
         } catch (defaultError) {
           console.error("기본 위치 날씨 데이터 호출 실패:", defaultError);
         }
       } finally {
-        if (isMounted) {
+        if (isMounted && requestId === latestRequestId) {
           setIsLoading(false);
         }
       }
     };
+
+    const savedLocation = readSavedLocation();
+    if (savedLocation) {
+      void updateRecommendations(savedLocation.latitude, savedLocation.longitude);
+    }
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -182,18 +246,26 @@ const LaundryRecommend = () => {
           if (!isMounted) return;
 
           const { latitude, longitude } = position.coords;
+          saveLocation(latitude, longitude);
           void updateRecommendations(latitude, longitude);
         },
         (error) => {
           if (!isMounted) return;
 
           console.error("GPS 위치 권한 거부 또는 획득 실패:", error);
-          void updateRecommendations(SEOUL_LAT, SEOUL_LON);
+          if (error.code === error.PERMISSION_DENIED) {
+            clearSavedLocation();
+            void updateRecommendations(SEOUL_LAT, SEOUL_LON);
+          } else if (!savedLocation) {
+            void updateRecommendations(SEOUL_LAT, SEOUL_LON);
+          }
         },
         GEOLOCATION_OPTIONS,
       );
     } else {
-      void updateRecommendations(SEOUL_LAT, SEOUL_LON);
+      if (!savedLocation) {
+        void updateRecommendations(SEOUL_LAT, SEOUL_LON);
+      }
     }
 
     return () => {
